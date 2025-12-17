@@ -14,7 +14,7 @@ body {
 
 /* 2. Transforma o container em uma coluna flexível que ocupa a tela toda */
 .container {
-    height: 100vh; /* 100% da altura da visão */
+    height: 95vh; /* 100% da altura da visão */
     display: flex;
     flex-direction: column; /* Organiza itens um embaixo do outro */
     box-sizing: border-box; /* Garante que padding não estoure o tamanho */
@@ -33,6 +33,11 @@ body {
   padding: 0 12px;
 
   -webkit-app-region: drag; /* 🔥 permite arrastar a janela */
+}
+.titlebar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .window-controls {
