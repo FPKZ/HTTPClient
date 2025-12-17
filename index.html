@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Postman to HTTP Converter</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Postman ➔ .http</h1>
+        
+        <div id="drop-zone">
+            <p>Arraste arquivos .json ou pastas aqui</p>
+            <p>ou</p>
+            <button id="btn-select">Selecionar Pasta para Varrer</button>
+        </div>
+
+        <div id="logs" class="log-container">
+            <div class="log-entry">Aguardando arquivos...</div>
+        </div>
+    </div>
+    <script src="renderer.js"></script>
+</body>
+</html>
