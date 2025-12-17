@@ -3,21 +3,32 @@ const path = require('path');
 const fs = require('fs');
 const converter = require('./converter-logic'); // Importa seu script modificado
 
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 800,
     height: 600,
     minWidth: 400,
     minHeight: 500,
+    frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
     }
   });
 
+  win.removeMenu(); // 🔥 Remove o menu do topo
   win.loadFile('index.html');
   // win.webContents.openDevTools(); // Descomente para debug
+
+  // Controles da janela
+  ipcMain.on("minimize", () => win.minimize());
+  ipcMain.on("maximize", () => {
+    win.isMaximized() ? win.unmaximize() : win.maximize();
+  });
+  ipcMain.on("close", () => win.close());
+
 }
 
 app.whenReady().then(createWindow);

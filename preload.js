@@ -1,6 +1,10 @@
 const { contextBridge, ipcRenderer, webUtils } = require('electron'); // 1. Adicione webUtils aqui
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  minimize: () => ipcRenderer.send("minimize"),
+  maximize: () => ipcRenderer.send("maximize"),
+  close: () => ipcRenderer.send("close"),
+  
   selectFolder: () => ipcRenderer.invoke('dialog:openDirectory'),
   selectSaveLocation: () => ipcRenderer.invoke('dialog:saveLocation'),
   startConversion: (data) => ipcRenderer.send('start-conversion', data),

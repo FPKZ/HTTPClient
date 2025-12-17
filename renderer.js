@@ -2,6 +2,20 @@ const dropZone = document.getElementById('drop-zone');
 const btnSelect = document.getElementById('btn-select');
 const logsDiv = document.getElementById('logs');
 
+document.getElementById("minimize").onclick = () => {
+  window.electronAPI.minimize();
+};
+
+document.getElementById("maximize").onclick = () => {
+  window.electronAPI.maximize();
+};
+
+document.getElementById("close").onclick = () => {
+  window.electronAPI.close();
+};
+
+
+
 function addLog(message) {
     const div = document.createElement('div');
     div.className = 'log-entry';

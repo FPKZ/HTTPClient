@@ -8,13 +8,13 @@ module.exports = {
   },
   rebuildConfig: {},
   makers: [
-    // {
-    //   name: '@electron-forge/maker-squirrel',
-    //   config: {
-    //     name: 'script-node',
-    //     setupIcon: './assets/icon.png' // Ícone do instalador no Windows
-    //   },
-    // },
+    {
+      name: '@electron-forge/maker-squirrel',
+      config: {
+        name: 'script-node',
+        setupIcon: './assets/icon.png' // Ícone do instalador no Windows
+      },
+    },
     {
       name: '@electron-forge/maker-zip',
       platforms: ['linux', 'win32'],

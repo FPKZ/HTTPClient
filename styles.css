@@ -23,6 +23,42 @@ body {
     margin: 0 auto;
     text-align: center;
 }
+.titlebar {
+  height: 40px;
+  background: #1e1e1e;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+
+  -webkit-app-region: drag; /* 🔥 permite arrastar a janela */
+}
+
+.window-controls {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.window-controls button {
+  -webkit-app-region: no-drag; /* 🔥 botões clicáveis */
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 14px;
+  width: 36px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.3s;
+}
+
+.window-controls button:hover {
+  background: rgba(255,255,255,0.1);
+}
 
 h1 {
     margin-top: 0;
