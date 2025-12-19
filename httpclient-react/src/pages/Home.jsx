@@ -2,6 +2,7 @@ import React, { useState } from "react"; // useEffect removido, não é necessá
 import { Button, Tab, Row, Col, Nav, Form } from "react-bootstrap"; // Container e Tabs removidos (não usados com Tab.Container)
 import { useNavigate, useLocation } from "react-router-dom";
 import LogConsole from "../components/LogConsole";
+import { Edit } from "lucide-react";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function Home() {
   const data = location.state;
   // O user não estava sendo usado no exemplo, mas mantive
   // const user = data.user;
-  const rota = Object.entries(data.telas);
+  const [ rota, setRota] = useState(Object.entries(data.telas));
 
   // console.log(data)
 
@@ -27,6 +28,28 @@ export default function Home() {
   // Não use useEffect para isso, ou a variável começa undefined e quebra a lógica do "isActive".
   const [activeKey, setActiveKey] = useState(rota[0][0]);
   const [activeRota, setActiveRota] = useState("headers");
+
+  const handleInputChange = (screenIndex, sectionKey, fieldKey, newValue) => {
+    setRota((prevRota) => {
+      const newRota = [...prevRota];
+      const screenEntry = newRota[screenIndex];
+      const [screenName, screenData] = screenEntry;
+      
+      const newScreenData = {
+        ...screenData,
+        request: {
+          ...screenData.request,
+          [sectionKey]: {
+            ...screenData.request[sectionKey],
+            [fieldKey]: newValue,
+          },
+        },
+      };
+
+      newRota[screenIndex] = [screenName, newScreenData];
+      return newRota;
+    });
+  };
 
   const handleTest = () => {
     navigate("/upload");
@@ -161,7 +184,7 @@ export default function Home() {
                                     }
                                 </Nav>
                                 <button
-                                    className="text-amber-100 bg-[#c28a10] py-1 px-2 my-2 border rounded"
+                                    className="text-amber-100 hover:text-amber-200 bg-[#c28a10] hover:bg-[#c28a10]/80 py-1 px-2 my-2 rounded"
                                     style={{
                                         fontSize: "0.7rem",
                                     }}
@@ -195,23 +218,28 @@ export default function Home() {
                                           <div className="d-flex flex-col gap-2">
                                             {value &&
                                               Object.entries(value || {}).map(
-                                                ([key, value]) => {
-                                                  console.log(key, value);
+                                                ([fieldKey, fieldValue]) => {
+                                                  // console.log(fieldKey, fieldValue);
                                                   return (
-                                                    <div className="d-flex gap-2 bg-neutral-950 p-2 rounded">
+                                                    <div className="d-flex gap-2 bg-neutral-950 p-2 rounded" key={fieldKey}>
                                                       <small style={{ fontSize: "0.7rem"}}>
-                                                        {key}:
+                                                        {fieldKey}:
                                                       </small>
                                                       <small className="flex-1" style={{ fontSize: "0.7rem"}}>
-                                                        {value && 
-                                                        <input 
-                                                            type="text"
-                                                            className="w-100 focus:outline-none"
-                                                            value={
-                                                                typeof value === "object" ? JSON.stringify(value) 
-                                                                : value ? value : "null"
-                                                            } 
-                                                        />
+                                                        {fieldKey === "Content-Type" ? 
+                                                            <small>{fieldValue}</small>
+                                                            : (<div className="d-flex align-items-center gap-2 w-100">
+                                                                <input 
+                                                                    type="text"
+                                                                    className="w-100 bg-transparent text-gray-300 focus:outline-none"
+                                                                    value={
+                                                                        typeof fieldValue === "object" ? JSON.stringify(fieldValue) 
+                                                                        : fieldValue || ""
+                                                                    }
+                                                                    onChange={(e) => handleInputChange(index, key, fieldKey, e.target.value)}
+                                                                />
+                                                                <Edit size={12} className="text-gray-500" />
+                                                            </div>)
                                                         }
                                                       </small>
                                                     </div>
@@ -251,13 +279,13 @@ export default function Home() {
                           ))}
                         </div>
 
-                        <Button
+                        {/* <Button
                           variant="primary"
                           className="w-100"
                           onClick={handleTest}
                         >
                           Ação na tela {tela.name}
-                        </Button>
+                        </Button> */}
                       </Col>
                     </div>
                   </Tab.Pane>

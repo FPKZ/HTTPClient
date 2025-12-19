@@ -5,6 +5,10 @@
   --text-color: #ffffff;
   --accent-color: #007acc;
 }
+* {
+  -webkit-user-select: none;  /* Para compatibilidade com o Chromium */
+  user-select: none;          /* Padrão */
+}
 
 body {
   background-color: var(--bg-color);
