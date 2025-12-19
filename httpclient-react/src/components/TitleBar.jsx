@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Navbar, Nav } from 'react-bootstrap';
-import icon from '../assets/icon.png';
+import icon from '../../../assets/icon1.png';
 
 const TitleBar = () => {
   const handleMinimize = () => window.electronAPI.minimize();
@@ -8,19 +8,20 @@ const TitleBar = () => {
   const handleClose = () => window.electronAPI.close();
 
   return (
-    <div className="titlebar titlebar-drag-region d-flex justify-content-between align-items-center px-2" style={{ backgroundColor: '#1e1e1e', height: '40px', color: 'white' }}>
-      <div className="titlebar-left d-flex align-items-center gap-2">
+    <div className="titlebar titlebar-drag-region d-flex justify-content-between align-items-center" style={{ backgroundColor: '#1e1e1e', height: '35px', color: 'white' }}>
+      <div className="titlebar-left d-flex align-items-center gap-2 ms-2">
+        <img src={icon} alt="Icon" style={{ width: '20px', height: '20px' }} /> 
         <span className="fw-bold">HTTPClient React</span>
       </div>
 
-      <div className="window-controls d-flex no-drag">
-        <button onClick={handleMinimize} className="btn-control">
+      <div className="window-controls d-flex no-drag h-100">
+        <button onClick={handleMinimize} className="btn-control h-100">
           —
         </button>
-        <button onClick={handleMaximize} className="btn-control">
+        <button onClick={handleMaximize} className="btn-control h-100">
           ⬜
         </button>
-        <button onClick={handleClose} className="btn-control hover-red">
+        <button onClick={handleClose} className="btn-control hover-red h-100">
           ✕
         </button>
       </div>
