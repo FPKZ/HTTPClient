@@ -89,9 +89,9 @@ export default function Home() {
         id="main-tabs"
       >
         {/* Header com Navegação Scrollable */}
-        <Row className="g-0">
+        <Row className="flex-grow-0 g-0">
           <Col>
-            <div className="d-flex align-items-end position-relative bg-zinc-900">
+            <div className="d-flex align-items-end position-relative">
               {canScrollLeft && (
                 <Button
                   variant="link"
@@ -152,7 +152,7 @@ export default function Home() {
                     <div className="h-100 d-flex flex-column">
                       <div className="border-bottom !border-zinc-700 p-3">
                         {/* URL e Method info */}
-                        <div className="d-flex flex-column gap-2 mb-3">
+                        <div className="d-flex flex-column gap-2 mb-1">
                           <div className="d-flex gap-2 bg-neutral-950 p-2 rounded">
                             <small className="text-gray-500">URL:</small>
                             <small>{telaData.request.url}</small>
@@ -238,21 +238,21 @@ export default function Home() {
                       </div>
 
                       {/* Console / Logs Area */}
-                      <div className="mt-auto p-2 bg-black/20">
-                         <div 
-                          className="w-100 bg-black rounded p-2 mb-2" 
-                          style={{ height: "150px", overflowY: "auto", fontFamily: "monospace" }}
+                      <Col className="mt-auto flex flex-col items-end p-3 gap-2 overflow-auto">
+                        <div 
+                            className="flex-shrink-1 w-100 h-100 bg-black rounded p-2 mb-2" 
+                            style={{ minHeight: "150px",  overflowY: "auto", fontFamily: "monospace" }}
                         >
-                          {Array.from({ length: 20 }).map((_, i) => (
-                            <div key={i} className="text-xs text-zinc-500 border-b border-zinc-900 py-1">
-                              <span className="text-zinc-700">[{new Date().toLocaleTimeString()}]</span> Log entry for {screenKey} interface...
-                            </div>
-                          ))}
+                            {Array.from({ length: 20 }).map((_, i) => (
+                                <div key={i} className="text-xs text-zinc-500 border-b border-zinc-900 py-1">
+                                <span className="text-zinc-700">[{new Date().toLocaleTimeString()}]</span> Log entry for {screenKey} interface...
+                                </div>
+                            ))}
                         </div>
                         <Button variant="primary" className="w-100 py-2 font-bold uppercase" style={{ fontSize: '0.8rem' }} onClick={handleTest}>
-                          Ação na tela {screenKey}
+                            Ação na tela {screenKey}
                         </Button>
-                      </div>
+                      </Col>
                     </div>
                   </Tab.Pane>
                 ))}
