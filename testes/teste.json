@@ -1,0 +1,341 @@
+{
+	"info": {
+		"_postman_id": "9d178423-d5ff-4778-b753-72f4a2968058",
+		"name": "PREFEITURA CORE SISTEMA API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23987693",
+		"_collection_link": "https://red-rocket-904250.postman.co/workspace/My-Workspace~ae4d05d7-1a93-4975-8ef0-89f75f59d4db/collection/23987693-9d178423-d5ff-4778-b753-72f4a2968058?action=share&source=collection_link&creator=23987693"
+	},
+	"item": [
+		{
+			"name": "JWT_AUTH",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"tokenAcessoId\": \"d730e1cc29cf\", // string\r\n  \"tokenAcessoSenha\": \"GAwCtR{^7BriJ4h'6q\" // string\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://core-sistema-dev.peruibe.sp.gov.br/api/v1/auth/token",
+					"protocol": "https",
+					"host": [
+						"core-sistema-dev",
+						"peruibe",
+						"sp",
+						"gov",
+						"br"
+					],
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "LOGIN",
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-Application-Key",
+						"value": "d730e1cc29cf",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"usuaCpf\": \"37485227892\", // string\r\n  \"usuaSegSenha\": \"\" // string\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://core-sistema-dev.peruibe.sp.gov.br/api/v1/auth/login",
+					"protocol": "https",
+					"host": [
+						"core-sistema-dev",
+						"peruibe",
+						"sp",
+						"gov",
+						"br"
+					],
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"login"
+					],
+					"query": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"disabled": true
+						},
+						{
+							"key": "X-Application-Key",
+							"value": "d730e1cc29cf",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PERFIL",
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-Application-Key",
+						"value": "d730e1cc29cf",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Key",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://core-sistema-dev.peruibe.sp.gov.br/api/v1/perfil-do-usuario",
+					"protocol": "https",
+					"host": [
+						"core-sistema-dev",
+						"peruibe",
+						"sp",
+						"gov",
+						"br"
+					],
+					"path": [
+						"api",
+						"v1",
+						"perfil-do-usuario"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PERFIL",
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-Application-Key",
+						"value": "d730e1cc29cf",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Key",
+						"value": "ffbba7372fc83165a8e4c64690a992b43e9d959bdfe4699f3198dd36614e3fb0",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"usuaNome\": \"JORGE NUNES DA SILVA NETOcx2\", //não obrigatorio\r\n    \"usuaContato\": \"13997228664\", //não obrigatorio\r\n    \"usuaNascimento\": \"1992-12-02\" //não obrigatorio\r\n}\r\n"
+				},
+				"url": {
+					"raw": "https://core-sistema-dev.peruibe.sp.gov.br/api/v1/perfil-do-usuario",
+					"protocol": "https",
+					"host": [
+						"core-sistema-dev",
+						"peruibe",
+						"sp",
+						"gov",
+						"br"
+					],
+					"path": [
+						"api",
+						"v1",
+						"perfil-do-usuario"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PERFIL IMAGEM",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-Application-Key",
+						"value": "d730e1cc29cf",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Key",
+						"value": "b12b1fc1045c879988d3015804cdc3f7399400ce98ebdd15b1aeb223687b325d",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://core-sistema-dev.peruibe.sp.gov.br/api/v1/perfil-do-usuario/imagem",
+					"protocol": "https",
+					"host": [
+						"core-sistema-dev",
+						"peruibe",
+						"sp",
+						"gov",
+						"br"
+					],
+					"path": [
+						"api",
+						"v1",
+						"perfil-do-usuario",
+						"imagem"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PERFIL IMAGEM",
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data",
+						"type": "text"
+					},
+					{
+						"key": "X-Application-Key",
+						"value": "d730e1cc29cf",
+						"type": "text"
+					},
+					{
+						"key": "X-User-Key",
+						"value": "b12b1fc1045c879988d3015804cdc3f7399400ce98ebdd15b1aeb223687b325d",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "usuaImagemPerfil",
+							"type": "file",
+							"src": "/C:/Users/TI/Downloads/IMG_20241130_070335 - Mônica Matsumura Teixeira.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://core-sistema-dev.peruibe.sp.gov.br/api/v1/perfil-do-usuario/imagem",
+					"protocol": "https",
+					"host": [
+						"core-sistema-dev",
+						"peruibe",
+						"sp",
+						"gov",
+						"br"
+					],
+					"path": [
+						"api",
+						"v1",
+						"perfil-do-usuario",
+						"imagem"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
