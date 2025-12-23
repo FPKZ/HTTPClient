@@ -8,9 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-.env
 dist
 dist-ssr
+dist_electron
 *.local
 teste
 
@@ -24,8 +24,3 @@ teste
 *.njsproj
 *.sln
 *.sw?
-
-.vercel
-
-# Electron
-out

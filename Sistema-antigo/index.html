@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>HTTPClient</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="titlebar">
+        <div class="titlebar-left">
+            <img src="assets/icon.png" alt="Icon" width="15" height="15">
+            <span class="title">HTTPClient</span>
+        </div>
+
+        <div class="window-controls">
+            <button id="minimize">—</button>
+            <button id="maximize">⬜</button>
+            <button id="close">✕</button>
+        </div>
+    </div>
+    <div class="container">
+        <h1>HTTPClient</h1>
+        
+        <div id="drop-zone">
+            <p>Arraste arquivos .json ou pastas aqui</p>
+            <p>ou</p>
+            <button id="btn-select">Selecionar Pasta para Varrer</button>
+        </div>
+
+        <div id="logs" class="log-container">
+            <div class="log-entry">Aguardando arquivos...</div>
+        </div>
+    </div>
+    <script src="renderer.js"></script>
+</body>
+</html>

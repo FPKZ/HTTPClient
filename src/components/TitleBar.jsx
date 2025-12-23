@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Navbar, Nav } from 'react-bootstrap';
-import icon from '../../../assets/icon1.png';
+import icon from '../../assets/icon1.png';
 
 const TitleBar = () => {
   const handleMinimize = () => window.electronAPI.minimize();

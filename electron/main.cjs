@@ -53,6 +53,14 @@ ipcMain.handle("dialog:openDirectory", async () => {
   return filePaths[0];
 });
 
+ipcMain.handle("dialog:openFile", async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    properties: ["openFile"],
+  });
+  if (canceled) return null;
+  return filePaths[0];
+});
+
 ipcMain.handle("dialog:saveLocation", async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog({
     title: "Onde salvar os arquivos convertidos?",
@@ -150,5 +158,111 @@ ipcMain.handle("save-file", async (event, { content, defaultPath }) => {
   } catch (error) {
     console.error("Erro ao salvar arquivo:", error);
     return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle("request", async (event, { url, method, headers, body }) => {
+  const axios = require("axios");
+  const FormData = require("form-data");
+  const fs = require("fs");
+  const sender = event.sender;
+
+  let requestData = body;
+  let requestHeaders = { ...headers };
+
+  // Verifica se o corpo contém arquivos
+  const hasFiles =
+    body &&
+    typeof body === "object" &&
+    Object.values(body).some(
+      (val) => val && typeof val === "object" && val.src && val.type === "file"
+    );
+
+  if (hasFiles) {
+    const form = new FormData();
+    for (const [key, value] of Object.entries(body)) {
+      if (
+        value &&
+        typeof value === "object" &&
+        value.src &&
+        value.type === "file"
+      ) {
+        if (fs.existsSync(value.src)) {
+          form.append(key, fs.createReadStream(value.src));
+        }
+      } else {
+        // Se for um objeto que não é arquivo, enviamos como string JSON
+        // Se for um valor simples, enviamos como está
+        form.append(
+          key,
+          typeof value === "object" ? JSON.stringify(value) : value
+        );
+      }
+    }
+    requestData = form;
+    // Mescla os headers originais com os do FormData (importante para o boundary)
+    requestHeaders = { ...requestHeaders, ...form.getHeaders() };
+  }
+
+  try {
+    const response = await axios({
+      method,
+      url,
+      headers: requestHeaders,
+      data: requestData,
+      responseType: "arraybuffer",
+    });
+
+    const contentType = response.headers["content-type"] || "";
+    const isImage = contentType.startsWith("image/");
+
+    let responseDataBody;
+    if (isImage) {
+      responseDataBody = Buffer.from(response.data).toString("base64");
+    } else {
+      responseDataBody = Buffer.from(response.data).toString("utf8");
+      try {
+        if (contentType.includes("application/json")) {
+          responseDataBody = JSON.parse(responseDataBody);
+        }
+      } catch (e) {}
+    }
+
+    const responseData = {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+      data: responseDataBody,
+      isImage,
+      contentType,
+    };
+
+    sender.send("log", responseData);
+    return responseData;
+  } catch (error) {
+    console.error("Erro na requisição:", error);
+
+    let errorBody = error.message;
+    if (error.response?.data) {
+      errorBody = Buffer.from(error.response.data).toString("utf8");
+      try {
+        if (
+          error.response.headers["content-type"]?.includes("application/json")
+        ) {
+          errorBody = JSON.parse(errorBody);
+        }
+      } catch (e) {}
+    }
+
+    const errorData = {
+      status: error.response?.status || 500,
+      statusText: error.response?.statusText || "Internal Server Error",
+      headers: error.response?.headers || {},
+      data: errorBody,
+      isError: true,
+    };
+
+    sender.send("log", errorData);
+    return errorData;
   }
 });

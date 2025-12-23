@@ -110,15 +110,26 @@ function UploadPage() {
 
   const handleTest = () => {
     // navigate('/', { replace: true }); // replace: limpa o historico de navegacao
-    navigate("/", {
-      state: { user: { userId: 123, nome: "Felipe" }, telas: request },
+    // navigate("/", {
+    //   state: { user: { userId: 123, nome: "Felipe" }, telas: request },
+    // });
+    window.electronAPI.request({
+      url: "https://core-sistema-dev.peruibe.sp.gov.br/api/v1/auth/token",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: {
+        "tokenAcessoId": "d730e1cc29cf", 
+        "tokenAcessoSenha": "GAwCtR{^7BriJ4h'6q"
+      },
     });
   };
   return (
     <div className="d-flex flex-column h-100">
       <Container
         fluid
-        className="d-flex flex-column flex-grow-1 p-3 gap-3"
+        className="d-flex flex-column justify-center flex-grow-1 p-3 gap-3"
         style={{ overflow: "hidden", maxWidth: "900px" }}
       >
         <h1 className="text-center mb-4">HTTPClient</h1>
@@ -128,8 +139,8 @@ function UploadPage() {
           onFolderSelect={handleFolderSelect}
         />
 
-        <LogConsole logs={logs} />
-        <Button onClick={handleTest}>Test</Button>
+        {/* <LogConsole logs={logs} /> */}
+        {/* <Button onClick={handleTest}>Test</Button> */}
       </Container>
     </div>
   );
