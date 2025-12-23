@@ -10,6 +10,11 @@
   user-select: none;          /* Padrão */
 }
 
+.permitirSelect {
+  -webkit-user-select: text;  /* Para compatibilidade com o Chromium */
+  user-select: text;          /* Padrão */
+}
+
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
