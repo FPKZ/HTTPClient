@@ -70,7 +70,7 @@ function RequestComponents({
             <Button
               variant="outline-primary"
               size="sm"
-              className="mt-1"
+              className="mt-1 w-full"
               style={{ fontSize: "0.6rem" }}
               onClick={() => onSelectFile({ index, subKey, fieldKey })}
             >
@@ -84,6 +84,7 @@ function RequestComponents({
 }
 
 export default function Home() {
+
   const navigate = useNavigate();
   const location = useLocation();
   const navRef = useRef(null);
@@ -317,11 +318,11 @@ export default function Home() {
                       <div className="border-bottom !border-zinc-700 p-3">
                         {/* URL e Method info */}
                         <div className="d-flex flex-column gap-2 mb-1">
-                          <div className="d-flex gap-2 bg-neutral-950 p-2 rounded">
+                          <div className="d-flex items-center gap-2 bg-neutral-950 p-2 rounded">
                             <small className="text-gray-500">URL:</small>
                             <small>{telaData.request.url}</small>
                           </div>
-                          <div className="d-flex gap-2 bg-neutral-950 p-2 rounded">
+                          <div className="d-flex items-center gap-2 bg-neutral-950 p-2 rounded">
                             <small className="text-gray-500">Method:</small>
                             <small className="text-green-400">
                               {telaData.request.method}

@@ -85,9 +85,9 @@ function UploadPage() {
 
   const handleFolderSelect = async () => {
     if (!window.electronAPI) return;
-    const path = await window.electronAPI.selectFolder();
+    const path = await window.electronAPI.selectFile();
     if (path) {
-      startConversion(path, false);
+      startConversion(path, true);
     }
   };
 

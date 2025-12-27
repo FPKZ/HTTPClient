@@ -41,7 +41,7 @@ const DropZone = ({ onFileDrop, onFolderSelect }) => {
       <p className="mb-2">Arraste arquivos .json ou pastas aqui</p>
       <p className="text-secondary mb-3">ou</p>
       <Button variant="primary" onClick={onFolderSelect}>
-        Selecionar Pasta para Varrer
+        Selecionar arquivo .json
       </Button>
     </div>
   );

@@ -9,7 +9,7 @@ const isDev = !app.isPackaged;
 function createWindow() {
   const win = new BrowserWindow({
     width: 900,
-    height: 700,
+    height: 720,
     minWidth: 700,
     minHeight: 600,
     frame: false, // Custom TitleBar

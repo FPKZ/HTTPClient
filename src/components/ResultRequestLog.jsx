@@ -17,7 +17,7 @@ export default function ResultRequestLog({ logs }) {
     const statusColor = isError ? "text-red-500" : "text-green-400";
 
     return (
-      <div className="mb-4 font-mono text-xs">
+      <div className="mb-0 font-mono text-xs">
         {/* Status Line */}
         <div className={`${statusColor} font-bold mb-1`}>
           HTTP/1.1 {status} {statusText}
@@ -62,7 +62,7 @@ export default function ResultRequestLog({ logs }) {
 
   return (
     <div
-      className="shrink w-100 h-100 bg-black rounded p-3 mb-2 overflow-auto"
+      className="shrink w-100 h-100 bg-black rounded p-3 overflow-auto"
       style={{
         fontFamily: "'Fira Code', monospace",
       }}
