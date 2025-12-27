@@ -1,4 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { autoUpdater } = require("electron-updater");
+const log = require("electron-log");
 const path = require("path");
 const fs = require("fs");
 const converter = require("./converter-logic.cjs");
@@ -8,6 +10,8 @@ const isDev = !app.isPackaged;
 
 function createWindow() {
   const win = new BrowserWindow({
+    name: "HTTPClient",
+    icon: path.join(__dirname, "../assets/icon1.png"),
     width: 900,
     height: 720,
     minWidth: 700,
@@ -35,9 +39,49 @@ function createWindow() {
     win.isMaximized() ? win.unmaximize() : win.maximize();
   });
   ipcMain.on("close", () => win.close());
+  
+
 }
 
-app.whenReady().then(createWindow);
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = "info";
+
+// Eventos importantes
+autoUpdater.on("checking-for-update", () => {
+  log.info("🔍 Checando por atualizações...");
+});
+
+autoUpdater.on("update-available", (info) => {
+  log.info("⬇️ Atualização disponível:", info);
+});
+
+autoUpdater.on("update-not-available", (info) => {
+  log.info("✅ Nenhuma atualização disponível:", info);
+});
+
+autoUpdater.on("error", (err) => {
+  log.error("❌ Erro na atualização:", err);
+});
+
+autoUpdater.on("download-progress", (progress) => {
+  log.info(
+    `📦 Velocidade de download: ${progress.bytesPerSecond} - ${progress.percent.toFixed(
+      2
+    )}%`
+  );
+});
+
+autoUpdater.on("update-downloaded", (info) => {
+  log.info("🔁 Atualização baixada:", info);
+});
+
+app.whenReady().then(() => {
+  createWindow()
+
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdatesAndNotify();
+  }
+});
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();

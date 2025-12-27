@@ -126,7 +126,7 @@ function UploadPage() {
     });
   };
   return (
-    <div className="d-flex flex-column h-100">
+    <div className="d-flex flex-column h-100 position-relative">
       <Container
         fluid
         className="d-flex flex-column justify-center flex-grow-1 p-3 gap-3"
@@ -142,6 +142,9 @@ function UploadPage() {
         {/* <LogConsole logs={logs} /> */}
         {/* <Button onClick={handleTest}>Test</Button> */}
       </Container>
+      <div className="position-absolute bottom-0 end-0 px-2">
+        <span className="text-xs text-[#cecece]">v1.0.8</span>
+      </div>
     </div>
   );
 }
