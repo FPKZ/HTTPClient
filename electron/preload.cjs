@@ -12,6 +12,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onLog: (callback) => ipcRenderer.on('log', (_event, value) => callback(value)),
   onFinished: (callback) => ipcRenderer.on('conversion-finished', (_event, value) => callback(value)),
   request: (data) => ipcRenderer.invoke('request', data),
+
+  openMenu: () => ipcRenderer.send('open-menu'),
+  onMenuAction: (callback) => ipcRenderer.on('menu-action', (_event, value) => callback(value)),
+  
+  newFile: () => ipcRenderer.send('new-file'),
   
   getFilePath: (file) => webUtils.getPathForFile(file)
 });

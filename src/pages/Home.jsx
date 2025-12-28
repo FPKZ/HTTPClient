@@ -32,6 +32,33 @@ function RequestComponents({
     );
   }
 
+  function renderField(fieldKey, fieldValue) {
+    switch (typeof fieldValue){
+      case "object":
+        return (
+          <pre
+            className="permitirSelect text-gray-300 bg-zinc-900/50 p-2 rounded overflow-x-auto"
+            style={{ whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+          >
+            {JSON.stringify(fieldValue, null, 2)}
+          </pre>
+        )
+      default:
+        return (
+          <>
+          <AutoResizeTextarea
+            className="w-100 bg-transparent text-gray-300 focus:outline-none border-none p-0"
+            style={{ fontSize: "0.7rem" }}
+            value={fieldValue}
+            onChange={(e) => onInputChange(index, subKey, fieldKey, e.target.value)}
+          />
+          <Edit size={12} className="text-zinc-700" />
+          </>
+        );
+    }
+  }
+
+
   // Se for um objeto (ex: headers ou body JSON/FormData)
   return (
     <div className="d-flex flex-column gap-2">
@@ -49,19 +76,7 @@ function RequestComponents({
                 <small className="text-gray-400">{fieldValue}</small>
               ) : (
                 <>
-                  <AutoResizeTextarea
-                    className="w-100 bg-transparent text-gray-300 focus:outline-none border-none p-0"
-                    style={{ fontSize: "0.7rem" }}
-                    value={
-                      typeof fieldValue === "object"
-                        ? JSON.stringify(fieldValue, null, 2)
-                        : fieldValue || ""
-                    }
-                    onChange={(e) =>
-                      onInputChange(index, subKey, fieldKey, e.target.value)
-                    }
-                  />
-                  <Edit size={12} className="text-zinc-700" />
+                  {renderField(fieldKey, fieldValue)}
                 </>
               )}
             </div>

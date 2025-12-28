@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
 const path = require("path");
@@ -41,6 +41,64 @@ function createWindow() {
   ipcMain.on("close", () => win.close());
   
 
+  // Menu Nativo
+  const template = [
+    {
+      label: "Novo Arquivo",
+      click: () => {
+        win.webContents.reload();
+      },
+    },
+    {
+      label: "Arquivo",
+      submenu: [
+        {
+          label: "Configurações",
+          click: () => {
+            win.webContents.send("menu-action", "open-settings");
+          },
+        },
+        { type: "separator" },
+        {
+          label: "Sair",
+          accelerator: "CmdOrCtrl+Q",
+          role: "quit",
+        },
+      ],
+    },
+    {
+      label: "Editar",
+      submenu: [
+        { role: "undo" },
+        { role: "redo" },
+        { type: "separator" },
+        { role: "cut" },
+        { role: "copy" },
+        { role: "paste" },
+      ],
+    },
+    {
+      label: "Visualizar",
+      submenu: [
+        { role: "reload" },
+        { role: "forcereload" },
+        isDev && { role: "toggledevtools" },
+        { type: "separator" },
+        { role: "resetzoom" },
+        { role: "zoomin" },
+        { role: "zoomout" },
+        { type: "separator" },
+        { role: "togglefullscreen" },
+      ],
+    },
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+
+  ipcMain.on("open-menu", () => {
+    menu.popup({ window: win });
+  });
 }
 
 autoUpdater.logger = log;
