@@ -20,8 +20,12 @@ export default function AutoResizeTextarea({
 
     adjustHeight();
 
-    window.addEventListener("resize", adjustHeight);
-    return () => window.removeEventListener("resize", adjustHeight);
+    const observer = new ResizeObserver(adjustHeight);
+    if (textareaRef.current) {
+      observer.observe(textareaRef.current);
+    }
+
+    return () => observer.disconnect();
   }, [value]);
 
   return (

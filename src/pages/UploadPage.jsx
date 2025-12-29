@@ -108,23 +108,23 @@ function UploadPage() {
     });
   };
 
-  const handleTest = () => {
-    // navigate('/', { replace: true }); // replace: limpa o historico de navegacao
-    // navigate("/", {
-    //   state: { user: { userId: 123, nome: "Felipe" }, telas: request },
-    // });
-    window.electronAPI.request({
-      url: "https://core-sistema-dev.peruibe.sp.gov.br/api/v1/auth/token",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: {
-        "tokenAcessoId": "d730e1cc29cf", 
-        "tokenAcessoSenha": "GAwCtR{^7BriJ4h'6q"
-      },
-    });
-  };
+  // const handleTest = () => {
+  //   // navigate('/', { replace: true }); // replace: limpa o historico de navegacao
+  //   // navigate("/", {
+  //   //   state: { user: { userId: 123, nome: "Felipe" }, telas: request },
+  //   // });
+  //   window.electronAPI.request({
+  //     url: "https://core-sistema-dev.peruibe.sp.gov.br/api/v1/auth/token",
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: {
+  //       "tokenAcessoId": "d730e1cc29cf", 
+  //       "tokenAcessoSenha": "GAwCtR{^7BriJ4h'6q"
+  //     },
+  //   });
+  // };
   return (
     <div className="d-flex flex-column h-100 position-relative">
       <Container
@@ -143,7 +143,7 @@ function UploadPage() {
         {/* <Button onClick={handleTest}>Test</Button> */}
       </Container>
       <div className="position-absolute bottom-0 end-0 px-2">
-        <span className="text-xs text-[#cecece]">v1.0.8</span>
+        <span className="text-xs text-[#cecece]">v1.0.9</span>
       </div>
     </div>
   );

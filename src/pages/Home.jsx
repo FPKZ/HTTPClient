@@ -33,31 +33,37 @@ function RequestComponents({
   }
 
   function renderField(fieldKey, fieldValue) {
-    switch (typeof fieldValue){
+    switch (typeof fieldValue) {
       case "object":
         return (
           <pre
-            className="permitirSelect text-gray-300 bg-zinc-900/50 p-2 rounded overflow-x-auto"
-            style={{ whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+            className="permitirSelect text-gray-300 bg-zinc-900/50 p-2 w-100 rounded"
+            style={{
+              whiteSpace: "pre-wrap",
+              overflowWrap: "break-word",
+              wordBreak: "break-all",
+              maxWidth: "100%",
+            }}
           >
             {JSON.stringify(fieldValue, null, 2)}
           </pre>
-        )
+        );
       default:
         return (
           <>
-          <AutoResizeTextarea
-            className="w-100 bg-transparent text-gray-300 focus:outline-none border-none p-0"
-            style={{ fontSize: "0.7rem" }}
-            value={fieldValue}
-            onChange={(e) => onInputChange(index, subKey, fieldKey, e.target.value)}
-          />
-          <Edit size={12} className="text-zinc-700" />
+            <AutoResizeTextarea
+              className="w-100 bg-transparent text-gray-300 focus:outline-none border-none p-0"
+              style={{ fontSize: "0.7rem" }}
+              value={fieldValue}
+              onChange={(e) =>
+                onInputChange(index, subKey, fieldKey, e.target.value)
+              }
+            />
+            <Edit size={12} className="text-zinc-700" />
           </>
         );
     }
   }
-
 
   // Se for um objeto (ex: headers ou body JSON/FormData)
   return (
@@ -75,9 +81,7 @@ function RequestComponents({
               {fieldKey === "Content-Type" ? (
                 <small className="text-gray-400">{fieldValue}</small>
               ) : (
-                <>
-                  {renderField(fieldKey, fieldValue)}
-                </>
+                <>{renderField(fieldKey, fieldValue)}</>
               )}
             </div>
           </div>
@@ -99,7 +103,6 @@ function RequestComponents({
 }
 
 export default function Home() {
-
   const navigate = useNavigate();
   const location = useLocation();
   const navRef = useRef(null);
@@ -224,6 +227,7 @@ export default function Home() {
   const handleSelectFile = async ({ index, subKey, fieldKey }) => {
     if (!window.electronAPI) return;
     const filePath = await window.electronAPI.selectFile();
+    if (!filePath) return;
     // console.log(filePath);
     setRota((prevRota) => {
       const newRota = [...prevRota];
