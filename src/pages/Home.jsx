@@ -190,9 +190,9 @@ export default function Home() {
     });
   };
 
-  const handleTest = () => {
-    navigate("/upload");
-  };
+  // const handleTest = () => {
+  //   navigate("/upload");
+  // };
 
   const handleExecuteRequest = async (screenKey, requestData) => {
     if (!window.electronAPI) return;

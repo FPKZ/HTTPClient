@@ -1,6 +1,27 @@
 const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
+
+  startDownload: () => ipcRenderer.send("start-download"),
+
+  ipcRenderer: {
+    on(channel, func) {
+      const validChannels = [
+        "update-available",
+        "download-progress",
+        "update-downloaded",
+        "navigate-to",
+        "check-for-updates"
+      ]
+
+      if (validChannels.includes(channel)) {
+       const subscription = (event, ...args) => func(...args)
+       ipcRenderer.on(channel, subscription)
+       return () => ipcRenderer.removeListener(channel, subscription)
+      }
+    }
+  },
+
   minimize: () => ipcRenderer.send("minimize"),
   maximize: () => ipcRenderer.send("maximize"),
   close: () => ipcRenderer.send("close"),

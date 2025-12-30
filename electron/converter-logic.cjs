@@ -219,16 +219,12 @@ function convertRequestToAxios(item) {
 /**
  * Gera um nome único para uma chave em um objeto, adicionando sufixo se necessário.
  * @param {string} name - Nome desejado.
- * @param {Object} existingKeys - Objeto com as chaves já existentes.
+ * @param {string} method - Método da requisição.
  * @returns {string} - Nome único.
  */
-function getUniqueName(name, existingKeys) {
-  let uniqueName = name;
-  let counter = 1;
-  while (Object.prototype.hasOwnProperty.call(existingKeys, uniqueName)) {
-    uniqueName = `${name} (${counter})`;
-    counter++;
-  }
+function getUniqueName(name, method) {
+  let uniqueName = `${name} (${method})`;
+
   return uniqueName;
 }
 
@@ -246,7 +242,7 @@ function processCollectionToAxios(items) {
 
   items.forEach((item) => {
     const name = item.name || "Unnamed";
-    const uniqueName = getUniqueName(name, result);
+    const uniqueName = getUniqueName(name, item.request.method, result);
 
     if (item.item && Array.isArray(item.item)) {
       // É uma pasta

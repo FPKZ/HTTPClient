@@ -8,14 +8,37 @@ const converter = require("./converter-logic.cjs");
 // 'app.isPackaged' returns true if the app is bundled (production), false otherwise (dev).
 const isDev = !app.isPackaged;
 
-function createWindow() {
-  const win = new BrowserWindow({
-    name: "HTTPClient",
+const getRouteURL = (route) => {
+  if (isDev) {
+    return `http://localhost:5173#${route}`;
+  }
+  // Em produção, usamos o caminho do arquivo + o hash da rota
+  const indexPath = path.join(__dirname, "../dist/index.html");
+  return `file://${indexPath}#${route}`;
+};
+
+let updateWindow;
+let mainWindow;
+
+function launchMainApp() {
+  if (mainWindow) return; // Evita abrir múltiplas janelas
+  createMainWindow();
+  // A janela de update é fechada dentro do createMainWindow ou aqui
+}
+
+function createMainWindow() {
+  if(mainWindow) return;
+
+  mainWindow = new BrowserWindow({
+    title: "HTTPClient",
     icon: path.join(__dirname, "../assets/icon1.png"),
-    width: 900,
-    height: 720,
-    minWidth: 700,
+    width: 1000,
+    height: 600,
+    minWidth: 1000,
     minHeight: 600,
+    show: false,
+    center: true,
+    resizable: true,
     frame: false, // Custom TitleBar
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
@@ -23,22 +46,15 @@ function createWindow() {
       contextIsolation: true,
     },
   });
+  mainWindow.loadURL(getRouteURL("/upload"));
 
-  win.removeMenu();
+  mainWindow.removeMenu();
 
-  if (isDev) {
-    win.loadURL("http://localhost:5173");
-    win.webContents.openDevTools();
-  } else {
-    win.loadFile(path.join(__dirname, "../dist/index.html"));
-  }
+  if(updateWindow) updateWindow.close();
+  mainWindow.show();
+  if(isDev) mainWindow.webContents.openDevTools();
 
-  // Window Controls
-  ipcMain.on("minimize", () => win.minimize());
-  ipcMain.on("maximize", () => {
-    win.isMaximized() ? win.unmaximize() : win.maximize();
-  });
-  ipcMain.on("close", () => win.close());
+  
   
 
   // Menu Nativo
@@ -46,100 +62,203 @@ function createWindow() {
     {
       label: "Novo Arquivo",
       click: () => {
-        win.webContents.reload();
+        mainWindow.webContents.reload();
       },
     },
+    { type: "separator" },
     {
-      label: "Arquivo",
-      submenu: [
-        {
-          label: "Configurações",
-          click: () => {
-            win.webContents.send("menu-action", "open-settings");
-          },
-        },
-        { type: "separator" },
-        {
-          label: "Sair",
-          accelerator: "CmdOrCtrl+Q",
-          role: "quit",
-        },
-      ],
+      label: "Sair",
+      accelerator: "CmdOrCtrl+Q",
+      role: "quit",
     },
-    {
-      label: "Editar",
-      submenu: [
-        { role: "undo" },
-        { role: "redo" },
-        { type: "separator" },
-        { role: "cut" },
-        { role: "copy" },
-        { role: "paste" },
-      ],
-    },
-    {
-      label: "Visualizar",
-      submenu: [
-        { role: "reload" },
-        { role: "forcereload" },
-        isDev && { role: "toggledevtools" },
-        { type: "separator" },
-        { role: "resetzoom" },
-        { role: "zoomin" },
-        { role: "zoomout" },
-        { type: "separator" },
-        { role: "togglefullscreen" },
-      ],
-    },
+    // {
+    //   label: "Arquivo",
+    //   submenu: [
+    //     {
+    //       label: "Configurações",
+    //       click: () => {
+    //         mainWindow.webContents.send("menu-action", "open-settings");
+    //       },
+    //     },
+    //     { type: "separator" },
+    //     {
+    //       label: "Sair",
+    //       accelerator: "CmdOrCtrl+Q",
+    //       role: "quit",
+    //     },
+    //   ],
+    // },
+    // {
+    //   label: "Editar",
+    //   submenu: [
+    //     { role: "undo" },
+    //     { role: "redo" },
+    //     { type: "separator" },
+    //     { role: "cut" },
+    //     { role: "copy" },
+    //     { role: "paste" },
+    //   ],
+    // },
+    // {
+    //   label: "Visualizar",
+    //   submenu: [
+    //     { role: "reload" },
+    //     { role: "forcereload" },
+    //     isDev && { role: "toggledevtools" },
+    //     { type: "separator" },
+    //     { role: "resetzoom" },
+    //     { role: "zoomin" },
+    //     { role: "zoomout" },
+    //     { type: "separator" },
+    //     { role: "togglefullscreen" },
+    //   ],
+    // },
   ];
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 
   ipcMain.on("open-menu", () => {
-    menu.popup({ window: win });
+    if (mainWindow) menu.popup({ window: mainWindow });
   });
 }
 
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = "info";
 
-// Eventos importantes
-autoUpdater.on("checking-for-update", () => {
-  log.info("🔍 Checando por atualizações...");
-});
+function createUpdateWindow() {
 
-autoUpdater.on("update-available", (info) => {
-  log.info("⬇️ Atualização disponível:", info);
-});
+  if(updateWindow) return;
 
-autoUpdater.on("update-not-available", (info) => {
-  log.info("✅ Nenhuma atualização disponível:", info);
-});
+  updateWindow = new BrowserWindow({
+    width: 300,
+    height: 400,
+    resizable: false,
+    center: true,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.cjs"),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
 
-autoUpdater.on("error", (err) => {
-  log.error("❌ Erro na atualização:", err);
-});
+  updateWindow.loadURL(getRouteURL("/update"));
 
-autoUpdater.on("download-progress", (progress) => {
-  log.info(
-    `📦 Velocidade de download: ${progress.bytesPerSecond} - ${progress.percent.toFixed(
-      2
-    )}%`
-  );
-});
+  // APENAS PARA TESTE
+  // updateWindow.webContents.on('did-finish-load', () => {
+  //   setTimeout(() => {
+  //     updateWindow.webContents.send('update-available');
+      
+  //     // Simula uma barra de progresso subindo
+  //     let percent = 0;
+  //     const interval = setInterval(() => {
+  //       percent += 5;
+  //       updateWindow.webContents.send('download-progress', percent);
+  //       if (percent >= 100) {
+  //         clearInterval(interval);
+  //         updateWindow.webContents.send('update-downloaded');
+  //       }
+  //     }, 10000);
+  //   }, 3000); // Começa 3 segundos após carregar
+  // });
+  // updateWindow.toggleDevTools();
 
-autoUpdater.on("update-downloaded", (info) => {
-  log.info("🔁 Atualização baixada:", info);
-});
-
-app.whenReady().then(() => {
-  createWindow()
-
-  if (app.isPackaged) {
+  if(!isDev) {
     autoUpdater.checkForUpdatesAndNotify();
+  } else {
+    runUpdateSimulation();
+  }
+
+  autoUpdater.on("check-for-updates", () => {
+    autoUpdater.checkForUpdatesAndNotify();
+  });
+
+  autoUpdater.on("update-available", (info) => {
+    updateWindow.webContents.send("update-available");
+    log.info("⬇️ Atualização disponível:", info);
+  });
+
+  autoUpdater.on("update-not-available", (info) => {
+    log.info("✅ Nenhuma atualização disponível:", info);
+    launchMainApp();
+  });
+
+  autoUpdater.on("download-progress", (progress) => {
+    updateWindow.webContents.send("download-progress", progress.percent);
+  });
+
+  autoUpdater.on("update-downloaded", (info) => {
+    updateWindow.webContents.send("update-downloaded");
+    log.info("🔁 Atualização baixada:", info);
+
+    // Aguarda 2 segundos para o usuário ver o status "ready" no React
+    setTimeout(autoUpdater.quitAndInstall(false, true), 2000); 
+    // O parâmetro (isSilent, isForceRunAfter) ajuda em alguns SOs
+  });
+
+  autoUpdater.on("error", (err) => {
+    log.error("❌ Erro na atualização:", err);
+    setTimeout(launchMainApp, 1500);
+  });
+
+  autoUpdater.logger = log;
+  autoUpdater.logger.transports.file.level = "info";
+
+}
+
+function runUpdateSimulation() {
+  // Simulamos o ciclo de vida completo do autoUpdater de forma sequencial
+  updateWindow.webContents.on('did-finish-load', () => {
+      
+      // 1. Simula: Update Encontrado
+      setTimeout(() => {
+          if (updateWindow?.isDestroyed()) return;
+          updateWindow.webContents.send('update-available');
+          
+          // 2. Simula: Progresso de Download
+          let percent = 0;
+          const interval = setInterval(() => {
+              percent += 10; // Aumentamos para 10% para o teste ser ágil
+              
+              if (updateWindow && !updateWindow.isDestroyed()) {
+                  updateWindow.webContents.send('download-progress', percent);
+                  
+                  if (percent >= 100) {
+                      clearInterval(interval);
+                      // 3. Simula: Download Concluído
+                      updateWindow.webContents.send('update-downloaded');
+                      
+                      // 4. Simula: O fechamento para instalação (ou transição)
+                      setTimeout(() => {
+                          launchMainApp(); 
+                      }, 2000);
+                  }
+              } else {
+                  clearInterval(interval);
+              }
+          }, 800); // 800ms por passo de progresso
+      }, 2000); // Começa após 2 segundos
+  });
+}
+
+// Window Controls
+ipcMain.on("minimize", () => {
+  const win = BrowserWindow.getFocusedWindow();
+  if (win) win.minimize();
+});
+ipcMain.on("maximize", () => {
+  const win = BrowserWindow.getFocusedWindow();
+  if (win) {
+    win.isMaximized() ? win.unmaximize() : win.maximize();
   }
 });
+ipcMain.on("close", () => {
+  const win = BrowserWindow.getFocusedWindow();
+  if (win) win.close();
+});
+
+app.whenReady().then(createUpdateWindow);
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();

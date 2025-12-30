@@ -5,51 +5,9 @@ import DropZone from "../components/DropZone";
 import LogConsole from "../components/LogConsole";
 import { useNavigate } from "react-router-dom";
 
-const request = {
-  login: {
-    name: "Login",
-    request: {
-      url: "asdasdasd",
-      method: "GET",
-      headers: {
-        Authorization: "Bearer {{token}}",
-        "Content-Type": "application/json",
-      },
-      body: null,
-    },
-  },
-  profile: {
-    name: "Profile",
-    request: {
-      url: "asdasfdgghg",
-      method: "POST",
-      headers: {
-        Authorization: "Bearer {{token}}",
-        "Content-Type": "application/json",
-      },
-      body: {
-        name: "",
-        contato: "",
-        email: "",
-        senha: "",
-      },
-    },
-  },
-  contact: {
-    name: "Contact",
-    request: {
-      url: "asdasdasd",
-      method: "PUT",
-      headers: {
-        Authorization: "Bearer {{token}}",
-        "Content-Type": "application/json",
-      },
-      body: null,
-    },
-  },
-};
 
 function UploadPage() {
+  // eslint-disable-next-line no-unused-vars
   const [logs, setLogs] = useState([]);
   const navigate = useNavigate();
 
@@ -79,7 +37,7 @@ function UploadPage() {
     }
   }, [navigate]);
 
-  const handleFileDrop = (path, name) => {
+  const handleFileDrop = (path) => {
     startConversion(path, true);
   };
 
@@ -143,7 +101,7 @@ function UploadPage() {
         {/* <Button onClick={handleTest}>Test</Button> */}
       </Container>
       <div className="position-absolute bottom-0 end-0 px-2">
-        <span className="text-xs text-[#cecece]">v1.0.9</span>
+        <span className="text-xs text-[#cecece]">v1.0.10</span>
       </div>
     </div>
   );

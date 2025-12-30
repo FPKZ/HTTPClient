@@ -1,7 +1,7 @@
 {
   "name": "HTTPClient",
   "private": true,
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "HTTPClient - Ferramenta de testes de API",
   "author": "FPKZ <contato@fpkz.com.br>",
   "type": "module",
@@ -62,10 +62,13 @@
     }
   },
   "dependencies": {
+    "@radix-ui/react-progress": "^1.1.8",
     "@tailwindcss/postcss": "^4.1.18",
     "autoprefixer": "^10.4.23",
     "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "electron-log": "^5.4.3",
     "electron-updater": "^6.6.2",
     "form-data": "^4.0.5",
@@ -75,10 +78,13 @@
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.11.0",
-    "tailwindcss": "^4.1.18"
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss": "^4.1.18",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/node": "^25.0.3",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",

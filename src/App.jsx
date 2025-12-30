@@ -1,7 +1,8 @@
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import UploadPage from './pages/UploadPage';
 import Home from './pages/Home';
-import TitleBar from './components/TitleBar';
+import UpdatePage from './pages/UpdatePage';
+import Layout from './pages/layout';
 import { useEffect } from 'react';
 
 function App() {
@@ -9,16 +10,20 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate('/upload');
-  }, []);
+    const removeListener = window.electronAPI.ipcRenderer.on('navigate-to', (path) => {
+      navigate(path);
+    });
+    return () => {
+      if (removeListener) removeListener();
+    };
+  }, [navigate]);
 
   return (
     <div className="d-flex flex-column vh-100">
-      <TitleBar />
       <Routes>
-        <Route path="/upload" element={<UploadPage />} />
-        <Route path="/" element={<Home />} />
-
+        <Route path="/upload" element={<Layout><UploadPage /></Layout>} />
+        <Route path="/" element={<Layout><Home /></Layout>} />
+        <Route path="/update" element={<UpdatePage />} />
         {/* <Route path="/" element={<Navigate to="/upload" replace />} /> */}
       </Routes>
     </div>
