@@ -295,7 +295,7 @@ export default function Home() {
                 <Button
                   variant="link"
                   onClick={scrollLeft}
-                  className="text-white bg-[#1e1e1ede]! rounded-0 px-1 z-10 position-absolute left-0"
+                  className="h-100 text-white bg-[#1e1e1ede]! rounded-0 px-1 z-10 position-absolute left-0"
                 >
                   <ChevronLeft size={20} />
                 </Button>
@@ -333,7 +333,7 @@ export default function Home() {
                 <Button
                   variant="link"
                   onClick={scrollRight}
-                  className="text-white bg-[#1e1e1ede]! rounded-0 px-1  z-10 position-absolute right-0"
+                  className="h-100 text-white bg-[#1e1e1ede]! rounded-0 px-1  z-10 position-absolute right-0"
                 >
                   <ChevronRight size={20} />
                 </Button>

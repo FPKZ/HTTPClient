@@ -185,7 +185,7 @@ function UploadPage() {
         {/* <Button onClick={handleTest}>Test</Button> */}
       </Container>
       <div className="position-absolute bottom-0 end-0 px-2">
-        <span className="text-xs text-[#cecece]">v1.0.10</span>
+        <span className="text-xs text-[#cecece]">v1.0.11</span>
       </div>
     </div>
   );
