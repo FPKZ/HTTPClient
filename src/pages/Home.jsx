@@ -114,6 +114,8 @@ export default function Home() {
     }
   }, [location.state, navigate]);
 
+
+
   // 2. Inicialização de Estados
   // Usamos o state do location como fonte inicial
   const initialTelas = useMemo(() => {
@@ -130,6 +132,24 @@ export default function Home() {
   // Estados para controle de scroll
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+
+  // Escuta o pedido de salvamento antes de fechar
+  useEffect(() => {
+    if (window.electronAPI && window.electronAPI.onRequestSaveSession) {
+      const unsubscribe = window.electronAPI.onRequestSaveSession(() => {
+        // Quando o app for fechar, envia os dados atuais para o main
+        window.electronAPI.saveAndQuit({
+          id: location.state?.id, // Passa o ID se veio do histórico
+          collectionName: location.state?.collectionName || "Collection",
+          content: {
+            axios: Object.fromEntries(rota),
+            http: location.state?.http || {} // Mantém o http original se houver
+          }
+        });
+      });
+      return () => unsubscribe && unsubscribe();
+    }
+  }, [rota, location.state]);
 
   // 3. Lógica de Scroll dos Tabs Superiores
   const checkScroll = () => {

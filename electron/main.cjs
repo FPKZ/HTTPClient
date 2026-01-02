@@ -3,6 +3,7 @@ const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
 const path = require("path");
 const fs = require("fs");
+const userDataPath = app.getPath("userData");
 const converter = require("./converter-logic.cjs");
 
 // 'app.isPackaged' returns true if the app is bundled (production), false otherwise (dev).
@@ -120,6 +121,19 @@ function createMainWindow() {
 
   ipcMain.on("open-menu", () => {
     if (mainWindow) menu.popup({ window: mainWindow });
+  });
+
+  // Intercepta o fechamento para salvar
+  mainWindow.on("close", (e) => {
+    if (mainWindow) {
+      e.preventDefault();
+      mainWindow.webContents.send("request-save-session");
+      
+      // Timeout de segurança: se o renderer não responder em 3s, fecha de qualquer jeito
+      setTimeout(() => {
+        if (mainWindow) mainWindow.destroy();
+      }, 3000);
+    }
   });
 }
 
@@ -486,4 +500,44 @@ ipcMain.handle("request", async (event, { url, method, headers, body }) => {
     sender.send("log", errorData);
     return errorData;
   }
+});
+
+// Handler para buscar o histórico
+ipcMain.handle("get-history", async () => {
+  const historyFile = path.join(userDataPath, "history.json");
+  if (!fs.existsSync(historyFile)) return [];
+  try {
+    const content = fs.readFileSync(historyFile, "utf8");
+    return JSON.parse(content);
+  } catch (error) {
+    console.error("Erro ao ler histórico:", error);
+    return [];
+  }
+});
+
+// Handler para carregar uma coleção específica do disco
+ipcMain.handle("load-collection", async (event, fileName) => {
+  const filePath = path.join(userDataPath, "collections", fileName);
+  if (!fs.existsSync(filePath)) return null;
+  try {
+    const content = fs.readFileSync(filePath, "utf8");
+    return JSON.parse(content);
+  } catch (error) {
+    console.error("Erro ao carregar coleção:", error);
+    return null;
+  }
+});
+
+// Handler para salvar antes de fechar e sair
+ipcMain.on("save-and-quit", (event, { id, collectionName, content }) => {
+  if (collectionName && content) {
+    converter.saveHistory(userDataPath, collectionName, "native", content, id);
+  }
+  if (mainWindow) mainWindow.destroy();
+});
+
+// Handler para excluir item do histórico
+ipcMain.handle("delete-history-item", async (event, id) => {
+  converter.deleteHistoryItem(userDataPath, id);
+  return true;
 });

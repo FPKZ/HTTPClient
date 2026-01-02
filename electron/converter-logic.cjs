@@ -417,11 +417,111 @@ function findJsonFiles(dir, fileList = []) {
   return fileList;
 }
 
+
+/**
+ * Salva os detalhes de uma coleção no histórico local (history.json).
+ * @param {string} userDataPath - Caminho do arquivo de dados do usuário.
+ * @param {string} collectionName - Nome da coleção.
+ * @param {string} sourceType - Tipo de arquivo original ('postman' ou 'native').
+ * @param {Object} content - Conteúdo da coleção processada.
+ */
+function saveHistory(userDataPath, collectionName, sourceType, content, existingId = null) {
+  const historyFile = path.join(userDataPath, "history.json");
+  const collectionsDir = path.join(userDataPath, "collections");
+
+  if (!fs.existsSync(collectionsDir)) fs.mkdirSync(collectionsDir, { recursive: true });
+
+  let history = [];
+  if (fs.existsSync(historyFile)) {
+    try {
+      history = JSON.parse(fs.readFileSync(historyFile, "utf8"));
+    } catch (error) {
+      history = [];
+    }
+  }
+
+  let collectionId = existingId;
+  let fileName;
+
+  if (collectionId) {
+    // Busca se já existe este ID
+    const index = history.findIndex(item => item.id === collectionId);
+    if (index !== -1) {
+      fileName = history[index].file;
+      // Remove para colocar no topo depois
+      const [existingItem] = history.splice(index, 1);
+      
+      // Atualiza metadados
+      existingItem.updatedAt = new Date().toISOString();
+      existingItem.collectionName = collectionName;
+      
+      history.unshift(existingItem);
+    } else {
+      // ID não encontrado, trata como novo
+      collectionId = Date.now().toString();
+      fileName = `${collectionId}.json`;
+      history.unshift({
+        id: collectionId,
+        collectionName,
+        updatedAt: new Date().toISOString(),
+        sourceType,
+        file: fileName,
+      });
+    }
+  } else {
+    // Novo item
+    collectionId = Date.now().toString();
+    fileName = `${collectionId}.json`;
+    history.unshift({
+      id: collectionId,
+      collectionName,
+      updatedAt: new Date().toISOString(),
+      sourceType,
+      file: fileName,
+    });
+  }
+
+  // Salva o conteúdo (sobrescreve se já existir)
+  fs.writeFileSync(path.join(collectionsDir, fileName), JSON.stringify(content));
+
+  if(history.length > 15) history.pop(); // Aumentei um pouco o limite
+
+  fs.writeFileSync(historyFile, JSON.stringify(history, null, 2));
+}
+
+function deleteHistoryItem(userDataPath, id) {
+  const historyFile = path.join(userDataPath, "history.json");
+  if (!fs.existsSync(historyFile)) return;
+
+  try {
+    let history = JSON.parse(fs.readFileSync(historyFile, "utf8"));
+    const index = history.findIndex(item => item.id === id);
+    
+    if (index !== -1) {
+      const item = history[index];
+      const filePath = path.join(userDataPath, "collections", item.file);
+      
+      // Remove o arquivo físico
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+      
+      // Remove do JSON de histórico
+      history.splice(index, 1);
+      fs.writeFileSync(historyFile, JSON.stringify(history, null, 2));
+    }
+  } catch (error) {
+    console.error("Erro ao deletar item do histórico:", error);
+  }
+}
+
 module.exports = {
   findJsonFiles,
   processCollectionToAxios,
   processCollectionToHttpObject,
   flattenHttpObjectToString,
+  saveHistory,
+  deleteHistoryItem, // Adicionado
   // Exportando funções individuais caso necessário para testes unitários
   convertRequestToAxios,
   convertRequestToHttpString,
