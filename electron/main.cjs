@@ -13,6 +13,7 @@ const NetworkService = require("./services/network-service.cjs");
 const WindowManager = require("./services/window-manager.cjs");
 const AutoUpdateService = require("./services/auto-update-service.cjs");
 const IpcRouter = require("./services/ipc-router.cjs");
+const ExportService = require("./services/export-service.cjs");
 
 // Setup Global Constants
 const isDev = !app.isPackaged;
@@ -24,6 +25,7 @@ const storage = new StorageProvider(userDataPath);
 const translator = new PostmanTranslator();
 const axiosFormatter = new AxiosFormatter();
 const httpFormatter = new HttpFormatter();
+const exportService = new ExportService(storage);
 
 // 2. Instanciar Serviços de Negócio
 const historyService = new HistoryService(storage);
@@ -38,7 +40,8 @@ const ipcRouter = new IpcRouter(
   historyService,
   translator,
   { axios: axiosFormatter, http: httpFormatter },
-  networkService
+  networkService,
+  exportService
 );
 
 // --- Lifecycle do App ---

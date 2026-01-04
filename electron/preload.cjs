@@ -50,6 +50,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   
   newFile: () => ipcRenderer.send('new-file'),
+
+  saveFile: (data) => ipcRenderer.invoke('save-file', data),
   
   getFilePath: (file) => webUtils.getPathForFile(file),
 

@@ -161,9 +161,25 @@ export default function Home() {
   };
 
   useEffect(() => {
-    checkScroll();
+
+    const unsubcribe = window.electronAPI.onMenuAction((action) => {
+      switch (action) {
+        case "new-file":
+          // navigate("/new");
+          break;
+        case "save-file":
+          handleExportCollection();
+          break;
+        default:
+          break;
+      }
+    });
+
     window.addEventListener("resize", checkScroll);
-    return () => window.removeEventListener("resize", checkScroll);
+    return () => {
+      unsubcribe();
+      window.removeEventListener("resize", checkScroll);
+    };
   }, [rota]);
 
   const scrollLeft = () => {
@@ -273,6 +289,10 @@ export default function Home() {
       //   console.log(screenData.request[subKey][fieldKey])
       return newRota;
     });
+  };
+
+  const handleExportCollection = async () => {
+    window.electronAPI.saveFile({ content: rota });
   };
 
   if (!location.state) return null;
@@ -450,16 +470,14 @@ export default function Home() {
                       {/* Console / Logs Area */}
                       <Col className="mt-auto flex flex-col items-end p-3 gap-2 overflow-auto">
                         <ResultRequestLog logs={logsPorTela[screenKey] || []} />
-                        {/* <Button
+                        <Button
                           variant="primary"
                           className="w-100 py-2 font-bold uppercase"
                           style={{ fontSize: "0.8rem" }}
-                          onClick={() =>
-                            handleExecuteRequest(screenKey, telaData.request)
-                          }
+                          onClick={handleExportCollection}
                         >
-                          Executar {screenKey}
-                        </Button> */}
+                          Exportar Collection
+                        </Button>
                       </Col>
                     </div>
                   </Tab.Pane>

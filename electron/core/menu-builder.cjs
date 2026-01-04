@@ -19,6 +19,13 @@ class MenuBuilder {
           if (mainWindow) mainWindow.webContents.reload();
         },
       },
+      {
+        label: "Salvar Arquivo",
+        click: () => {
+          const mainWindow = this.win.getMainWindow();
+          if (mainWindow) mainWindow.webContents.send("menu-action", "save-file");
+        },
+      },
       { type: "separator" },
       {
         label: "Sair",

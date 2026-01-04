@@ -8,12 +8,13 @@ const path = require("path");
  * Segue o OCP ao permitir delegar chamadas para diferentes serviços sem poluir o main.
  */
 class IpcRouter {
-  constructor(windowManager, historyService, translator, formatters, networkService) {
+  constructor(windowManager, historyService, translator, formatters, networkService, exportService) {
     this.win = windowManager;
     this.history = historyService;
     this.translator = translator;
     this.formatters = formatters;
     this.network = networkService;
+    this.export = exportService;
   }
 
   register() {
@@ -137,9 +138,9 @@ class IpcRouter {
   async _handleFileSave(content, defaultPath) {
     try {
       const { canceled, filePath } = await dialog.showSaveDialog({
-        title: "Salvar Arquivo .http",
-        defaultPath: defaultPath || "collection.http",
-        filters: [{ name: "HTTP Files", extensions: ["http"] }],
+        title: "Salvar Arquivo",
+        defaultPath: defaultPath || "collection.json",
+        filters: [{ name: "JSON Files", extensions: ["json"] }],
       });
 
       if (canceled || !filePath) return { success: false };
@@ -148,7 +149,7 @@ class IpcRouter {
       // Note: O HttpFormatter atualmente não tem um flatten estático fácil aqui, 
       // mas podemos injetar ou o frontend já manda formatado.
       // Por simplicidade, assumimos que o conteúdo já vem formatado do frontend ou é uma string.
-      fs.writeFileSync(filePath, content, "utf8");
+      this.export.exportJson(filePath, content);
       return { success: true, filePath };
     } catch (error) {
       return { success: false, error: error.message };
