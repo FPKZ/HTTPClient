@@ -24,7 +24,7 @@ export default function ImportCollectionModal({ children, onImport, onFolderSele
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 data-[state=open]:animate-overlayShow z-50" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 max-h-[85vh] w-[90vw] max-w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-zinc-900 p-6 shadow-xl focus:outline-none z-50 border !border-zinc-800 data-[state=open]:animate-contentShow">
+        <Dialog.Content className="fixed left-1/2 top-1/2 max-h-[85vh] w-[80vw] max-w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-zinc-900 p-6 shadow-xl focus:outline-none z-50 border !border-zinc-800 data-[state=open]:animate-contentShow">
           
           <div className="flex justify-between items-center mb-4">
             <Dialog.Title className="text-lg font-bold text-gray-100 m-0">
