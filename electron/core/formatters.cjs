@@ -7,12 +7,17 @@
 class AxiosFormatter {
   format(internalModel) {
     const result = {};
-    const processItems = (items) => {
+
+    const processItems = (items, prefix = "") => {
       items.forEach((item) => {
         if (item.type === "folder") {
-          result[item.name] = this._formatFolder(item.items);
-        } else {
-          result[item.name] = this._formatRequest(item);
+          const newPrefix = prefix ? `${prefix} / ${item.name}` : item.name;
+          processItems(item.items, newPrefix);
+        } else if (item.request) {
+          const method = item.request.method || "GET";
+          const displayName = prefix ? `${prefix} / ${item.name}` : item.name;
+          const uniqueKey = `[${method}] ${displayName}`;
+          result[uniqueKey] = this._formatRequest(item);
         }
       });
     };
@@ -21,21 +26,8 @@ class AxiosFormatter {
     return result;
   }
 
-  _formatFolder(items) {
-    const folderResult = {};
-    items.forEach((item) => {
-      if (item.type === "folder") {
-        folderResult[item.name] = this._formatFolder(item.items);
-      } else {
-        folderResult[item.name] = this._formatRequest(item);
-      }
-    });
-    return folderResult;
-  }
-
   _formatRequest(item) {
     return {
-      name: item.name,
       request: item.request,
     };
   }

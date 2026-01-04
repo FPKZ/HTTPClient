@@ -5,8 +5,8 @@
  */
 class PostmanTranslator {
   translate(postmanJson) {
-    if (!postmanJson.info || !postmanJson.item) {
-      throw new Error("Formato Postman inválido ou não suportado.");
+    if (!postmanJson || !postmanJson.info || !postmanJson.item) {
+      throw new Error("Formato Postman inválido ou não suportado (faltando info ou item).");
     }
 
     return {
@@ -27,7 +27,7 @@ class PostmanTranslator {
           name: item.name,
           items: this._processItems(item.item),
         };
-      } else {
+      } else if (item.request) {
         // É uma requisição
         return {
           type: "request",
@@ -35,10 +35,12 @@ class PostmanTranslator {
           request: this._extractRequestData(item.request),
         };
       }
-    });
+      return null;
+    }).filter(i => i !== null);
   }
 
   _extractRequestData(request) {
+    if (!request) return null;
     return {
       method: request.method || "GET",
       url: this._buildUrl(request.url),

@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from 'react-bootstrap';
 
+/**
+ * DropZone
+ * Componente visual para área de Drag & Drop.
+ * Agora puramente apresentacional, sem lógica de Dialog.
+ */
 const DropZone = ({ onFileDrop, onFolderSelect }) => {
   const [isHovering, setIsHovering] = useState(false);
 
@@ -19,27 +24,27 @@ const DropZone = ({ onFileDrop, onFolderSelect }) => {
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
-      // In Electron/React, file object exposes path property but we might need webUtils in newer electron versions
-      // For now, let's just pass the path. 
-      // Note: In standard browser React, 'path' is not available, but in Electron it is.
-      // However, we used webUtils.getPathForFile in preload, so let's try to use that if we can pass the file object.
-      // Actually app can receive path strings directly if dropped from OS.
-      const filePath = window.electronAPI.getFilePath(file);
-      onFileDrop(filePath, file.name);
+      // Electron specific: file.path exists
+      const filePath = window.electronAPI ? window.electronAPI.getFilePath(file) : null;
+      if (filePath) {
+        onFileDrop(filePath, file.name);
+      }
     }
   };
 
   return (
     <div
       id="drop-zone"
-      className={`d-flex flex-column justify-content-center align-items-center text-center p-5 border rounded transition-all ${isHovering ? 'bg-dark border-primary' : 'border-secondary'}`}
+      className={`d-flex flex-column justify-content-center align-items-center text-center p-5 border rounded transition-all ${
+        isHovering ? 'bg-[#131313] border-primary' : 'bg-[#1b1b1b] !border-[#313131]'
+      }`}
       style={{ borderStyle: 'dashed', minHeight: '150px' }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <p className="mb-2">Arraste arquivos .json aqui</p>
-      <p className="text-secondary mb-3">ou</p>
+      <p className="mb-2 text-gray-300">Arraste arquivos .json aqui</p>
+      <p className="text-secondary mb-3 text-sm">ou</p>
       <Button variant="primary" onClick={onFolderSelect}>
         Selecionar arquivo .json
       </Button>
