@@ -1,6 +1,7 @@
 import { Spinner } from "react-bootstrap";
 import { Progress } from "../components/ui/progress";
 import { useEffect, useState } from "react";
+import icon from "../../assets/icon1.png";
 
 export default function UpdatePage() {
   const [status, setStatus] = useState("checking"); // checking, available, downloading, ready
@@ -48,22 +49,22 @@ export default function UpdatePage() {
         style={{ width: "120px", height: "120px" }}
       >
         {status === "downloading" && (
-            <Spinner
+          <Spinner
             animation="border"
             variant="light"
             className="position-absolute"
             style={{
-                width: "100%",
-                height: "100%",
-                borderWidth: "5px",
-                borderRadius: "50%",
-                opacity: 0.5,
-                animationDuration: "2s", // Mais lento e suave
+              width: "100%",
+              height: "100%",
+              borderWidth: "5px",
+              borderRadius: "50%",
+              opacity: 0.5,
+              animationDuration: "2s", // Mais lento e suave
             }}
-            />
+          />
         )}
         <img
-          src="assets/icon1.png"
+          src={icon}
           width="90"
           className="position-relative animate-pulse"
         />

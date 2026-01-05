@@ -1,7 +1,7 @@
 {
   "name": "HTTPClient",
   "private": true,
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "HTTPClient - Ferramenta de testes de API",
   "author": "FPKZ <contato@fpkz.com.br>",
   "type": "module",
@@ -59,7 +59,6 @@
       "oneClick": true,
       "allowToChangeInstallationDirectory": false,
       "deleteAppDataOnUninstall": true,
-      "displayInstallerHeader": false,
       "installerHeaderIcon": "assets/icon1.png"
     }
   },
@@ -84,7 +83,8 @@
     "react-router-dom": "^7.11.0",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

@@ -15,7 +15,7 @@ export default function RequestPanel({
   onInputChange,
   onSelectFile,
   onExecute,
-  onExport,
+  // onExport,
 }) {
   const [activeRota, setActiveRota] = useState("headers");
 
@@ -23,15 +23,21 @@ export default function RequestPanel({
     <div className="h-100 d-flex flex-column">
       <div className="border-bottom !border-zinc-700 p-3">
         {/* Informações Básicas */}
-        <div className="d-flex flex-column gap-2 mb-1">
-          <div className="d-flex items-center gap-2 bg-neutral-950 p-2 rounded">
-            <small className="text-gray-500">URL:</small>
-            <small>{telaData.request.url}</small>
-          </div>
+        <div className="d-flex justify-between gap-2 mb-1 h-9">
           <div className="d-flex items-center gap-2 bg-neutral-950 p-2 rounded">
             <small className="text-gray-500">Method:</small>
             <small className="text-green-400">{telaData.request.method}</small>
           </div>
+          <div className="d-flex items-center w-100 gap-2 bg-neutral-950 p-2 rounded">
+            <small className="text-gray-500">URL:</small>
+            <small>{telaData.request.url}</small>
+          </div>
+          <button
+            className="w-24 h-full text-amber-100 bg-[#c28a10] hover:bg-[#a6760d] mb-1 rounded font-bold transition-colors"
+            onClick={() => onExecute(screenKey, telaData.request)}
+          >
+            <small className="text-xs">Executar</small>
+          </button>
         </div>
 
         {/* Sub-Navegação (Headers, Body, etc) */}
@@ -56,12 +62,6 @@ export default function RequestPanel({
                 );
               })}
             </Nav>
-            <button
-              className="text-amber-100 bg-[#c28a10] hover:bg-[#a6760d] h-7 w-19 mb-1 rounded font-bold transition-colors"
-              onClick={() => onExecute(screenKey, telaData.request)}
-            >
-              <small className="!text-xs">Executar</small>
-            </button>
           </div>
 
           <Tab.Content className="mt-0">
