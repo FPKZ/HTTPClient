@@ -51,7 +51,6 @@ class NetworkService {
       const processed = this._processSuccessResponse(response);
       if (logCallback) logCallback(processed);
       return processed;
-      
     } catch (error) {
       const errorData = this._processErrorResponse(error);
       if (logCallback) logCallback(errorData);
@@ -73,7 +72,7 @@ class NetworkService {
 
   _processSuccessResponse(response) {
     const contentType = response.headers["content-type"] || "";
-    const isImage = contentType.startsWith("image/");
+    const isImage = contentType.toLowerCase().startsWith("image/");
 
     let body;
     if (isImage) {

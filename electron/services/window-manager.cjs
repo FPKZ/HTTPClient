@@ -32,10 +32,12 @@ class WindowManager {
       height: 700,
       minWidth: 950,
       minHeight: 700,
+      fullscreen: true,
       show: false,
       center: true,
       resizable: true,
       frame: false,
+      darkTheme: true,
       webPreferences: {
         preload: this.preloadPath,
         nodeIntegration: false,
@@ -48,8 +50,8 @@ class WindowManager {
 
     this.mainWindow.once("ready-to-show", () => {
       if (this.updateWindow) {
-          this.updateWindow.close();
-          this.updateWindow = null;
+        this.updateWindow.close();
+        this.updateWindow = null;
       }
       this.mainWindow.show();
       if (this.isDev) this.mainWindow.webContents.openDevTools();
@@ -60,13 +62,13 @@ class WindowManager {
       if (this.mainWindow && !this.mainWindow.isDestroyed()) {
         e.preventDefault();
         this.mainWindow.webContents.send("request-save-session");
-        
+
         // Timeout de segurança
         setTimeout(() => {
           if (this.mainWindow && !this.mainWindow.isDestroyed()) {
             this.mainWindow.destroy();
           }
-        }, 3000);
+        }, 1000);
       }
     });
 
@@ -119,11 +121,11 @@ class WindowManager {
   }
 
   getMainWindow() {
-      return this.mainWindow;
+    return this.mainWindow;
   }
 
   getUpdateWindow() {
-      return this.updateWindow;
+    return this.updateWindow;
   }
 }
 

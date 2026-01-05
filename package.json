@@ -1,7 +1,7 @@
 {
   "name": "HTTPClient",
   "private": true,
-  "version": "1.0.11",
+  "version": "1.0.13",
   "description": "HTTPClient - Ferramenta de testes de API",
   "author": "FPKZ <contato@fpkz.com.br>",
   "type": "module",
@@ -56,9 +56,11 @@
       "repo": "HTTPClient"
     },
     "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "deleteAppDataOnUninstall": true
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false,
+      "deleteAppDataOnUninstall": true,
+      "displayInstallerHeader": false,
+      "installerHeaderIcon": "assets/icon1.png"
     }
   },
   "dependencies": {
@@ -70,6 +72,7 @@
     "bootstrap": "^5.3.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.3",
     "electron-log": "^5.4.3",
     "electron-updater": "^6.6.2",
     "form-data": "^4.0.5",

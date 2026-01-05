@@ -6,25 +6,32 @@ import { useNavigate } from "react-router-dom";
 import DropZone from "../components/DropZone";
 import HistoryList from "../components/history/HistoryList";
 import ImportCollectionModal from "../components/modals/ImportCollectionModal";
+import NovaCollectionModal from "../components/modals/NovaCollectionModal";
+
+// Hooks
+import { useQuickExit } from "../hooks/useQuickExit";
+import { useHistory } from "../hooks/useHistory";
 
 /**
  * UploadPage (Refatorada)
  * SRP: Focada no carregamento de novos arquivos e visualização do histórico.
  */
 function UploadPage() {
-  const [history, setHistory] = useState([]);
   // eslint-disable-next-line no-unused-vars
   const [logs, setLogs] = useState([]);
   const navigate = useNavigate();
 
+  const { history, handleLoadHistory, handleDeleteHistoryItem } = useHistory();
+
   // 1. Inicialização e Listeners IPC
+  useQuickExit();
+
   useEffect(() => {
     if (window.electronAPI) {
-      // Carrega histórico
-      window.electronAPI.getHistory?.().then((data) => setHistory(data || []));
-
       // Logs de conversão
-      const unLog = window.electronAPI.onLog?.((msg) => setLogs((p) => [...p, msg]));
+      const unLog = window.electronAPI.onLog?.((msg) =>
+        setLogs((p) => [...p, msg])
+      );
 
       // Finalização da conversão
       const unFinished = window.electronAPI.onFinished?.((result) => {
@@ -47,29 +54,6 @@ function UploadPage() {
     }
   }, [navigate]);
 
-  // 2. Handlers
-  const handleLoadHistory = async (item) => {
-    if (!window.electronAPI) return;
-    const content = await window.electronAPI.loadCollection(item.file);
-    if (content) {
-      navigate("/", {
-        state: {
-          id: item.id,
-          telas: content.axios,
-          http: content.http,
-          collectionName: item.collectionName,
-        },
-      });
-    }
-  };
-
-  const handleDeleteHistoryItem = async (e, id) => {
-    if (window.confirm("Tem certeza que deseja remover este item do histórico?")) {
-      await window.electronAPI.deleteHistoryItem(id);
-      const updatedHistory = await window.electronAPI.getHistory();
-      setHistory(updatedHistory || []);
-    }
-  };
 
   const startConversion = (inputPath, isFile) => {
     window.electronAPI?.startConversion({ inputPath, isFile });
@@ -90,23 +74,8 @@ function UploadPage() {
         <h1 className="text-center mb-4">HTTPClient</h1>
 
         <div className="grid grid-cols-2 h-20 gap-2 mb-4">
-          <div 
-            className="
-              flex w-full h-full py-2 px-4
-              rounded items-center justify-center cursor-pointer
-              bg-[#1b1b1b] border !border-[#313131]
-              hover:bg-[#292929] active:bg-[#1d1d1d]
-              transition-colors
-              text-gray-300 font-medium
-              ">
-              Nova Collection
-          </div>
-
-          <ImportCollectionModal 
-            onImport={(path) => startConversion(path, true)}
-            onFolderSelect={handleFolderSelect}
-          >
-            <div 
+          <NovaCollectionModal>
+            <div
               className="
                 flex w-full h-full py-2 px-4
                 rounded items-center justify-center cursor-pointer
@@ -114,8 +83,27 @@ function UploadPage() {
                 hover:bg-[#292929] active:bg-[#1d1d1d]
                 transition-colors
                 text-gray-300 font-medium
-                ">
-                Importar Collection
+                "
+            >
+              Nova Collection
+            </div>
+          </NovaCollectionModal>
+
+          <ImportCollectionModal
+            onImport={(path) => startConversion(path, true)}
+            onFolderSelect={handleFolderSelect}
+          >
+            <div
+              className="
+                flex w-full h-full py-2 px-4
+                rounded items-center justify-center cursor-pointer
+                bg-[#1b1b1b] border !border-[#313131]
+                hover:bg-[#292929] active:bg-[#1d1d1d]
+                transition-colors
+                text-gray-300 font-medium
+                "
+            >
+              Importar Collection
             </div>
           </ImportCollectionModal>
         </div>
@@ -126,9 +114,11 @@ function UploadPage() {
           onDelete={handleDeleteHistoryItem}
         />
       </Container>
-      
+
       <div className="position-absolute bottom-0 end-0 px-2">
-        <span className="text-xs text-[#cecece]">v1.0.11</span>
+        <span className="text-xs text-[#cecece]">
+          {import.meta.env.VITE_APP_VERSION}
+        </span>
       </div>
     </div>
   );

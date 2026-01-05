@@ -19,7 +19,7 @@ class AutoUpdateService {
 
   init(windowManager, onLaunchApp) {
     const updateWindow = windowManager.getUpdateWindow();
-    
+
     if (!this.isDev) {
       autoUpdater.checkForUpdatesAndNotify();
     } else {
@@ -43,7 +43,8 @@ class AutoUpdateService {
     autoUpdater.on("update-downloaded", (info) => {
       updateWindow.webContents.send("update-downloaded");
       log.info("🔁 Atualização baixada:", info);
-      setTimeout(() => autoUpdater.quitAndInstall(false, true), 2000);
+      // Parâmetros: (isSilent, isForceRunAfter)
+      setTimeout(() => autoUpdater.quitAndInstall(true, true), 2000);
     });
 
     autoUpdater.on("error", (err) => {
@@ -56,19 +57,19 @@ class AutoUpdateService {
     const updateWindow = windowManager.getUpdateWindow();
     if (!updateWindow) return;
 
-    updateWindow.webContents.on('did-finish-load', () => {
+    updateWindow.webContents.on("did-finish-load", () => {
       setTimeout(() => {
         if (updateWindow.isDestroyed()) return;
-        updateWindow.webContents.send('update-available');
-        
+        updateWindow.webContents.send("update-available");
+
         let percent = 0;
         const interval = setInterval(() => {
           percent += 10;
           if (updateWindow && !updateWindow.isDestroyed()) {
-            updateWindow.webContents.send('download-progress', percent);
+            updateWindow.webContents.send("download-progress", percent);
             if (percent >= 100) {
               clearInterval(interval);
-              updateWindow.webContents.send('update-downloaded');
+              updateWindow.webContents.send("update-downloaded");
               setTimeout(() => onLaunchApp(), 2000);
             }
           } else {

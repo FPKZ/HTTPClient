@@ -36,7 +36,7 @@ export default function ResultRequestLog({ logs }) {
         {isImage ? (
           <div className="mt-2 bg-zinc-900/50 p-2 rounded d-flex justify-content-center">
             <img
-              src={`data:${contentType};base64,${data}`}
+              src={`data:${contentType.split(";")[0].trim()};base64,${data}`}
               alt="Response"
               style={{
                 maxWidth: "100%",

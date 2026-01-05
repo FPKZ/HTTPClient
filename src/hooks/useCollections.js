@@ -1,11 +1,17 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState } from "react";
+import { useQuickExit } from "./useQuickExit";
 
 /**
  * useCollections
  * Gerencia o estado das coleções de rotas, edição e persistência.
  * SRP: Cuida apenas da lógica de dados das coleções.
  */
-export function useCollections(initialTelas, sessionId, collectionName, initialHttp) {
+export function useCollections(
+  initialTelas,
+  sessionId,
+  collectionName,
+  initialHttp
+) {
   const [rota, setRota] = useState(initialTelas || []);
 
   const handleInputChange = (screenIndex, sectionKey, fieldKey, newValue) => {
@@ -49,7 +55,7 @@ export function useCollections(initialTelas, sessionId, collectionName, initialH
     setRota((prevRota) => {
       const newRota = [...prevRota];
       const [screenName, screenData] = newRota[index];
-      
+
       newRota[index] = [
         screenName,
         {
@@ -77,21 +83,16 @@ export function useCollections(initialTelas, sessionId, collectionName, initialH
   };
 
   // Auto-save logic
-  useEffect(() => {
-    if (window.electronAPI?.onRequestSaveSession) {
-      const unsubscribe = window.electronAPI.onRequestSaveSession(() => {
-        window.electronAPI.saveAndQuit({
-          id: sessionId,
-          collectionName: collectionName || "Collection",
-          content: {
-            axios: Object.fromEntries(rota),
-            http: initialHttp || {}
-          }
-        });
-      });
-      return () => unsubscribe && unsubscribe();
-    }
-  }, [rota, sessionId, collectionName, initialHttp]);
+  useQuickExit(() => {
+    window.electronAPI.saveAndQuit({
+      id: sessionId,
+      collectionName: collectionName || "Collection",
+      content: {
+        axios: Object.fromEntries(rota),
+        http: initialHttp || {},
+      },
+    });
+  });
 
   return {
     rota,

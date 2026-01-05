@@ -23,7 +23,7 @@ export default function Home() {
   // 1. Validação de Segurança
   useEffect(() => {
     if (!location.state) {
-      navigate("/");
+      navigate("/upload");
     }
   }, [location.state, navigate]);
 
