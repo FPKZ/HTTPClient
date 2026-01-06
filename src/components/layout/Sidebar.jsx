@@ -53,7 +53,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-80 bg-zinc-900 border-r border-zinc-700 flex flex-col h-[calc(100vh-35px)]">
+    <div className="w-80 bg-zinc-900 border-r border-zinc-700 flex flex-col h-full">
       {/* Header da Coleção */}
       <div className="p-4 border-b border-zinc-700">
         {/* Nome da Coleção */}
@@ -69,7 +69,7 @@ export default function Sidebar() {
           />
         ) : (
           <h2
-            className="text-lg font-bold text-white cursor-pointer hover:text-yellow-500 transition-colors"
+            className="!text-lg font-bold text-white cursor-pointer hover:text-yellow-500 transition-colors"
             onClick={() => {
               setTempName(collection.name);
               setIsEditingName(true);
@@ -119,35 +119,37 @@ export default function Sidebar() {
               Nenhuma rota na coleção
             </div>
           ) : (
-            collection.routes.map(([screenKey, routeData]) => (
+            collection.routes.map((route) => (
               <div
-                key={screenKey}
-                className="group flex items-center gap-2 px-3 py-2 mb-1 rounded cursor-pointer hover:bg-zinc-800 transition-colors"
-                onClick={() => handleRouteClick(screenKey, routeData)}
+                key={route.id}
+                className="group flex items-center gap-1 px-2 py-1 mb-1 rounded cursor-pointer hover:bg-zinc-800 transition-colors"
+                onClick={() => handleRouteClick(route.id, route)}
               >
                 {/* Método HTTP */}
                 <span
-                  className={`text-xs font-bold ${getMethodColor(
-                    routeData.request?.method
+                  className={`!text-[0.7rem] font-bold ${getMethodColor(
+                    route.request?.method
                   )} min-w-[45px]`}
                 >
-                  {routeData.request?.method || "GET"}
+                  {route.request?.method || "GET"}
                 </span>
 
                 {/* Nome da Rota */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-white truncate">{screenKey}</div>
-                  {routeData.request?.url && (
-                    <div className="text-xs text-gray-500 truncate">
-                      {routeData.request.url}
+                  <div className="!text-[0.8rem] text-white truncate">
+                    {route.name}
+                  </div>
+                  {route.request?.url && (
+                    <div className="!text-[0.7rem] text-gray-500 truncate">
+                      {route.request.url}
                     </div>
                   )}
                 </div>
 
                 {/* Botão Deletar (visível no hover) */}
                 <button
-                  onClick={(e) => handleDeleteRoute(e, screenKey)}
-                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
+                  onClick={(e) => handleDeleteRoute(e, route.id)}
+                  className="opacity-0 group-hover:!opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
                   title="Deletar rota"
                 >
                   <Trash2 size={14} className="text-red-400" />
@@ -162,9 +164,9 @@ export default function Sidebar() {
       <div className="p-3 border-t border-zinc-700">
         <button
           onClick={addRoute}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded font-semibold transition-colors"
+          className="w-full flex items-center justify-center gap-1 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded !text-[0.8rem] font-semibold transition-colors"
         >
-          <Plus size={18} />
+          <Plus size={14} />
           <span>Nova Rota</span>
         </button>
       </div>

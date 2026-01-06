@@ -47,7 +47,11 @@ export default function Home() {
         if (action === "save-file") {
           const collectionData = getCollectionForExport();
           window.electronAPI.saveFile({
-            content: collectionData.content.axios,
+            content: {
+              id: collectionData.id,
+              collectionName: collectionData.collectionName,
+              routes: collectionData.content.routes,
+            },
           });
         }
       });
@@ -62,8 +66,7 @@ export default function Home() {
       id: collectionData.id,
       collectionName: collectionData.collectionName,
       content: {
-        axios: collectionData.content.axios,
-        http: location.state?.http || {},
+        routes: collectionData.content.routes,
       },
     });
   });
@@ -71,12 +74,12 @@ export default function Home() {
   if (!location.state) return null;
 
   return (
-    <div className="flex h-screen bg-zinc-950">
+    <div className="flex h-[calc(100vh-35px)] bg-zinc-950">
       {/* Sidebar Esquerda */}
       <Sidebar />
 
       {/* Área Principal (Abas + Editor) */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <TabBar />
         <TabEditor />
       </div>

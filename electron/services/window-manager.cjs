@@ -1,4 +1,4 @@
-const { BrowserWindow, Menu } = require("electron");
+const { BrowserWindow, Menu, screen } = require("electron");
 const path = require("path");
 
 /**
@@ -25,14 +25,17 @@ class WindowManager {
   createMainWindow() {
     if (this.mainWindow) return this.mainWindow;
 
+    // Pega as dimensões do monitor principal (agora é seguro usar 'screen')
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
     this.mainWindow = new BrowserWindow({
       title: "HTTPClient",
       icon: path.join(__dirname, "../../assets/icon1.png"),
-      width: 950,
-      height: 700,
+      width: 1100,
+      height: 800,
       minWidth: 950,
       minHeight: 700,
-      fullscreen: true,
+      fullscreen: false,
       show: false,
       center: true,
       resizable: true,

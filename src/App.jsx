@@ -19,7 +19,7 @@ function App() {
   }, [navigate]);
 
   return (
-    <div className="d-flex flex-column vh-100">
+    <div className="d-flex flex-column h-screen">
       <Routes>
         <Route path="/upload" element={<Layout><UploadPage /></Layout>} />
         <Route path="/" element={<Layout><Home /></Layout>} />

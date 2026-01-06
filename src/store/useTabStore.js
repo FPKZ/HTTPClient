@@ -26,7 +26,7 @@ const useTabStore = create(
         id: null,
         name: "",
         description: "",
-        routes: [], // Array de [screenKey, telaData]
+        routes: [], // Array de RouteData (conforme molde TS)
       },
 
       // ==================== AÇÕES - ABAS ====================
@@ -50,7 +50,7 @@ const useTabStore = create(
         const newTab = {
           id: `tab-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           screenKey,
-          title: screenKey,
+          title: routeData.name || screenKey,
           method: routeData.request.method || "GET",
           url: routeData.request.url || "",
           data: JSON.parse(JSON.stringify(routeData)), // Deep clone
@@ -151,14 +151,10 @@ const useTabStore = create(
               // Substituir seção inteira
               updatedRequest[sectionKey] = value;
             } else {
-              // Atualizar campo específico
-              const currentSection =
-                typeof updatedRequest[sectionKey] === "object"
-                  ? updatedRequest[sectionKey]
-                  : {};
-
+              // Se for um objeto (como auth), atualizamos a propriedade específica
+              const section = updatedRequest[sectionKey] || {};
               updatedRequest[sectionKey] = {
-                ...currentSection,
+                ...section,
                 [fieldKey]: value,
               };
             }
@@ -188,30 +184,34 @@ const useTabStore = create(
 
         if (!tab) return;
 
-        // Se a aba não está vinculada a uma rota, cria nova rota
-        if (!tab.screenKey) {
-          const newScreenKey =
-            tab.title.replace(/\s+/g, "_") || `route_${Date.now()}`;
-          const newRoute = [newScreenKey, tab.data];
+        // Atualiza rota existente na coleção
+        const updatedRoutes = collection.routes.map((route) =>
+          route.id === tab.screenKey
+            ? { ...route, ...tab.data, id: route.id, name: tab.title }
+            : route
+        );
 
+        // Se não encontrou (ex: aba em branco), cria nova
+        const routeExists = collection.routes.some(
+          (r) => r.id === tab.screenKey
+        );
+        if (!routeExists) {
+          const newRoute = {
+            ...tab.data,
+            id: tab.screenKey || `route_${Date.now()}`,
+            name: tab.title,
+          };
           set({
             collection: {
               ...collection,
               routes: [...collection.routes, newRoute],
             },
             tabs: tabs.map((t) =>
-              t.id === id
-                ? { ...t, screenKey: newScreenKey, isDirty: false }
-                : t
+              t.id === id ? { ...t, screenKey: newRoute.id, isDirty: false } : t
             ),
           });
           return;
         }
-
-        // Atualiza rota existente
-        const updatedRoutes = collection.routes.map(([key, data]) =>
-          key === tab.screenKey ? [key, tab.data] : [key, data]
-        );
 
         set({
           collection: {
@@ -229,7 +229,7 @@ const useTabStore = create(
        * @param {object} data - Dados da coleção
        */
       loadCollection: (data) => {
-        const routes = data?.telas ? Object.entries(data.telas) : [];
+        const routes = data?.routes || [];
 
         set({
           collection: {
@@ -249,18 +249,39 @@ const useTabStore = create(
        */
       addRoute: () => {
         const { collection } = get();
-        const newKey = `nova_rota_${Date.now()}`;
-        const newRoute = [
-          newKey,
-          {
-            request: {
-              method: "GET",
-              url: "",
-              headers: {},
-              body: "",
+        const newRoute = {
+          id: `route_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          name: `Nova Rota ${collection.routes.length + 1}`,
+          request: {
+            method: "GET",
+            url: "",
+            headers: [
+              { key: "Content-Type", value: "application/json", enabled: true },
+            ],
+            params: [],
+            body: {
+              mode: "inputs",
+              content: [{ key: "", value: "", enabled: true }],
+            },
+            auth: {
+              name: "Authorization",
+              config: {
+                key: "",
+                type: "Bearer",
+                value: "header",
+              },
             },
           },
-        ];
+          response: {
+            status: null,
+            statusText: "",
+            body: "",
+            headers: [],
+            time: 0,
+            size: 0,
+            logs: [],
+          },
+        };
 
         set({
           collection: {
@@ -270,23 +291,23 @@ const useTabStore = create(
         });
 
         // Abre aba automaticamente para a nova rota
-        get().addTab(newKey, newRoute[1]);
+        get().addTab(newRoute.id, newRoute);
       },
 
       /**
        * Remove rota da coleção
        * @param {string} screenKey - Chave da rota
        */
-      deleteRoute: (screenKey) => {
+      deleteRoute: (id) => {
         const { collection, tabs } = get();
 
         set({
           collection: {
             ...collection,
-            routes: collection.routes.filter(([key]) => key !== screenKey),
+            routes: collection.routes.filter((r) => r.id !== id),
           },
           // Fechar aba se estiver aberta
-          tabs: tabs.filter((tab) => tab.screenKey !== screenKey),
+          tabs: tabs.filter((tab) => tab.screenKey !== id),
         });
       },
 
@@ -327,7 +348,7 @@ const useTabStore = create(
           id: collection.id,
           collectionName: collection.name,
           content: {
-            axios: Object.fromEntries(collection.routes),
+            routes: collection.routes,
           },
         };
       },

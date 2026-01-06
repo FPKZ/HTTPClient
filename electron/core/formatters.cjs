@@ -8,21 +8,25 @@ class AxiosFormatter {
   format(internalModel) {
     const result = {};
 
-    const processItems = (items, prefix = "") => {
-      items.forEach((item) => {
-        if (item.type === "folder") {
-          const newPrefix = prefix ? `${prefix} / ${item.name}` : item.name;
-          processItems(item.items, newPrefix);
-        } else if (item.request) {
-          const method = item.request.method || "GET";
-          const displayName = prefix ? `${prefix} / ${item.name}` : item.name;
-          const uniqueKey = `[${method}] ${displayName}`;
-          result[uniqueKey] = this._formatRequest(item);
+    const processRoutes = (routes, parentPath = "") => {
+      routes.forEach((route) => {
+        const currentPath = parentPath
+          ? `${parentPath} / ${route.name}`
+          : route.name;
+
+        if (route.items && Array.isArray(route.items)) {
+          // É uma pasta, processa recursivamente
+          processRoutes(route.items, currentPath);
+        } else if (route.request) {
+          // É uma requisição direta
+          const method = route.request.method || "GET";
+          const uniqueKey = `[${method}] ${currentPath}`;
+          result[uniqueKey] = this._formatRequest(route);
         }
       });
     };
 
-    processItems(internalModel.items);
+    processRoutes(internalModel.routes);
     return result;
   }
 
@@ -35,49 +39,47 @@ class AxiosFormatter {
 
 class HttpFormatter {
   format(internalModel) {
-    return this._processItems(internalModel.items);
+    return this._processRoutes(internalModel.routes);
   }
 
-  _processItems(items, parentName = "") {
+  _processRoutes(routes) {
     let content = "";
-    items.forEach((item) => {
-      if (item.type === "folder") {
-        const folderName = parentName ? `${parentName} / ${item.name}` : item.name;
-        content += `\n# 📁 Folder: ${folderName}\n`;
-        content += this._processItems(item.items, folderName);
-      } else {
-        content += this._formatRequest(item);
+    routes.forEach((route) => {
+      if (route.items && Array.isArray(route.items)) {
+        // É uma pasta, processa os itens internos recursivamente
+        content += `### PASTA: ${route.name}\n\n`;
+        content += this._processRoutes(route.items);
+      } else if (route.request) {
+        content += this._formatRequest(route);
       }
     });
     return content;
   }
 
-  _formatRequest(item) {
-    const req = item.request;
-    let httpContent = `### ${item.name || "Request"}\n`;
+  _formatRequest(route) {
+    const req = route.request;
+    let httpContent = `### ${route.name || "Request"}\n`;
     httpContent += `${req.method} ${req.url}\n`;
 
-    Object.entries(req.headers).forEach(([key, value]) => {
-      httpContent += `${key}: ${value}\n`;
+    route.request.headers?.forEach(({ key, value, enabled }) => {
+      if (enabled) httpContent += `${key}: ${value}\n`;
     });
 
-    if (req.body) {
+    if (req.body && req.body.mode !== "none") {
       httpContent += "\n";
-      if (typeof req.body === "object") {
-        // Se for FormData simulada
-        if (req.body.type === undefined && Object.keys(req.body).length > 0) {
-            // Checa se é um objeto plano (JSON) ou simulador de FormData
-            const firstVal = Object.values(req.body)[0];
-            if (firstVal && typeof firstVal === 'object' && firstVal.type === 'file') {
-                 httpContent += this._formatFormData(req.body);
-            } else {
-                httpContent += JSON.stringify(req.body, null, 2);
-            }
+      if (req.body.mode === "inputs" || req.body.mode === "formdata") {
+        if (req.body.mode === "formdata") {
+          httpContent += this._formatFormData(req.body.content);
         } else {
-            httpContent += JSON.stringify(req.body, null, 2);
+          // JSON simplificado a partir dos inputs
+          const obj = {};
+          req.body.content.forEach((i) => {
+            if (i.enabled) obj[i.key] = i.value;
+          });
+          httpContent += JSON.stringify(obj, null, 2);
         }
-      } else {
-        httpContent += req.body;
+      } else if (req.body.mode === "json") {
+        httpContent += req.body.content;
       }
       httpContent += "\n";
     }
@@ -88,16 +90,28 @@ class HttpFormatter {
   _formatFormData(formData) {
     const boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
     let content = "";
-    Object.entries(formData).forEach(([key, field]) => {
-      content += `--${boundary}\n`;
-      if (field && typeof field === 'object' && field.type === "file") {
-        content += `Content-Disposition: form-data; name="${key}"; filename="${field.src || "file"}"\n\n`;
-        content += `< ${field.src || "./file"}\n`;
-      } else {
-        content += `Content-Disposition: form-data; name="${key}"\n\n`;
-        content += `${field}\n`;
-      }
-    });
+
+    // formData aqui é a lista 'content' se for mode 'formdata' ou 'inputs'
+    if (Array.isArray(formData)) {
+      formData.forEach(({ key, value, enabled }) => {
+        if (!enabled) return;
+        content += `--${boundary}\n`;
+        // Nota: se for arquivo, o valor é o path no nosso modelo simplificado
+        if (
+          typeof value === "string" &&
+          (value.includes("/") || value.includes("\\"))
+        ) {
+          content += `Content-Disposition: form-data; name="${key}"; filename="${value
+            .split(/[/\\]/)
+            .pop()}"\n\n`;
+          content += `< ${value}\n`;
+        } else {
+          content += `Content-Disposition: form-data; name="${key}"\n\n`;
+          content += `${value}\n`;
+        }
+      });
+    }
+
     content += `--${boundary}--\n`;
     return content;
   }

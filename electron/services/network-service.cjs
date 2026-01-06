@@ -14,25 +14,37 @@ class NetworkService {
    * @param {Function} logCallback - Callback para enviar logs parciais.
    * @returns {Promise<Object>} - Resposta processada.
    */
-  async execute({ url, method, headers, body }, logCallback) {
+  async execute({ url, method, headers, body, bodyMode }, logCallback) {
     let requestData = body;
     let requestHeaders = { ...headers };
 
-    // Verifica se o corpo contém arquivos para criar FormData
+    // Verifica se deve usar FormData (modo explícito ou presença de arquivos)
+    const isFormData = bodyMode === "formdata";
     const hasFiles = this._checkIfHasFiles(body);
 
-    if (hasFiles) {
+    if (isFormData || hasFiles) {
       const form = new FormData();
-      for (const [key, value] of Object.entries(body)) {
-        if (this._isFileData(value)) {
-          if (fs.existsSync(value.src)) {
-            form.append(key, fs.createReadStream(value.src));
+      if (body && typeof body === "object") {
+        for (const [key, value] of Object.entries(body)) {
+          if (this._isFileData(value)) {
+            if (fs.existsSync(value.src)) {
+              form.append(key, fs.createReadStream(value.src));
+            }
+          } else if (
+            typeof value === "string" &&
+            (value.includes("/") || value.includes("\\"))
+          ) {
+            if (fs.existsSync(value)) {
+              form.append(key, fs.createReadStream(value));
+            } else {
+              form.append(key, value);
+            }
+          } else {
+            form.append(
+              key,
+              typeof value === "object" ? JSON.stringify(value) : value
+            );
           }
-        } else {
-          form.append(
-            key,
-            typeof value === "object" ? JSON.stringify(value) : value
-          );
         }
       }
       requestData = form;
@@ -67,7 +79,9 @@ class NetworkService {
   }
 
   _isFileData(value) {
-    return value && typeof value === "object" && value.src && value.type === "file";
+    return (
+      value && typeof value === "object" && value.src && value.type === "file"
+    );
   }
 
   _processSuccessResponse(response) {
@@ -101,7 +115,9 @@ class NetworkService {
     if (error.response?.data) {
       errorBody = Buffer.from(error.response.data).toString("utf8");
       try {
-        if (error.response.headers["content-type"]?.includes("application/json")) {
+        if (
+          error.response.headers["content-type"]?.includes("application/json")
+        ) {
           errorBody = JSON.parse(errorBody);
         }
       } catch (e) {}

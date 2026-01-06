@@ -37,12 +37,9 @@ function UploadPage() {
       const unFinished = window.electronAPI.onFinished?.((result) => {
         if (result.success && result.results?.length > 0) {
           const data = result.results[0];
+          console.log(data);
           navigate("/", {
-            state: {
-              telas: data.axios,
-              http: data.http,
-              collectionName: data.name,
-            },
+            state: data.raw,
           });
         }
       });
@@ -53,7 +50,6 @@ function UploadPage() {
       };
     }
   }, [navigate]);
-
 
   const startConversion = (inputPath, isFile) => {
     window.electronAPI?.startConversion({ inputPath, isFile });

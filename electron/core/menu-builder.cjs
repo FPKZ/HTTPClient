@@ -18,6 +18,7 @@ class MenuBuilder {
           const mainWindow = this.win.getMainWindow();
           if (mainWindow) mainWindow.webContents.reload();
         },
+        accelerator: "CmdOrCtrl+N",
       },
       {
         label: "Salvar Arquivo",
@@ -25,6 +26,7 @@ class MenuBuilder {
           const mainWindow = this.win.getMainWindow();
           if (mainWindow) mainWindow.webContents.send("menu-action", "save-file");
         },
+        accelerator: "CmdOrCtrl+S",
       },
       { type: "separator" },
       {

@@ -1,6 +1,7 @@
-import React, { useRef, useEffect } from "react";
-import { X, Plus } from "lucide-react";
+import React, { useEffect } from "react";
+import { X, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import useTabStore from "../../store/useTabStore";
+import { useTabScroll } from "../../hooks/useTabScroll";
 
 /**
  * TabBar
@@ -13,12 +14,26 @@ export default function TabBar() {
   const closeTab = useTabStore((state) => state.closeTab);
   const addBlankTab = useTabStore((state) => state.addBlankTab);
 
-  const tabBarRef = useRef(null);
+  const {
+    navRef,
+    canScrollLeft,
+    canScrollRight,
+    checkScroll,
+    scrollLeft,
+    scrollRight,
+  } = useTabScroll();
+
+  const showScrollButtons = canScrollLeft || canScrollRight;
+
+  // Verifica scroll quando tabs mudam
+  useEffect(() => {
+    checkScroll();
+  }, [tabs, checkScroll]);
 
   // Auto-scroll para aba ativa quando muda
   useEffect(() => {
-    if (tabBarRef.current && activeTabId) {
-      const activeTabElement = tabBarRef.current.querySelector(
+    if (navRef.current && activeTabId) {
+      const activeTabElement = navRef.current.querySelector(
         `[data-tab-id="${activeTabId}"]`
       );
       if (activeTabElement) {
@@ -29,7 +44,7 @@ export default function TabBar() {
         });
       }
     }
-  }, [activeTabId]);
+  }, [activeTabId, navRef]);
 
   const handleCloseTab = (e, tabId) => {
     e.stopPropagation();
@@ -62,12 +77,24 @@ export default function TabBar() {
   }
 
   return (
-    <div className="h-12 bg-zinc-800 border-b border-zinc-700 flex items-center">
+    <div className="w-full h-9 bg-zinc-800 border-b border-zinc-700 flex items-center overflow-x-hidden">
+      {/* Botão Scroll Esquerda */}
+      {showScrollButtons && canScrollLeft && (
+        <button
+          onClick={scrollLeft}
+          className="h-full px-2 hover:bg-zinc-700 transition-colors border-r border-zinc-700 shrink-0"
+          title="Rolar para esquerda"
+        >
+          <ChevronLeft size={16} className="text-gray-400" />
+        </button>
+      )}
+
       {/* Abas */}
       <div
-        ref={tabBarRef}
-        className="flex-1 flex items-center overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent"
-        style={{ scrollbarWidth: "thin" }}
+        ref={navRef}
+        onScroll={checkScroll}
+        className="flex-1 h-full flex items-center overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent min-w-0"
+        style={{ scrollbarWidth: "none" }}
       >
         {tabs.map((tab) => {
           const isActive = tab.id === activeTabId;
@@ -78,7 +105,7 @@ export default function TabBar() {
               data-tab-id={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`
-                group flex items-center gap-2 px-3 py-2 min-w-[180px] max-w-[220px] border-r border-zinc-700 cursor-pointer transition-colors
+                group flex items-center gap-1 px-2 h-full min-w-[180px] max-w-[220px] shrink-0 border-r border-zinc-700 cursor-pointer transition-colors
                 ${
                   isActive
                     ? "bg-zinc-900 text-white"
@@ -88,7 +115,7 @@ export default function TabBar() {
             >
               {/* Método HTTP */}
               <span
-                className={`text-xs font-bold ${getMethodColor(
+                className={`!text-[0.6rem] font-bold ${getMethodColor(
                   tab.method
                 )} min-w-[40px]`}
               >
@@ -96,7 +123,9 @@ export default function TabBar() {
               </span>
 
               {/* Título da Aba */}
-              <span className="flex-1 text-sm truncate">{tab.title}</span>
+              <span className="flex-1 !text-[0.7rem] truncate">
+                {tab.title}
+              </span>
 
               {/* Indicador de Modificação */}
               {tab.isDirty && (
@@ -109,7 +138,7 @@ export default function TabBar() {
               {/* Botão Fechar */}
               <button
                 onClick={(e) => handleCloseTab(e, tab.id)}
-                className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-zinc-600 rounded transition-all"
+                className="opacity-0 group-hover:!opacity-100 p-0.5 hover:bg-zinc-600 rounded transition-all"
                 title="Fechar aba"
               >
                 <X size={14} />
@@ -118,6 +147,17 @@ export default function TabBar() {
           );
         })}
       </div>
+
+      {/* Botão Scroll Direita */}
+      {showScrollButtons && canScrollRight && (
+        <button
+          onClick={scrollRight}
+          className="h-full px-2 hover:bg-zinc-700 transition-colors border-l border-zinc-700 shrink-0"
+          title="Rolar para direita"
+        >
+          <ChevronRight size={16} className="text-gray-400" />
+        </button>
+      )}
 
       {/* Botão Nova Aba */}
       <button

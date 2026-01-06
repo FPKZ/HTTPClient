@@ -2,19 +2,19 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function useHistory() {
-    const [history, setHistory] = useState([]);
-    const navigate = useNavigate();
+  const [history, setHistory] = useState([]);
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const getHistory = async () => {
-            if (!window.electronAPI) return;
-            const history = await window.electronAPI.getHistory();
-            setHistory(history || []);
-        };
-        getHistory();
-    }, []);
+  useEffect(() => {
+    const getHistory = async () => {
+      if (!window.electronAPI) return;
+      const history = await window.electronAPI.getHistory();
+      setHistory(history || []);
+    };
+    getHistory();
+  }, []);
 
-    const handleLoadHistory = async (item) => {
+  const handleLoadHistory = async (item) => {
     if (!window.electronAPI) return;
     const content = await window.electronAPI.loadCollection(item.file);
     if (content) {
