@@ -50,7 +50,7 @@ export default function Home() {
             content: {
               id: collectionData.id,
               collectionName: collectionData.collectionName,
-              routes: collectionData.content.routes,
+              items: collectionData.content.items,
             },
           });
         }
@@ -66,7 +66,7 @@ export default function Home() {
       id: collectionData.id,
       collectionName: collectionData.collectionName,
       content: {
-        routes: collectionData.content.routes,
+        items: collectionData.content.items,
       },
     });
   });

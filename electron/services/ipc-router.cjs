@@ -80,6 +80,13 @@ class IpcRouter {
       const mainWindow = this.win.getMainWindow();
       if (mainWindow) mainWindow.destroy();
     });
+
+    ipcMain.handle("save-history", (event, { id, collectionName, content }) => {
+      if (collectionName && content) {
+        this.history.saveHistory(collectionName, "native", content, id);
+      }
+    });
+    
     ipcMain.handle("delete-history-item", (event, id) =>
       this.history.deleteHistoryItem(id)
     );

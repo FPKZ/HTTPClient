@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { X, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import useTabStore from "../../store/useTabStore";
 import { useTabScroll } from "../../hooks/useTabScroll";
+import NovoItemModal from "../modals/NovoItemModal";
 
 /**
  * TabBar
@@ -62,16 +63,22 @@ export default function TabBar() {
     return colors[method?.toUpperCase()] || "text-gray-400";
   };
 
+  const handleAddTab = (name) => {
+    addBlankTab(name);
+  };
+
   if (tabs.length === 0) {
     return (
       <div className="h-12 bg-zinc-800 border-b border-zinc-700 flex items-center justify-center">
-        <button
-          onClick={addBlankTab}
-          className="flex items-center gap-2 px-4 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-gray-300 rounded transition-colors"
-        >
-          <Plus size={16} />
-          <span className="text-sm">Nova Aba</span>
-        </button>
+        <NovoItemModal onAdd={handleAddTab}>
+          <button
+            // onClick={addBlankTab}
+            className="flex items-center gap-2 px-4 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-gray-300 rounded transition-colors"
+          >
+            <Plus size={16} />
+            <span className="text-sm">Nova Aba</span>
+          </button>
+        </NovoItemModal>
       </div>
     );
   }
@@ -160,13 +167,15 @@ export default function TabBar() {
       )}
 
       {/* Botão Nova Aba */}
-      <button
-        onClick={addBlankTab}
-        className="px-3 py-2 hover:bg-zinc-700 transition-colors"
-        title="Nova aba"
-      >
-        <Plus size={18} className="text-gray-400" />
-      </button>
+      <NovoItemModal onAdd={handleAddTab}>
+        <button
+          // onClick={addBlankTab}
+          className="px-3 py-2 hover:bg-zinc-700 transition-colors"
+          title="Nova aba"
+        >
+          <Plus size={18} className="text-gray-400" />
+        </button>
+      </NovoItemModal>
     </div>
   );
 }

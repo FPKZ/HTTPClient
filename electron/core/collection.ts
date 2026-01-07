@@ -47,11 +47,17 @@ export interface RouteData {
   response: ResponseData;
 }
 
+export interface FolderData {
+    id: string;
+    name: string;
+    items: RouteData[];
+}
+
 export interface CollectionData {
   id: string;
   collectionName: string;
   description: string;
-  routes: RouteData[]; // Alterado de 'telas' para 'routes'
+  routes: RouteData[] | FolderData[]; // Alterado de 'telas' para 'routes'
 }
 
 export class CollectionTemplate {

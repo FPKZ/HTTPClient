@@ -15,6 +15,9 @@ export default function ResultRequestLog({ logs }) {
     const { status, statusText, headers, data, isError, isImage, contentType } =
       log;
     const statusColor = isError ? "text-red-500" : "text-green-400";
+    const mimeType = contentType
+      ? contentType.split(";")[0].trim()
+      : "text/plain";
 
     return (
       <div className="mb-0 font-mono text-xs">
@@ -34,17 +37,20 @@ export default function ResultRequestLog({ logs }) {
 
         {/* Body */}
         {isImage ? (
-          <div className="mt-2 bg-zinc-900/50 p-2 rounded d-flex justify-content-center">
+          <div className="mt-2 bg-zinc-900/50 p-2 rounded d-flex flex-column align-items-center gap-2">
             <img
-              src={`data:${contentType.split(";")[0].trim()};base64,${data}`}
+              src={`data:${mimeType};base64,${data}`}
               alt="Response"
               style={{
                 maxWidth: "100%",
                 maxHeight: "400px",
                 objectFit: "contain",
               }}
-              className="rounded shadow-sm"
+              className="rounded shadow-sm border border-zinc-800"
             />
+            <span className="text-[10px] text-zinc-500 uppercase font-bold">
+              {mimeType} ({Math.round((data.length * 0.75) / 1024)} KB)
+            </span>
           </div>
         ) : (
           <pre

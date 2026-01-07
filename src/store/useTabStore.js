@@ -26,7 +26,7 @@ const useTabStore = create(
         id: null,
         name: "",
         description: "",
-        routes: [], // Array de RouteData (conforme molde TS)
+        items: [], // Array de FolderData ou RouteData
       },
 
       // ==================== AÇÕES - ABAS ====================
@@ -51,8 +51,8 @@ const useTabStore = create(
           id: `tab-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           screenKey,
           title: routeData.name || screenKey,
-          method: routeData.request.method || "GET",
-          url: routeData.request.url || "",
+          method: routeData.request?.method || "GET",
+          url: routeData.request?.url || "",
           data: JSON.parse(JSON.stringify(routeData)), // Deep clone
           isDirty: false, // Indica se foi modificada
         };
@@ -66,19 +66,30 @@ const useTabStore = create(
       /**
        * Cria uma aba em branco (nova requisição)
        */
-      addBlankTab: () => {
+      addBlankTab: (nome = "Nova Requisição") => {
+        const title =
+          typeof nome === "string"
+            ? !nome
+              ? "Nova Requisição"
+              : nome
+            : "Nova Requisição";
         const newTab = {
           id: `tab-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           screenKey: null, // Não vinculada a rota existente
-          title: "Nova Requisição",
+          title,
           method: "GET",
           url: "",
           data: {
+            type: "route",
             request: {
               method: "GET",
               url: "",
-              headers: {},
-              body: "",
+              headers: [],
+              params: [],
+              body: {
+                mode: "inputs",
+                content: [{ key: "", value: "", enabled: true }],
+              },
             },
           },
           isDirty: true,
@@ -184,27 +195,45 @@ const useTabStore = create(
 
         if (!tab) return;
 
-        // Atualiza rota existente na coleção
-        const updatedRoutes = collection.routes.map((route) =>
-          route.id === tab.screenKey
-            ? { ...route, ...tab.data, id: route.id, name: tab.title }
-            : route
-        );
+        const updateInTree = (items) => {
+          return items.map((item) => {
+            if (item.id === tab.screenKey) {
+              return { ...item, ...tab.data, id: item.id, name: tab.title };
+            }
+            if (item.type === "folder" && item.items) {
+              return { ...item, items: updateInTree(item.items) };
+            }
+            return item;
+          });
+        };
 
-        // Se não encontrou (ex: aba em branco), cria nova
-        const routeExists = collection.routes.some(
-          (r) => r.id === tab.screenKey
-        );
+        const updatedItems = updateInTree(collection.items);
+
+        // Se não encontrou (ex: aba em branco), cria nova na raiz por padrão ou o usuário decide no futuro
+        const findRoute = (items, key) => {
+          for (const item of items) {
+            if (item.id === key) return item;
+            if (item.type === "folder" && item.items) {
+              const found = findRoute(item.items, key);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+
+        const routeExists = findRoute(collection.items, tab.screenKey);
+
         if (!routeExists) {
           const newRoute = {
             ...tab.data,
+            type: "route",
             id: tab.screenKey || `route_${Date.now()}`,
             name: tab.title,
           };
           set({
             collection: {
               ...collection,
-              routes: [...collection.routes, newRoute],
+              items: [...collection.items, newRoute],
             },
             tabs: tabs.map((t) =>
               t.id === id ? { ...t, screenKey: newRoute.id, isDirty: false } : t
@@ -216,7 +245,7 @@ const useTabStore = create(
         set({
           collection: {
             ...collection,
-            routes: updatedRoutes,
+            items: updatedItems,
           },
           tabs: tabs.map((t) => (t.id === id ? { ...t, isDirty: false } : t)),
         });
@@ -229,14 +258,21 @@ const useTabStore = create(
        * @param {object} data - Dados da coleção
        */
       loadCollection: (data) => {
-        const routes = data?.routes || [];
+        // Normaliza rotas para o novo formato se necessário (compatibilidade)
+        let items = data?.content?.routes || data?.routes || data?.items || [];
+
+        // Se as rotas vierem como array plano sem 'type', marcamos como route
+        items = items.map((item) => ({
+          ...item,
+          type: item.type || (item.items ? "folder" : "route"),
+        }));
 
         set({
           collection: {
             id: data?.id || null,
-            name: data?.collectionName || "Collection",
+            name: data?.collectionName || data?.name || "Collection",
             description: data?.description || "",
-            routes,
+            items,
           },
           // Limpar abas ao carregar nova coleção
           tabs: [],
@@ -246,12 +282,18 @@ const useTabStore = create(
 
       /**
        * Adiciona nova rota à coleção
+       * @param {string|null} parentId - ID da pasta pai
+       * @param {string} name - Nome da rota
        */
-      addRoute: () => {
+      addRoute: (parentId = null, name = "Nova Rota") => {
+        const routeName =
+          typeof name === "string" ? (!name ? "Nova Rota" : name) : "Nova Rota";
+
         const { collection } = get();
         const newRoute = {
           id: `route_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-          name: `Nova Rota ${collection.routes.length + 1}`,
+          type: "route",
+          name: routeName,
           request: {
             method: "GET",
             url: "",
@@ -283,31 +325,189 @@ const useTabStore = create(
           },
         };
 
-        set({
-          collection: {
-            ...collection,
-            routes: [...collection.routes, newRoute],
-          },
-        });
+        const addItemToTree = (items, targetId, newItem) => {
+          return items.map((item) => {
+            if (item.id === targetId && item.type === "folder") {
+              return {
+                ...item,
+                items: [...(item.items || []), newItem],
+              };
+            }
+            if (item.type === "folder" && item.items) {
+              return {
+                ...item,
+                items: addItemToTree(item.items, targetId, newItem),
+              };
+            }
+            return item;
+          });
+        };
+
+        if (!parentId) {
+          set({
+            collection: {
+              ...collection,
+              items: [...collection.items, newRoute],
+            },
+          });
+        } else {
+          set({
+            collection: {
+              ...collection,
+              items: addItemToTree(collection.items, parentId, newRoute),
+            },
+          });
+        }
 
         // Abre aba automaticamente para a nova rota
         get().addTab(newRoute.id, newRoute);
       },
 
       /**
-       * Remove rota da coleção
-       * @param {string} screenKey - Chave da rota
+       * Adiciona nova pasta à coleção
+       * @param {string|null} parentId - ID da pasta pai
+       * @param {string} name - Nome da pasta
        */
-      deleteRoute: (id) => {
+      addFolder: (parentId = null, name = "Nova Pasta") => {
+        const folderName =
+          typeof name === "string"
+            ? !name
+              ? "Nova Pasta"
+              : name
+            : "Nova Pasta";
+
+        const { collection } = get();
+        const newFolder = {
+          id: `folder_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          type: "folder",
+          name: folderName,
+          items: [],
+        };
+
+        const addItemToTree = (items, targetId, newItem) => {
+          return items.map((item) => {
+            if (item.id === targetId && item.type === "folder") {
+              return {
+                ...item,
+                items: [...(item.items || []), newItem],
+              };
+            }
+            if (item.type === "folder" && item.items) {
+              return {
+                ...item,
+                items: addItemToTree(item.items, targetId, newItem),
+              };
+            }
+            return item;
+          });
+        };
+
+        if (!parentId) {
+          set({
+            collection: {
+              ...collection,
+              items: [...collection.items, newFolder],
+            },
+          });
+        } else {
+          set({
+            collection: {
+              ...collection,
+              items: addItemToTree(collection.items, parentId, newFolder),
+            },
+          });
+        }
+      },
+
+      /**
+       * Remove item (rota ou pasta) da coleção
+       * @param {string} id - ID do item
+       */
+      deleteItem: (id) => {
         const { collection, tabs } = get();
+
+        const removeItemFromTree = (items, targetId) => {
+          return items
+            .filter((item) => item.id !== targetId)
+            .map((item) => {
+              if (item.type === "folder" && item.items) {
+                return {
+                  ...item,
+                  items: removeItemFromTree(item.items, targetId),
+                };
+              }
+              return item;
+            });
+        };
+
+        const collectRouteIds = (item) => {
+          let ids = [];
+          if (item.type === "route") {
+            ids.push(item.id);
+          } else if (item.items) {
+            item.items.forEach((child) => {
+              ids = [...ids, ...collectRouteIds(child)];
+            });
+          }
+          return ids;
+        };
+
+        // Encontrar o item para saber quais tabs fechar
+        const findItem = (items, targetId) => {
+          for (const item of items) {
+            if (item.id === targetId) return item;
+            if (item.type === "folder" && item.items) {
+              const found = findItem(item.items, targetId);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+
+        const itemToDelete = findItem(collection.items, id);
+        const idsToClose = itemToDelete ? collectRouteIds(itemToDelete) : [id];
 
         set({
           collection: {
             ...collection,
-            routes: collection.routes.filter((r) => r.id !== id),
+            items: removeItemFromTree(collection.items, id),
           },
-          // Fechar aba se estiver aberta
-          tabs: tabs.filter((tab) => tab.screenKey !== id),
+          // Fechar abas se estiverem abertas
+          tabs: tabs.filter((tab) => !idsToClose.includes(tab.screenKey)),
+        });
+      },
+
+      /**
+       * Inicia a renomeação de um item (pasta ou rota)
+       * @param {string} id - ID do item
+       * @param {string} newName - Novo nome
+       */
+      renameItem: (id, newName) => {
+        const { collection, tabs } = get();
+
+        const updateNameInTree = (items) => {
+          return items.map((item) => {
+            if (item.id === id) {
+              return { ...item, name: newName };
+            }
+            if (item.type === "folder" && item.items) {
+              return { ...item, items: updateNameInTree(item.items) };
+            }
+            return item;
+          });
+        };
+
+        const updatedItems = updateNameInTree(collection.items);
+
+        set({
+          collection: {
+            ...collection,
+            items: updatedItems,
+          },
+          // Sincroniza automaticamente com o título da aba, se estiver aberta
+          tabs: tabs.map((tab) =>
+            tab.screenKey === id ? { ...tab, title: newName } : tab
+          ),
         });
       },
 
@@ -320,7 +520,7 @@ const useTabStore = create(
         set((state) => ({
           collection: {
             ...state.collection,
-            name: name || state.collection.name,
+            name: name !== undefined ? name : state.collection.name,
             description:
               description !== undefined
                 ? description
@@ -348,7 +548,7 @@ const useTabStore = create(
           id: collection.id,
           collectionName: collection.name,
           content: {
-            routes: collection.routes,
+            items: collection.items,
           },
         };
       },
