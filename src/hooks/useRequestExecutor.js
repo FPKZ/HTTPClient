@@ -11,12 +11,16 @@ export function useRequestExecutor() {
   const handleExecuteRequest = async (screenKey, requestData) => {
     if (!window.electronAPI) return;
 
-    // Helper para converter lista [{key, value, enabled}] em objeto {key: value}
+    // Helper para converter lista [{key, value, enabled, type}] em objeto {key: value}
     const listToObj = (list) => {
       if (!Array.isArray(list)) return {};
       return list.reduce((acc, curr) => {
         if (curr.enabled && curr.key) {
-          acc[curr.key] = curr.value;
+          if (curr.type === "file") {
+            acc[curr.key] = { src: curr.value, type: "file" };
+          } else {
+            acc[curr.key] = curr.value;
+          }
         }
         return acc;
       }, {});

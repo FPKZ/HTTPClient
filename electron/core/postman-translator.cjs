@@ -222,15 +222,16 @@ class PostmanTranslator {
     if (body.mode === "raw") {
       try {
         const cleanRaw = body.raw.replace(/\/\/.*$/gm, "");
-        const parsed = JSON.parse(cleanRaw);
-        // Se conseguimos parsear como JSON, convertemos para o formato 'inputs' (lista)
-        const inputs = Object.entries(parsed).map(([key, value]) => ({
-          key,
-          value:
-            typeof value === "object" ? JSON.stringify(value) : String(value),
-          enabled: true,
-        }));
-        return { mode: "inputs", content: inputs };
+        // const parsed = JSON.parse(cleanRaw);
+        // // Se conseguimos parsear como JSON, convertemos para o formato 'inputs' (lista)
+        // const inputs = Object.entries(parsed).map(([key, value]) => ({
+        //   key,
+        //   value:
+        //     typeof value === "object" ? JSON.stringify(value) : String(value),
+        //   enabled: true,
+        // }));
+        // return { mode: "inputs", content: inputs };
+        return { mode: "json", content: cleanRaw };
       } catch (e) {
         return { mode: "json", content: body.raw };
       }

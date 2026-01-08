@@ -14,7 +14,6 @@ export default function RequestEditor({
   onSelectFile,
 }) {
   if (subKey === "url" || subKey === "method" || !subValue) return null;
-
   // Renderização específica para AUTH
   if (subKey === "auth") {
     const isEnabled = subValue.name && subValue.name !== "none";
@@ -145,6 +144,7 @@ export default function RequestEditor({
   const isBody = subKey === "body";
   const mode = isBody ? subValue.mode : "list";
   const items = isBody ? subValue.content : subValue;
+  console.log(items);
 
   // Handler para atualizar um item específico na lista
   const handleItemChange = (index, field, value) => {
@@ -160,7 +160,7 @@ export default function RequestEditor({
 
   // Handler para adicionar novo item
   const handleAddItem = () => {
-    const newItem = { key: "", value: "", enabled: true };
+    const newItem = { key: "", value: "", enabled: true, type: "text" };
     const newItems = [...items, newItem];
 
     if (isBody) {
@@ -186,7 +186,21 @@ export default function RequestEditor({
     const obj = {};
     if (Array.isArray(list)) {
       list.forEach((item) => {
-        if (item.key) obj[item.key] = item.value;
+        if (item.key) {
+          let val = item.value;
+          // Tenta fazer o parse de volta para objeto se parecer JSON
+          try {
+            if (
+              typeof val === "string" &&
+              (val.trim().startsWith("{") || val.trim().startsWith("["))
+            ) {
+              val = JSON.parse(val);
+            }
+          } catch (e) {
+            // Se falhar o parse, mantém como string
+          }
+          obj[item.key] = val;
+        }
       });
     }
     return JSON.stringify(obj, null, 2);
@@ -211,13 +225,20 @@ export default function RequestEditor({
   const handleModeChange = (newMode) => {
     let newContent = subValue.content;
 
-    if (mode === "inputs" && newMode === "json") {
-      newContent = listToJson(subValue.content);
-    } else if (mode === "json" && newMode === "inputs") {
+    // Conversões de JSON para Lista (Inputs ou FormData)
+    if (mode === "json" && (newMode === "inputs" || newMode === "formdata")) {
       newContent = jsonToList(subValue.content);
-    } else if (newMode === "none") {
+    }
+    // Conversões de Lista para JSON
+    else if ((mode === "inputs" || mode === "formdata") && newMode === "json") {
+      newContent = listToJson(subValue.content);
+    }
+    // Mudança para None
+    else if (newMode === "none") {
       newContent = "";
-    } else if (newMode === "inputs" || newMode === "formdata") {
+    }
+    // Inicialização se vazio
+    else if (newMode === "inputs" || newMode === "formdata") {
       if (!Array.isArray(newContent)) newContent = [];
     }
 
@@ -230,7 +251,7 @@ export default function RequestEditor({
   // Renderização do seletor de modo (apenas para Body)
   const renderModeSelector = () => (
     <div className="flex gap-4 mb-3 border-b border-zinc-800 pb-2">
-      {["inputs", "json", "formdata"].map((m) => (
+      {["json", "formdata"].map((m) => (
         <label key={m} className="flex items-center gap-2 cursor-pointer group">
           <input
             type="radio"
@@ -279,7 +300,6 @@ export default function RequestEditor({
           </div>
         )}
 
-
         {Array.isArray(items) &&
           items.map((item, idx) => (
             <div
@@ -309,18 +329,39 @@ export default function RequestEditor({
                 }`}
               />
 
-              {/* Value Input */}
-              <div className="flex flex-col">
-                <AutoResizeTextarea
-                  value={item.value}
-                  onChange={(e) =>
-                    handleItemChange(idx, "value", e.target.value)
-                  }
-                  placeholder="Value"
-                  className={`bg-transparent text-white text-[0.75rem] py-1 px-2 border-b border-transparent focus:border-zinc-600 outline-none w-full resize-none ${
-                    !item.enabled && "opacity-50 text-zinc-500"
-                  }`}
-                />
+              {/* Value Input (Text or File) */}
+              <div className="flex flex-col gap-1">
+                {mode === "formdata" ? (
+                  <div className="flex gap-2">
+                    <div className="flex-1 bg-zinc-800/50 text-zinc-300 text-[0.7rem] px-2 py-1 rounded border !border-zinc-700 truncate">
+                      {item.value || "Selecione um arquivo..."}
+                    </div>
+                    <button
+                      onClick={async () => {
+                        if (!window.electronAPI) return;
+                        const path = await window.electronAPI.selectFile();
+                        if (path) {
+                          handleItemChange(idx, "value", path);
+                          // Também podemos salvar 'src' se o backend precisar, mas 'value' costuma ser o path
+                        }
+                      }}
+                      className="bg-zinc-700 hover:bg-zinc-600 text-white px-2 py-1 rounded text-[0.6rem]"
+                    >
+                      Browser
+                    </button>
+                  </div>
+                ) : (
+                  <AutoResizeTextarea
+                    value={item.value}
+                    onChange={(e) =>
+                      handleItemChange(idx, "value", e.target.value)
+                    }
+                    placeholder="Value"
+                    className={`bg-transparent text-white text-[0.75rem] py-1 px-2 border-b border-transparent focus:border-zinc-600 outline-none w-full resize-none ${
+                      !item.enabled && "opacity-50 text-zinc-500"
+                    }`}
+                  />
+                )}
               </div>
 
               {/* Remove Action */}
@@ -332,7 +373,7 @@ export default function RequestEditor({
               </button>
             </div>
           ))}
-        
+
         <div className="flex justify-end">
           <button
             onClick={handleAddItem}
@@ -342,7 +383,6 @@ export default function RequestEditor({
             <span>ADICIONAR CAMPO</span>
           </button>
         </div>
-
       </div>
     );
   }

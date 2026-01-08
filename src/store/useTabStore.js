@@ -87,7 +87,7 @@ const useTabStore = create(
               headers: [],
               params: [],
               body: {
-                mode: "inputs",
+                mode: "json",
                 content: [{ key: "", value: "", enabled: true }],
               },
             },
@@ -328,7 +328,7 @@ const useTabStore = create(
             ],
             params: [],
             body: {
-              mode: "inputs",
+              mode: "json",
               content: [{ key: "", value: "", enabled: true }],
             },
             auth: {
