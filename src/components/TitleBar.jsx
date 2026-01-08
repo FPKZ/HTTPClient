@@ -1,26 +1,14 @@
 import React from 'react';
-import { Container, Navbar, Nav } from 'react-bootstrap';
 import icon from '../assets/icon1.png';
 import { Menu } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import useTabStore from '@/store/useTabStore';
 
 
 export default function TitleBar() {
 
-  const { getCollectionForExport } = useTabStore();
-
   const handleMinimize = () => window.electronAPI.minimize();
   const handleMaximize = () => window.electronAPI.maximize();
-
-  const handleClose = () => {
-    if (window.confirm("Deseja salvar esta coleção?")) {
-      const collection = getCollectionForExport();
-      window.electronAPI.saveAndQuit(collection);
-    } else {
-      window.electronAPI.close();
-    }
-  };
+  const handleClose = () => window.electronAPI.close();
 
   const handleMenu = () => {
     window.electronAPI.openMenu();

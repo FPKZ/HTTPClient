@@ -10,7 +10,7 @@ import TabEditor from "../components/layout/TabEditor";
 import useTabStore from "../store/useTabStore";
 
 // Hooks
-// import { useQuickExit } from "../hooks/useQuickExit";
+import { useQuickExit } from "../hooks/useQuickExit";
 
 /**
  * Home Page (Refatorada com Sistema de Abas)
@@ -59,11 +59,11 @@ export default function Home() {
   }, [getCollectionForExport]);
 
   // 4. Auto-save ao sair (Ctrl+Q)
-  // useQuickExit(() => {
-  //   const collectionData = getCollectionForExport();
-  //   // Passa o objeto completo e unificado
-  //   window.electronAPI.saveAndQuit(collectionData);
-  // });
+  useQuickExit(() => {
+    const collectionData = getCollectionForExport();
+    // Passa o objeto completo e unificado
+    window.electronAPI.saveAndQuit(collectionData);
+  });
 
   // if (!collection.items.length) return null; // Pode exibir loading ou null se quiser force
 

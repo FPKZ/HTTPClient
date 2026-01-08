@@ -13,7 +13,7 @@ export function useQuickExit(onSave) {
           onSave();
         } else {
           // Se não houver lógica de salvamento, fecha o app imediatamente
-          window.electronAPI.saveAndQuit({});
+          window.electronAPI.close();
         }
       });
       return () => unsubscribe && unsubscribe();

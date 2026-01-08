@@ -1,7 +1,6 @@
 import { Spinner } from "react-bootstrap";
 import { Progress } from "../components/ui/progress";
 import { useEffect, useState } from "react";
-import icon from "../assets/icon1.png";
 
 export default function UpdatePage() {
   const [status, setStatus] = useState("checking"); // checking, available, downloading, ready
@@ -64,7 +63,7 @@ export default function UpdatePage() {
           />
         )}
         <img
-          src={icon}
+          src="./icon1.png"
           width="90"
           className="position-relative animate-pulse"
         />
