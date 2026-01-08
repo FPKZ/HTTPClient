@@ -126,25 +126,37 @@ class IpcRouter {
       try {
         sender.send("log", `📄 Lendo arquivo: ${file}`);
         const rawJson = JSON.parse(fs.readFileSync(file, "utf8"));
-        
+        let internalModel;
         sender.send("log", `🔄 Traduzindo...`);
-        const internalModel = this.translator.translate(rawJson);
-        sender.send("log", `✅ Tradução OK: ${internalModel.name}`);
-        
+        // console.log("iniciando tradução de ", rawJson);
+
+        if(rawJson.info && rawJson.item){
+          internalModel = this.translator.translate(rawJson);
+          console.log("tradução finalizada");
+          sender.send("log", `✅ Tradução OK: ${internalModel.name}`);
+        }else if(rawJson.id && rawJson.items){
+          internalModel = rawJson;
+          console.log("tradução finalizada");
+          sender.send("log", `✅ Tradução OK: ${internalModel.name}`);
+        }else{
+          console.log("arquivo inválido");
+          sender.send("log", `❌ Arquivo inválido`);
+        }
+
         const axiosData = this.formatters.axios.format(internalModel);
         const httpData = this.formatters.http.format(internalModel);
 
         results.push({
           raw: internalModel,
-          name: internalModel.name,
-          descricao: internalModel.descricao,
-          axios: axiosData,
-          http: httpData,
-          fileName: path.basename(file),
+          // name: internalModel.name,
+          // descricao: internalModel.descricao,
+          // axios: axiosData,
+          // http: httpData,
+          // fileName: path.basename(file),
         });
         sender.send("log", `✅ Processado com sucesso: ${path.basename(file)}`);
       } catch (err) {
-        console.error(`Erro processando ${file}:`, err);
+        console.error(`[handleConversion] Erro processando ${file}:`, err);
         sender.send("log", `❌ Erro em ${path.basename(file)}: ${err.message}`);
       }
     }
@@ -170,8 +182,10 @@ class IpcRouter {
         try {
           const content = fs.readFileSync(filePath, "utf8");
           const json = JSON.parse(content);
-          if (json.info && json.item) results.push(filePath);
-        } catch (e) {}
+          results.push(filePath);
+        } catch (e) {
+          console.error(`[scanForJsonCollections] Erro processando ${file}:`, e);
+        }
       }
     });
     return results;
@@ -179,9 +193,10 @@ class IpcRouter {
 
   async _handleFileSave(content, defaultPath) {
     try {
+      console.log(content);
       const { canceled, filePath } = await dialog.showSaveDialog({
         title: "Salvar Arquivo",
-        defaultPath: defaultPath || "collection.json",
+        defaultPath: defaultPath || `${content.name}.HTTPClient.json`,
         filters: [{ name: "JSON Files", extensions: ["json"] }],
       });
 

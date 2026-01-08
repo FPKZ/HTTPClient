@@ -11,7 +11,7 @@ class PostmanTranslator {
     }
 
     return {
-      id: `coll_${Date.now()}`,
+      id: `${postmanJson.info.name}_${Date.now()}`,
       name: postmanJson.info.name,
       descricao: postmanJson.info.description || "",
       items: this._cleanAndDeduplicateRoutes(

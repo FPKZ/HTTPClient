@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // Components
 import Sidebar from "../components/layout/Sidebar";
@@ -10,7 +10,7 @@ import TabEditor from "../components/layout/TabEditor";
 import useTabStore from "../store/useTabStore";
 
 // Hooks
-import { useQuickExit } from "../hooks/useQuickExit";
+// import { useQuickExit } from "../hooks/useQuickExit";
 
 /**
  * Home Page (Refatorada com Sistema de Abas)
@@ -19,9 +19,9 @@ import { useQuickExit } from "../hooks/useQuickExit";
  */
 export default function Home() {
   const navigate = useNavigate();
-  const location = useLocation();
+  // const location = useLocation();
 
-  const loadCollection = useTabStore((state) => state.loadCollection);
+  // const loadCollection = useTabStore((state) => state.loadCollection);
   const getCollectionForExport = useTabStore(
     (state) => state.getCollectionForExport
   );
@@ -59,11 +59,11 @@ export default function Home() {
   }, [getCollectionForExport]);
 
   // 4. Auto-save ao sair (Ctrl+Q)
-  useQuickExit(() => {
-    const collectionData = getCollectionForExport();
-    // Passa o objeto completo e unificado
-    window.electronAPI.saveAndQuit(collectionData);
-  });
+  // useQuickExit(() => {
+  //   const collectionData = getCollectionForExport();
+  //   // Passa o objeto completo e unificado
+  //   window.electronAPI.saveAndQuit(collectionData);
+  // });
 
   // if (!collection.items.length) return null; // Pode exibir loading ou null se quiser force
 
