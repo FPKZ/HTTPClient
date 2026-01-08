@@ -118,9 +118,13 @@ const SidebarHeader = () => {
  * Gerencia a lista de arquivos.
  */
 const SidebarTree = React.memo(() => {
-  const collection = useTabStore((state) => state.collection);
+  // Select only items to avoid re-render on name/desc change
+  const collectionItems = useTabStore((state) => state.collection.items);
   const addRoute = useTabStore((state) => state.addRoute);
   const addFolder = useTabStore((state) => state.addFolder);
+
+  // Reconstruct simple object for internal use if needed, but iterating items directly is better
+  const collection = { items: collectionItems };
 
   const handleAddRoute = (name) => {
     addRoute(null, name);

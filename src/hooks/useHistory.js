@@ -6,7 +6,7 @@ export function useHistory(fetchOnMount = true) {
   const [history, setHistory] = useState([]);
   const navigate = useNavigate();
 
-  const { getCollectionForExport } = useTabStore();
+  // const { getCollectionForExport } = useTabStore();
 
   useEffect(() => {
     if (!fetchOnMount) return;
@@ -40,7 +40,8 @@ export function useHistory(fetchOnMount = true) {
   const handleSaveCollection = async () => {
     if (!window.electronAPI) return;
     if (window.confirm("Deseja salvar esta coleção no histórico?")) {
-      await window.electronAPI.saveHistory(getCollectionForExport());
+      const collection = useTabStore.getState().getCollectionForExport();
+      await window.electronAPI.saveHistory(collection);
     }
   };
 

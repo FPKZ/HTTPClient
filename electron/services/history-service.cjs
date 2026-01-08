@@ -31,10 +31,10 @@ class HistoryService {
   async loadCollection(fileName) {
     const isAbsolute = path.isAbsolute(fileName);
     const filePath = isAbsolute ? fileName : path.join(this.storage.getCollectionsPath(), fileName);
-    console.log(`[HistoryService] Loading collection: ${fileName}`);
-    console.log(`[HistoryService] Resolved path: ${filePath}`);
+    // console.log(`[HistoryService] Loading collection: ${fileName}`);
+    // console.log(`[HistoryService] Resolved path: ${filePath}`);
     const result = await this.storage.readJson(filePath, true);
-    console.log(`[HistoryService] Result found: ${!!result}`);
+    // console.log(`[HistoryService] Result found: ${!!result}`);
     return result;
   }
 
