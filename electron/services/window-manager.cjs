@@ -71,7 +71,7 @@ class WindowManager {
           if (this.mainWindow && !this.mainWindow.isDestroyed()) {
             this.mainWindow.destroy();
           }
-        }, 1000);
+        }, 3000);
       }
     });
 
