@@ -66,7 +66,7 @@ export default function RequestPanel({
 
           <Tab.Content className="mt-0">
             {Object.entries(telaData.request).map(([subKey, subValue]) => (
-              <Tab.Pane key={subKey} eventKey={subKey} className="p-3 bg-[#141414] rounded-b">
+              <Tab.Pane key={subKey} eventKey={subKey} className="p-0 bg-[#141414] rounded-b">
                 <RequestEditor
                   subKey={subKey}
                   subValue={subValue}

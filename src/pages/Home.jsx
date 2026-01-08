@@ -36,7 +36,7 @@ export default function Home() {
       // Por enquanto, mantemos a lógica de "se chegou aqui sem nada, volta"
       // Mas cuidado: se o usuário der F5, o persist deve manter os dados
       // Se persist falhar, volta pro upload
-      // navigate("/upload"); 
+      // navigate("/upload");
     }
   }, [collection.items, navigate]);
 
@@ -60,7 +60,7 @@ export default function Home() {
 
   // 4. Auto-save ao sair (Ctrl+Q)
   useQuickExit(() => {
-    if(window.confirm("Deseja salvar a coleção antes de sair?")) {
+    if (window.confirm("Deseja salvar a coleção antes de sair?")) {
       const collectionData = getCollectionForExport();
       // Passa o objeto completo e unificado
       window.electronAPI.saveAndQuit(collectionData);
@@ -68,7 +68,6 @@ export default function Home() {
   });
 
   // if (!collection.items.length) return null; // Pode exibir loading ou null se quiser force
-
 
   return (
     <div className="flex h-[calc(100vh-35px)] bg-zinc-950">

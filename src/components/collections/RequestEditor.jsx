@@ -1,6 +1,7 @@
 import React from "react";
 import { Plus, Trash2, CheckSquare, Square } from "lucide-react";
 import AutoResizeTextarea from "../AutoResizeTextarea";
+import Editor from "@monaco-editor/react";
 
 /**
  * RequestEditor
@@ -197,6 +198,7 @@ export default function RequestEditor({
               val = JSON.parse(val);
             }
           } catch (e) {
+            console.log(e);
             // Se falhar o parse, mantém como string
           }
           obj[item.key] = val;
@@ -250,7 +252,7 @@ export default function RequestEditor({
 
   // Renderização do seletor de modo (apenas para Body)
   const renderModeSelector = () => (
-    <div className="flex gap-4 mb-3 border-b border-zinc-800 pb-2">
+    <div className="flex gap-4 mb-0 border-b border-zinc-800 pb-2">
       {["json", "formdata"].map((m) => (
         <label key={m} className="flex items-center gap-2 cursor-pointer group">
           <input
@@ -392,7 +394,28 @@ export default function RequestEditor({
     return (
       <div className="flex flex-col gap-2">
         {renderModeSelector()}
-        <div className="bg-zinc-950 p-3 rounded border border-zinc-800 focus-within:border-yellow-600/50 transition-colors">
+
+        <Editor
+          height="20vh" // Altura fixa ou dinâmica
+          defaultLanguage="json"
+          value={items} // Controlled component
+          theme="vs-dark"
+          onChange={(value) =>
+            onInputChange(0, "body", null, {
+              ...subValue,
+              content: value,
+            })
+          }
+          options={{
+            minimap: { enabled: false },
+            fontSize: 12,
+            scrollBeyondLastLine: false,
+            wordWrap: "on",
+            automaticLayout: true,
+          }}
+        />
+
+        {/* <div className="bg-zinc-950 p-3 rounded border border-zinc-800 focus-within:border-yellow-600/50 transition-colors">
           <AutoResizeTextarea
             value={items}
             onChange={(e) =>
@@ -404,8 +427,8 @@ export default function RequestEditor({
             placeholder='{ "key": "value" }'
             className="w-full bg-transparent text-zinc-300 text-[0.8rem] font-mono outline-none min-h-[100px]"
           />
-        </div>
-        <p className="text-[0.6rem] text-zinc-600">
+        </div> */}
+        <p className="text-[0.6rem] text-zinc-600 mb-0">
           DICA: Use o modo JSON para requisições complexas.
         </p>
       </div>
