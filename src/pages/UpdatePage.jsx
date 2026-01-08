@@ -1,7 +1,7 @@
 import { Spinner } from "react-bootstrap";
 import { Progress } from "../components/ui/progress";
 import { useEffect, useState } from "react";
-import icon from "../../assets/icon1.png";
+import icon from "../assets/icon1.png";
 
 export default function UpdatePage() {
   const [status, setStatus] = useState("checking"); // checking, available, downloading, ready

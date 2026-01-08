@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Container, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import useTabStore from "../store/useTabStore";
 
 // Components
 import DropZone from "../components/DropZone";
@@ -37,10 +38,9 @@ function UploadPage() {
       const unFinished = window.electronAPI.onFinished?.((result) => {
         if (result.success && result.results?.length > 0) {
           const data = result.results[0];
-          console.log(data);
-          navigate("/", {
-            state: data.raw,
-          });
+          // Carrega diretamente no store
+          useTabStore.getState().loadCollection(data.raw);
+          navigate("/");
         }
       });
 

@@ -73,17 +73,17 @@ class IpcRouter {
     ipcMain.handle("load-collection", (event, fileName) =>
       this.history.loadCollection(fileName)
     );
-    ipcMain.on("save-and-quit", (event, { id, collectionName, content }) => {
-      if (collectionName && content) {
-        this.history.saveHistory(collectionName, "native", content, id);
+    ipcMain.on("save-and-quit", async (event, collectionData) => {
+      if (collectionData && collectionData.name) {
+        await this.history.saveHistory(collectionData);
       }
       const mainWindow = this.win.getMainWindow();
       if (mainWindow) mainWindow.destroy();
     });
 
-    ipcMain.handle("save-history", (event, { id, collectionName, content }) => {
-      if (collectionName && content) {
-        this.history.saveHistory(collectionName, "native", content, id);
+    ipcMain.handle("save-history", (event, collectionData) => {
+      if (collectionData && collectionData.name) {
+        this.history.saveHistory(collectionData);
       }
     });
     
@@ -124,23 +124,27 @@ class IpcRouter {
     const results = [];
     for (const file of filesToProcess) {
       try {
+        sender.send("log", `📄 Lendo arquivo: ${file}`);
         const rawJson = JSON.parse(fs.readFileSync(file, "utf8"));
+        
+        sender.send("log", `🔄 Traduzindo...`);
         const internalModel = this.translator.translate(rawJson);
+        sender.send("log", `✅ Tradução OK: ${internalModel.name}`);
+        
         const axiosData = this.formatters.axios.format(internalModel);
-        console.log("passou")
         const httpData = this.formatters.http.format(internalModel);
-        console.log(internalModel);
 
         results.push({
           raw: internalModel,
-          name: internalModel.collectionName,
-          description: internalModel.description,
+          name: internalModel.name,
+          descricao: internalModel.descricao,
           axios: axiosData,
           http: httpData,
           fileName: path.basename(file),
         });
-        sender.send("log", `✅ Processado: ${path.basename(file)}`);
+        sender.send("log", `✅ Processado com sucesso: ${path.basename(file)}`);
       } catch (err) {
+        console.error(`Erro processando ${file}:`, err);
         sender.send("log", `❌ Erro em ${path.basename(file)}: ${err.message}`);
       }
     }

@@ -1,34 +1,38 @@
 import React, { useState } from "react";
-import { Plus, Trash2, FolderPlus, FilePlus } from "lucide-react";
+import { Plus, Trash2, FolderPlus, FilePlus, ArrowLeft } from "lucide-react";
 import { TreeFolder } from "./TreeFolder";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import NovoItemModal from "../modals/NovoItemModal";
-import {useHistory} from "../../hooks/useHistory";
+import { useHistory } from "../../hooks/useHistory";
 
 //hooks
 import useTabStore from "../../store/useTabStore";
 
 /**
- * Sidebar
- * Menu lateral com lista de rotas da coleção e metadados.
+ * SidebarHeader
+ * Gerencia apenas a parte superior (navegação, nome e descrição).
+ * Isola o estado de edição para evitar re-render da árvore de arquivos ao digitar.
  */
-export default function Sidebar() {
-  const collection = useTabStore((state) => state.collection);
-  const addRoute = useTabStore((state) => state.addRoute);
-  const addFolder = useTabStore((state) => state.addFolder);
-  const updateCollectionMeta = useTabStore(
-    (state) => state.updateCollectionMeta
-  );
+const SidebarHeader = () => {
+  const collectionName = useTabStore((state) => state.collection.name);
+  const collectionDesc = useTabStore((state) => state.collection.descricao);
+  const updateCollectionMeta = useTabStore((state) => state.updateCollectionMeta);
+  const { handleSaveCollection } = useHistory(false);
+  const navigate = useNavigate();
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingDesc, setIsEditingDesc] = useState(false);
-  const [tempName, setTempName] = useState(collection.name);
-  const [tempDesc, setTempDesc] = useState(collection.description);
+  const [tempName, setTempName] = useState(collectionName);
+  const [tempDesc, setTempDesc] = useState(collectionDesc);
 
-  const { handleSaveCollection } = useHistory();
-
-  const navigate = useNavigate();
+  // Sincroniza estado local quando a coleção muda (ex: carregamento do histórico)
+  // Mas apenas se não estiver editando, para evitar sobrescrever digitação
+  // Sincroniza estado local quando a coleção muda (ex: carregamento do histórico)
+  // Mas apenas se não estiver editando, para evitar sobrescrever digitação
+  React.useEffect(() => {
+    if (!isEditingName) setTempName(collectionName || "");
+    if (!isEditingDesc) setTempDesc(collectionDesc || "");
+  }, [collectionName, collectionDesc, isEditingName, isEditingDesc]);
 
   const handleSaveName = () => {
     updateCollectionMeta(tempName, undefined);
@@ -40,33 +44,23 @@ export default function Sidebar() {
     setIsEditingDesc(false);
   };
 
-  const handleAddRoute = (name) => {
-    addRoute(null, name);
-  };
-
-  const handleAddFolder = (name) => {
-    addFolder(null, name);
-  };
-
-
   return (
-    <div className="w-80 bg-zinc-900 border-r border-zinc-700 flex flex-col h-full">
-
-
+    <div>
       <div className="p-2">
-        <button 
+        <button
           className="flex items-center gap-2 p-2 rounded hover:bg-zinc-700 text-zinc-300 text-[0.75rem]! font-semibold transition-colors"
           onClick={async () => {
-            await handleSaveCollection(collection.name, collection.items, collection.id);
+            // Salva antes de voltar
+            await handleSaveCollection(); 
             navigate(-1);
-          }}>
+          }}
+        >
           <div>
             <ArrowLeft size={20} />
           </div>
           Voltar
         </button>
       </div>
-      
 
       {/* Header da Coleção */}
       <div className="p-3 pt-0 border-b border-zinc-700">
@@ -85,11 +79,11 @@ export default function Sidebar() {
           <h2
             className="!text-lg font-bold text-white cursor-pointer hover:text-yellow-500 transition-colors"
             onClick={() => {
-              setTempName(collection.name);
+              setTempName(collectionName);
               setIsEditingName(true);
             }}
           >
-            {collection.name || "Collection"}
+            {collectionName || "Collection"}
           </h2>
         )}
 
@@ -107,71 +101,84 @@ export default function Sidebar() {
           <p
             className="text-sm text-gray-400 mt-1 cursor-pointer hover:text-gray-300 transition-colors"
             onClick={() => {
-              setTempDesc(collection.description);
+              setTempDesc(collectionDesc);
               setIsEditingDesc(true);
             }}
           >
-            {collection.description || "Clique para adicionar descrição"}
+            {collectionDesc || "Clique para adicionar descrição"}
           </p>
         )}
       </div>
+    </div>
+  );
+};
 
-      {/* Árvore de Pastas e Rotas */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-2">
-          <div className="flex items-center justify-between px-2 py-1 mb-2">
-            <span className="text-xs font-semibold text-gray-500 uppercase">
-              Coleção
-            </span>
-            <div>
-              <NovoItemModal onAdd={handleAddFolder}>
-                <button
-                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
-                  title="Nova Pasta"
-                >
-                  <FolderPlus size={14} />
-                </button>
-              </NovoItemModal>
-              <NovoItemModal onAdd={handleAddRoute}>
-                <button
-                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
-                  title="Nova Rota"
-                >
-                  <FilePlus size={14} />
-                </button>
-              </NovoItemModal>
-            </div>
+/**
+ * SidebarTree
+ * Gerencia a lista de arquivos.
+ */
+const SidebarTree = React.memo(() => {
+  const collection = useTabStore((state) => state.collection);
+  const addRoute = useTabStore((state) => state.addRoute);
+  const addFolder = useTabStore((state) => state.addFolder);
+
+  const handleAddRoute = (name) => {
+    addRoute(null, name);
+  };
+
+  const handleAddFolder = (name) => {
+    addFolder(null, name);
+  };
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="p-2">
+        <div className="flex items-center justify-between px-2 py-1 mb-2">
+          <span className="text-xs font-semibold text-gray-500 uppercase">
+            Coleção
+          </span>
+          <div>
+            <NovoItemModal onAdd={handleAddFolder}>
+              <button
+                className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
+                title="Nova Pasta"
+              >
+                <FolderPlus size={14} />
+              </button>
+            </NovoItemModal>
+            <NovoItemModal onAdd={handleAddRoute}>
+              <button
+                className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
+                title="Nova Rota"
+              >
+                <FilePlus size={14} />
+              </button>
+            </NovoItemModal>
           </div>
-
-          {collection.items.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 text-sm">
-              Coleção vazia
-            </div>
-          ) : (
-            collection.items.map((item) => (
-              <TreeFolder key={item.id} item={item} />
-            ))
-          )}
         </div>
-      </div>
 
-      {/* Botões de Ação Rápidos */}
-      {/* <div className="p-3 border-t border-zinc-700 grid grid-cols-2 gap-2">
-        <button
-          onClick={() => addFolder()}
-          className="flex items-center justify-center gap-1 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded text-[0.75rem]! font-semibold transition-colors border border-zinc-700"
-        >
-          <FolderPlus size={14} />
-          <span>Pasta</span>
-        </button>
-        <button
-          onClick={() => addRoute()}
-          className="flex items-center justify-center gap-1 px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-[0.75rem]! font-semibold transition-colors"
-        >
-          <Plus size={14} />
-          <span>Rota</span>
-        </button>
-      </div> */}
+        {collection.items.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 text-sm">
+            Coleção vazia
+          </div>
+        ) : (
+          collection.items.map((item) => (
+            <TreeFolder key={item.id} item={item} />
+          ))
+        )}
+      </div>
+    </div>
+  );
+});
+
+/**
+ * Sidebar Main Component
+ */
+export default function Sidebar() {
+  return (
+    <div className="w-80 bg-zinc-900 border-r border-zinc-700 flex flex-col h-full">
+      <SidebarHeader />
+      <SidebarTree />
     </div>
   );
 }

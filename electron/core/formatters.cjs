@@ -26,7 +26,7 @@ class AxiosFormatter {
       });
     };
 
-    processRoutes(internalModel.routes);
+    processRoutes(internalModel.items);
     return result;
   }
 
@@ -39,7 +39,7 @@ class AxiosFormatter {
 
 class HttpFormatter {
   format(internalModel) {
-    return this._processRoutes(internalModel.routes);
+    return this._processRoutes(internalModel.items);
   }
 
   _processRoutes(routes) {

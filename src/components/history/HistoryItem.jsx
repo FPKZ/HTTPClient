@@ -13,7 +13,7 @@ export default function HistoryItem({ item, onLoad, onDelete }) {
     >
       <div className="d-flex flex-column">
         <span className="text-zinc-200 font-medium" style={{ fontSize: '0.8rem' }}>
-          {item.collectionName}
+          {item.name}
         </span>
         <small className="text-zinc-500" style={{ fontSize: '0.65rem' }}>
           {new Date(item.updatedAt).toLocaleString('pt-BR')} • {item.sourceType}

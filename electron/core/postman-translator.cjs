@@ -12,9 +12,9 @@ class PostmanTranslator {
 
     return {
       id: `coll_${Date.now()}`,
-      collectionName: postmanJson.info.name,
-      description: postmanJson.info.description || "",
-      routes: this._cleanAndDeduplicateRoutes(
+      name: postmanJson.info.name,
+      descricao: postmanJson.info.description || "",
+      items: this._cleanAndDeduplicateRoutes(
         this._processItems(postmanJson.item)
       ),
     };

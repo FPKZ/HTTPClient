@@ -1,33 +1,31 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useTabStore from "../store/useTabStore";
 
-export function useHistory() {
+export function useHistory(fetchOnMount = true) {
   const [history, setHistory] = useState([]);
   const navigate = useNavigate();
 
+  const { getCollectionForExport } = useTabStore();
+
   useEffect(() => {
+    if (!fetchOnMount) return;
+    
     const getHistory = async () => {
       if (!window.electronAPI) return;
       const history = await window.electronAPI.getHistory();
       setHistory(history || []);
     };
     getHistory();
-  }, []);
+  }, [fetchOnMount]);
 
   const handleLoadHistory = async (item) => {
     if (!window.electronAPI) return;
     const content = await window.electronAPI.loadCollection(item.file);
     if (content) {
-      navigate("/", {
-        state: {
-          id: item.id,
-          items: content.items, // Prioriza items
-          routes: content.axios || content.routes, // Fallback para compatibilidade
-          http: content.http,
-          collectionName: item.collectionName,
-          description: item.description,
-        },
-      });
+      // Carrega diretamente no store para evitar passar objeto gigante pelo state do router
+      useTabStore.getState().loadCollection(content);
+      navigate("/");
     }
   };
 
@@ -39,10 +37,10 @@ export function useHistory() {
     }
   };
 
-  const handleSaveCollection = async (collectionName, content, id) => {
+  const handleSaveCollection = async () => {
     if (!window.electronAPI) return;
     if (window.confirm("Deseja salvar esta coleção no histórico?")) {
-      await window.electronAPI.saveHistory({ id, collectionName, content });
+      await window.electronAPI.saveHistory(getCollectionForExport());
     }
   };
 

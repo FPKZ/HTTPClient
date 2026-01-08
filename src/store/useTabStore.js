@@ -25,7 +25,7 @@ const useTabStore = create(
       collection: {
         id: null,
         name: "",
-        description: "",
+        descricao: "",
         items: [], // Array de FolderData ou RouteData
       },
 
@@ -258,21 +258,47 @@ const useTabStore = create(
        * @param {object} data - Dados da coleção
        */
       loadCollection: (data) => {
-        // Normaliza rotas para o novo formato se necessário (compatibilidade)
-        let items = data?.content?.routes || data?.routes || data?.items || [];
+        // Função recursiva para limpar e normalizar itens
+        const normalizeItems = (items) => {
+          if (!Array.isArray(items)) return [];
+          
+          return items.map((item) => {
+            // Determina se é pasta ou rota
+            const isFolder = item.type === "folder" || !!item.items || !!item.routes;
+            const type = item.type || (isFolder ? "folder" : "route");
+            
+            // Normaliza filhos (suporta items ou routes)
+            const children = item.items || item.routes || [];
+            
+            // Constroi objeto limpo para evitar poluição do estado
+            const normalizedItem = {
+              id: item.id || `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              name: item.name || "Sem Nome",
+              type,
+              // Propriedades de Rota
+              ...(type === "route" && {
+                request: item.request || { method: "GET", url: "" },
+                response: item.response || null,
+              }),
+              // Propriedades de Pasta
+              ...(type === "folder" && {
+                items: normalizeItems(children),
+              }),
+            };
 
-        // Se as rotas vierem como array plano sem 'type', marcamos como route
-        items = items.map((item) => ({
-          ...item,
-          type: item.type || (item.items ? "folder" : "route"),
-        }));
+            return normalizedItem;
+          });
+        };
+
+        const rawItems = data?.items || data?.content?.items || data?.routes || data?.content?.routes || [];
+        const cleanItems = normalizeItems(rawItems);
 
         set({
           collection: {
             id: data?.id || null,
-            name: data?.collectionName || data?.name || "Collection",
-            description: data?.description || "",
-            items,
+            name: data?.name || data?.collectionName || "Collection",
+            descricao: data?.descricao || data?.description || "",
+            items: cleanItems,
           },
           // Limpar abas ao carregar nova coleção
           tabs: [],
@@ -516,15 +542,15 @@ const useTabStore = create(
        * @param {string} name - Novo nome
        * @param {string} description - Nova descrição
        */
-      updateCollectionMeta: (name, description) => {
+      updateCollectionMeta: (name, descricao) => {
         set((state) => ({
           collection: {
             ...state.collection,
             name: name !== undefined ? name : state.collection.name,
-            description:
-              description !== undefined
-                ? description
-                : state.collection.description,
+            descricao:
+              descricao !== undefined
+                ? descricao
+                : state.collection.descricao,
           },
         }));
       },
@@ -546,10 +572,9 @@ const useTabStore = create(
         const { collection } = get();
         return {
           id: collection.id,
-          collectionName: collection.name,
-          content: {
-            items: collection.items,
-          },
+          name: collection.name,
+          descricao: collection.descricao,
+          items: collection.items,
         };
       },
     }),

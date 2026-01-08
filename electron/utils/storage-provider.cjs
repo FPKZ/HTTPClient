@@ -19,11 +19,11 @@ class StorageProvider {
     }
   }
 
-  readJson(fileName, isAbsolute = false) {
+  async readJson(fileName, isAbsolute = false) {
     const filePath = isAbsolute ? fileName : path.join(this.userDataPath, fileName);
-    if (!fs.existsSync(filePath)) return null;
     try {
-      const content = fs.readFileSync(filePath, 'utf8');
+      if (!fs.existsSync(filePath)) return null;
+      const content = await fs.promises.readFile(filePath, 'utf8');
       return JSON.parse(content);
     } catch (error) {
       console.error(`Erro ao ler JSON em ${filePath}:`, error);
@@ -31,11 +31,11 @@ class StorageProvider {
     }
   }
 
-  writeJson(fileName, data, isAbsolute = false) {
+  async writeJson(fileName, data, isAbsolute = false) {
     const filePath = isAbsolute ? fileName : path.join(this.userDataPath, fileName);
     try {
       this.ensureDirectory(path.dirname(filePath));
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+      await fs.promises.writeFile(filePath, JSON.stringify(data, null, 2));
       return true;
     } catch (error) {
       console.error(`Erro ao escrever JSON em ${filePath}:`, error);
@@ -43,16 +43,16 @@ class StorageProvider {
     }
   }
 
-  deleteFile(fileName, isAbsolute = false) {
+  async deleteFile(fileName, isAbsolute = false) {
     const filePath = isAbsolute ? fileName : path.join(this.userDataPath, fileName);
-    if (fs.existsSync(filePath)) {
-      try {
-        fs.unlinkSync(filePath);
+    try {
+      if (fs.existsSync(filePath)) {
+        await fs.promises.unlink(filePath);
         return true;
-      } catch (error) {
-        console.error(`Erro ao deletar arquivo ${filePath}:`, error);
-        return false;
       }
+    } catch (error) {
+      console.error(`Erro ao deletar arquivo ${filePath}:`, error);
+      return false;
     }
     return false;
   }

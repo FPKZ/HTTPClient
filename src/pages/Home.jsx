@@ -26,19 +26,21 @@ export default function Home() {
     (state) => state.getCollectionForExport
   );
 
-  // 1. Validação de Segurança
-  useEffect(() => {
-    if (!location.state) {
-      navigate("/upload");
-    }
-  }, [location.state, navigate]);
+  const collection = useTabStore((state) => state.collection);
 
-  // 2. Carregar Coleção no Store
+  // 1. Validação de Segurança
+  // Se não houver itens na coleção, volta para upload
   useEffect(() => {
-    if (location.state) {
-      loadCollection(location.state);
+    if (!collection.items || collection.items.length === 0) {
+      // Opcional: só redirecionar se realmente vazio e não for intencional
+      // Por enquanto, mantemos a lógica de "se chegou aqui sem nada, volta"
+      // Mas cuidado: se o usuário der F5, o persist deve manter os dados
+      // Se persist falhar, volta pro upload
+      // navigate("/upload"); 
     }
-  }, [location.state, loadCollection]);
+  }, [collection.items, navigate]);
+
+  // 2. Carregar Coleção no Store -> REMOVIDO (Agora feito antes de navegar)
 
   // 3. IPC Menu Action (Exportar Collection)
   useEffect(() => {
@@ -46,12 +48,9 @@ export default function Home() {
       const unsubscribe = window.electronAPI.onMenuAction((action) => {
         if (action === "save-file") {
           const collectionData = getCollectionForExport();
+          // Passa o objeto completo e unificado
           window.electronAPI.saveFile({
-            content: {
-              id: collectionData.id,
-              collectionName: collectionData.collectionName,
-              items: collectionData.content.items,
-            },
+            content: collectionData,
           });
         }
       });
@@ -62,16 +61,12 @@ export default function Home() {
   // 4. Auto-save ao sair (Ctrl+Q)
   useQuickExit(() => {
     const collectionData = getCollectionForExport();
-    window.electronAPI.saveAndQuit({
-      id: collectionData.id,
-      collectionName: collectionData.collectionName,
-      content: {
-        items: collectionData.content.items,
-      },
-    });
+    // Passa o objeto completo e unificado
+    window.electronAPI.saveAndQuit(collectionData);
   });
 
-  if (!location.state) return null;
+  // if (!collection.items.length) return null; // Pode exibir loading ou null se quiser force
+
 
   return (
     <div className="flex h-[calc(100vh-35px)] bg-zinc-950">

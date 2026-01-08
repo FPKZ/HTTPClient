@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   FolderPlus,
   FilePlus,
@@ -17,7 +17,7 @@ import RenameItemModal from "../modals/RenameItemModal";
  * TreeFolder
  * Componente recursivo para renderizar pastas e rotas da coleção.
  */
-export const TreeFolder = ({ item, level = 0 }) => {
+export const TreeFolder = React.memo(({ item, level = 0 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   // Ações do store
@@ -171,4 +171,4 @@ export const TreeFolder = ({ item, level = 0 }) => {
       )}
     </div>
   );
-};
+});

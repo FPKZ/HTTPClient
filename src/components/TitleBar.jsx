@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Navbar, Nav } from 'react-bootstrap';
-import icon from '../../assets/icon1.png';
+import icon from '../assets/icon1.png';
 import { Menu } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
