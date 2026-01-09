@@ -67,6 +67,8 @@ export default function Home() {
       const collectionData = getCollectionForExport();
       // Passa o objeto completo e unificado
       window.electronAPI.saveAndQuit(collectionData);
+    } else {
+      window.electronAPI.forceClose();
     }
   });
 
@@ -75,7 +77,7 @@ export default function Home() {
   return (
     <div className="flex h-[calc(100vh-35px)] bg-zinc-950">
       <NovaCollectionModal />
-      
+
       {/* Sidebar Esquerda */}
       <Sidebar />
 

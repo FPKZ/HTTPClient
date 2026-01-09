@@ -29,6 +29,7 @@ class IpcRouter {
     ipcMain.on("minimize", () => this.win.minimize());
     ipcMain.on("maximize", () => this.win.maximize());
     ipcMain.on("close", () => this.win.close());
+    ipcMain.on("force-close", () => this.win.forceCloseApp());
     ipcMain.on("open-menu", () => {
       const mainWindow = this.win.getMainWindow();
       if (mainWindow) {
@@ -77,8 +78,7 @@ class IpcRouter {
       if (collectionData && collectionData.name) {
         await this.history.saveHistory(collectionData);
       }
-      const mainWindow = this.win.getMainWindow();
-      if (mainWindow) mainWindow.destroy();
+      this.win.forceCloseApp();
     });
 
     ipcMain.handle("save-history", (event, collectionData) => {
@@ -86,7 +86,7 @@ class IpcRouter {
         this.history.saveHistory(collectionData);
       }
     });
-    
+
     ipcMain.handle("delete-history-item", (event, id) =>
       this.history.deleteHistoryItem(id)
     );
@@ -113,7 +113,6 @@ class IpcRouter {
       ? [inputPath]
       : this._scanForJsonCollections(inputPath);
 
-
     if (filesToProcess.length === 0) {
       sender.send(
         "log",
@@ -130,15 +129,15 @@ class IpcRouter {
         sender.send("log", `🔄 Traduzindo...`);
         // console.log("iniciando tradução de ", rawJson);
 
-        if(rawJson.info && rawJson.item){
+        if (rawJson.info && rawJson.item) {
           internalModel = this.translator.translate(rawJson);
           console.log("tradução finalizada");
           sender.send("log", `✅ Tradução OK: ${internalModel.name}`);
-        }else if(rawJson.id && rawJson.items){
+        } else if (rawJson.id && rawJson.items) {
           internalModel = rawJson;
           console.log("tradução finalizada");
           sender.send("log", `✅ Tradução OK: ${internalModel.name}`);
-        }else{
+        } else {
           console.log("arquivo inválido");
           sender.send("log", `❌ Arquivo inválido`);
         }
@@ -184,7 +183,10 @@ class IpcRouter {
           const json = JSON.parse(content);
           results.push(filePath);
         } catch (e) {
-          console.error(`[scanForJsonCollections] Erro processando ${file}:`, e);
+          console.error(
+            `[scanForJsonCollections] Erro processando ${file}:`,
+            e
+          );
         }
       }
     });

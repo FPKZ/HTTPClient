@@ -63,20 +63,22 @@ class WindowManager {
 
     // Intercepta o fechamento para salvar sessão
     this.mainWindow.on("close", (e) => {
+      if (this.forceClose) return; // Permite o fechamento se a flag estiver ativa
+
       if (this.mainWindow && !this.mainWindow.isDestroyed()) {
         e.preventDefault();
         this.mainWindow.webContents.send("request-save-session");
-
-        // Timeout de segurança
-        setTimeout(() => {
-          if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-            this.mainWindow.destroy();
-          }
-        }, 3000);
       }
     });
 
     return this.mainWindow;
+  }
+
+  forceCloseApp() {
+    this.forceClose = true;
+    if (this.mainWindow) {
+      this.mainWindow.close();
+    }
   }
 
   createUpdateWindow() {

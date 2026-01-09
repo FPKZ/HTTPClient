@@ -1,14 +1,20 @@
-import React from 'react';
-import icon from '../assets/icon1.png';
-import { Menu } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
-
+import React from "react";
+import icon from "../assets/icon1.png";
+import { Menu } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 export default function TitleBar() {
 
   const handleMinimize = () => window.electronAPI.minimize();
   const handleMaximize = () => window.electronAPI.maximize();
-  const handleClose = () => window.electronAPI.close();
+
+  const handleClose = () => {
+    if (location.pathname === "/") {
+      window.electronAPI.close();
+    } else {
+      window.electronAPI.forceClose();
+    }
+  };
 
   const handleMenu = () => {
     window.electronAPI.openMenu();
@@ -28,9 +34,12 @@ export default function TitleBar() {
   }, []);
 
   return (
-    <div className="titlebar titlebar-drag-region d-flex justify-content-between align-items-center" style={{ backgroundColor: '#1e1e1e', height: '35px', color: 'white' }}>
+    <div
+      className="titlebar titlebar-drag-region d-flex justify-content-between align-items-center"
+      style={{ backgroundColor: "#1e1e1e", height: "35px", color: "white" }}
+    >
       <div className="titlebar-left d-flex align-items-center gap-2 ms-2">
-        <img src={icon} alt="Icon" style={{ width: '20px', height: '20px' }} />
+        <img src={icon} alt="Icon" style={{ width: "20px", height: "20px" }} />
         <span className="fw-bold">HTTPClient</span>
       </div>
 
@@ -78,4 +87,4 @@ export default function TitleBar() {
       `}</style>
     </div>
   );
-};
+}

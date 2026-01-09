@@ -1,7 +1,7 @@
 {
   "name": "HTTPClient",
   "private": true,
-  "version": "1.0.16",
+  "version": "1.0.18",
   "description": "HTTPClient - Ferramenta de testes de API",
   "author": "FPKZ <contato@fpkz.com.br>",
   "type": "module",

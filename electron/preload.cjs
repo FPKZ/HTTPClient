@@ -24,7 +24,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   minimize: () => ipcRenderer.send("minimize"),
   maximize: () => ipcRenderer.send("maximize"),
   close: () => ipcRenderer.send("close"),
-
+  forceClose: () => ipcRenderer.send("force-close"),
   selectFolder: () => ipcRenderer.invoke("dialog:openDirectory"),
   selectFile: () => ipcRenderer.invoke("dialog:openFile"),
   selectSaveLocation: () => ipcRenderer.invoke("dialog:saveLocation"),
