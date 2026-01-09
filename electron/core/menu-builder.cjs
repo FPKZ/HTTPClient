@@ -12,6 +12,23 @@ class MenuBuilder {
   }
 
   build() {
+
+    const devMenu = [
+      {
+        label: "Desenvolvedor",
+        submenu: [
+          {
+            label: "Mostrar/Esconder Console",
+            accelerator: "CmdOrCtrl+I",
+            click: () => {
+              const mainWindow = this.win.getMainWindow();
+              if (mainWindow) mainWindow.webContents.toggleDevTools();
+            },
+          },
+        ],
+      }
+    ];
+
     const template = [
       {
         label: "Novo Arquivo",
@@ -35,19 +52,6 @@ class MenuBuilder {
         },
         accelerator: "CmdOrCtrl+S",
       },
-      this.isDev && {
-        label: "Desenvolvedor",
-        submenu: [
-          {
-            label: "Mostrar/Esconder Console",
-            accelerator: "CmdOrCtrl+I",
-            click: () => {
-              const mainWindow = this.win.getMainWindow();
-              if (mainWindow) mainWindow.webContents.toggleDevTools();
-            },
-          },
-        ],
-      },
       { type: "separator" },
       {
         label: "Sair",
@@ -65,7 +69,7 @@ class MenuBuilder {
       },
     ];
 
-    const menu = Menu.buildFromTemplate(template);
+    const menu = Menu.buildFromTemplate(this.isDev ? [...template, ...devMenu] : template);
     Menu.setApplicationMenu(menu);
     return menu;
   }

@@ -28,6 +28,9 @@ class WindowManager {
     // Pega as dimensões do monitor principal (agora é seguro usar 'screen')
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
+    // const { dialog } = require('electron'); // Debug
+    // dialog.showMessageBox({ message: 'Creating Main Window...' });
+
     this.mainWindow = new BrowserWindow({
       title: "HTTPClient",
       icon: path.join(__dirname, "../../assets/icon1.png"),
@@ -36,7 +39,7 @@ class WindowManager {
       minWidth: 950,
       minHeight: 700,
       fullscreen: false,
-      show: false,
+      show: true, // Força a visibilidade para debug
       center: true,
       resizable: true,
       frame: false,
@@ -48,7 +51,15 @@ class WindowManager {
       },
     });
 
-    this.mainWindow.loadURL(this.getRouteURL("/upload"));
+    this.mainWindow.loadURL(this.getRouteURL("/upload")).catch((e) => {
+      const { dialog } = require("electron");
+      dialog.showErrorBox(
+        "Erro ao carregar janela",
+        `Falha ao carregar URL: ${e.message}\nPath: ${this.getRouteURL(
+          "/upload"
+        )}`
+      );
+    });
     // this.mainWindow.removeMenu(); // Remove completely (kills shortcuts on Windows)
     this.mainWindow.setMenuBarVisibility(false); // Hide visually but keep shortcuts
 

@@ -90,6 +90,11 @@ class HistoryService {
     return false;
   }
 
+  async deleteAllHistory() {
+    await this.storage.deleteAll(this.storage.getDataDir());
+    // await this.storage.writeJson(this.historyFile, []);
+  }
+
   _createNewHistoryItem(id, name, type, file) {
     return {
       id,

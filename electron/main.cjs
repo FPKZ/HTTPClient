@@ -1,5 +1,23 @@
-const { app } = require("electron");
+const { app, dialog } = require("electron");
 const path = require("path");
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  dialog.showErrorBox(
+    "Erro Fatal",
+    `Ocorreu um erro inesperado:\n${error.message}\n${error.stack}`
+  );
+  app.quit();
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  dialog.showErrorBox(
+    "Promessa Rejeitada",
+    `Razão: ${reason}\n${reason?.stack || ""}`
+  );
+  app.quit();
+});
 
 // Core & Utils
 const StorageProvider = require("./utils/storage-provider.cjs");
@@ -54,8 +72,17 @@ app.whenReady().then(() => {
   menuBuilder.build();
 
   // Inicializa o fluxo de atualização (que depois lança o app principal)
+  // dialog.showMessageBox({ message: '1. App Ready. Checking updates...' }); // Debug
   windowManager.createUpdateWindow();
+
+  // Timeout de segurança global para garantir que o app abra
+  const launchTimer = setTimeout(() => {
+    windowManager.createMainWindow();
+  }, 10000); // 10s se o auto-update travar
+
   autoUpdateService.init(windowManager, () => {
+    clearTimeout(launchTimer);
+    // dialog.showMessageBox({ message: '2. Launching Main Window...' }); // Debug
     windowManager.createMainWindow();
   });
 });

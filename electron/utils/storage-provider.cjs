@@ -9,7 +9,7 @@ const path = require('path');
 class StorageProvider {
   constructor(userDataPath) {
     this.userDataPath = userDataPath;
-    this.collectionsDir = path.join(this.userDataPath, 'collections');
+    this.collectionsDir = path.join(this.userDataPath, "collections");
     this.ensureDirectory(this.collectionsDir);
   }
 
@@ -23,7 +23,7 @@ class StorageProvider {
     const filePath = isAbsolute ? fileName : path.join(this.userDataPath, fileName);
     try {
       if (!fs.existsSync(filePath)) return null;
-      const content = await fs.promises.readFile(filePath, 'utf8');
+      const content = await fs.promises.readFile(filePath, "utf8");
       return JSON.parse(content);
     } catch (error) {
       console.error(`Erro ao ler JSON em ${filePath}:`, error);
@@ -60,19 +60,33 @@ class StorageProvider {
   listJsonFiles(dir) {
     const absoluteDir = path.isAbsolute(dir) ? dir : path.join(this.userDataPath, dir);
     if (!fs.existsSync(absoluteDir)) return [];
-    
+
     try {
-      return fs.readdirSync(absoluteDir)
-        .filter(file => file.endsWith('.json'))
-        .map(file => path.join(absoluteDir, file));
+      return fs
+        .readdirSync(absoluteDir)
+        .filter((file) => file.endsWith(".json"))
+        .map((file) => path.join(absoluteDir, file));
     } catch (error) {
       console.error(`Erro ao listar arquivos em ${absoluteDir}:`, error);
       return [];
     }
   }
 
+  async deleteAll(dirPath) {
+    const arquivos = await fs.promises.readdir(dirPath);
+    for (const arquivo of arquivos) {
+      if (arquivo.endsWith(".json")) {
+        await fs.promises.unlink(path.join(dirPath, arquivo));
+      }
+    }
+  }
+
   getCollectionsPath() {
     return this.collectionsDir;
+  }
+
+  getDataDir() {
+    return this.userDataPath;
   }
 }
 
