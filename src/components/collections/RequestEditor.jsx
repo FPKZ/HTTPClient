@@ -262,22 +262,24 @@ export default function RequestEditor({
             onChange={() => handleModeChange(m)}
             className="hidden"
           />
-          <div
-            className={`w-3 h-3 rounded-full border ${
-              mode === m
-                ? "bg-yellow-500 border-yellow-500"
-                : "border-zinc-600 group-hover:border-zinc-400"
-            }`}
-          />
-          <span
-            className={`text-[0.65rem] uppercase font-bold ${
-              mode === m
-                ? "text-yellow-500"
-                : "text-zinc-500 group-hover:text-zinc-300"
-            }`}
-          >
-            {m}
-          </span>
+          <div className="flex items-center justify-center gap-2">
+            <div
+              className={`w-3 h-3 rounded-full border ${
+                mode === m
+                  ? "!bg-yellow-500 !border-yellow-500"
+                  : "border-zinc-600! group-hover:border-zinc-400!"
+              }`}
+            />
+            <span
+              className={`text-[0.65rem] uppercase font-bold mt-0.5 ${
+                mode === m
+                  ? "!text-yellow-500"
+                  : "!text-zinc-500 group-hover:!text-zinc-300"
+              }`}
+            >
+              {m}
+            </span>
+          </div>
         </label>
       ))}
     </div>
@@ -390,49 +392,21 @@ export default function RequestEditor({
   }
 
   // Renderização de JSON
+  // Renderização de JSON
   if (mode === "json") {
     return (
       <div className="flex flex-col gap-2">
         {renderModeSelector()}
-
-        <Editor
-          height="20vh" // Altura fixa ou dinâmica
-          defaultLanguage="json"
-          value={items} // Controlled component
-          theme="vs-dark"
+        <JsonBodyEditor
+          value={items}
           onChange={(value) =>
             onInputChange(0, "body", null, {
               ...subValue,
               content: value,
             })
           }
-          options={{
-            minimap: { enabled: false },
-            fontSize: 12,
-            scrollBeyondLastLine: false,
-            wordWrap: "on",
-            automaticLayout: true,
-          }}
-          onMount={(editor, monaco) => {
-            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-              if (onRun) onRun();
-            });
-          }}
+          onRun={onRun}
         />
-
-        {/* <div className="bg-zinc-950 p-3 rounded border border-zinc-800 focus-within:border-yellow-600/50 transition-colors">
-          <AutoResizeTextarea
-            value={items}
-            onChange={(e) =>
-              onInputChange(0, "body", null, {
-                ...subValue,
-                content: e.target.value,
-              })
-            }
-            placeholder='{ "key": "value" }'
-            className="w-full bg-transparent text-zinc-300 text-[0.8rem] font-mono outline-none min-h-[100px]"
-          />
-        </div> */}
         <p className="text-[0.6rem] text-zinc-600 mb-0">
           DICA: Use o modo JSON para requisições complexas.
         </p>
@@ -453,4 +427,46 @@ export default function RequestEditor({
   }
 
   return null;
+}
+
+function JsonBodyEditor({ value, onChange, onRun }) {
+  const [editorHeight, setEditorHeight] = React.useState("100px");
+
+  const handleEditorDidMount = (editor, monaco) => {
+    const updateHeight = () => {
+      const contentHeight = editor.getContentHeight();
+      const maxHeight = 300;
+      const minHeight = 10;
+      const newHeight = Math.min(Math.max(contentHeight, minHeight), maxHeight);
+      setEditorHeight(`${newHeight}px`);
+    };
+
+    editor.onDidContentSizeChange(updateHeight);
+    updateHeight();
+
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+      if (onRun) onRun();
+    });
+  };
+
+  return (
+    <Editor
+      height={editorHeight}
+      defaultLanguage="json"
+      value={value}
+      theme="vs-dark"
+      onChange={onChange}
+      options={{
+        minimap: { enabled: false },
+        fontSize: 12,
+        scrollBeyondLastLine: false,
+        wordWrap: "on",
+        automaticLayout: true,
+        scrollbar: {
+          alwaysConsumeMouseWheel: false,
+        },
+      }}
+      onMount={handleEditorDidMount}
+    />
+  );
 }

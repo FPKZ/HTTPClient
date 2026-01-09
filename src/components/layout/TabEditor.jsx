@@ -74,14 +74,14 @@ export default function TabEditor() {
         {/* Parte Superior: URL + Navegação das Abas */}
         <div className="flex-none border-b border-zinc-700 bg-zinc-900/50">
           {/* URL e Método */}
-          <div className="p-4 flex items-center gap-3">
+          <div className="p-3 pb-2 flex items-center gap-3">
             {/* Método HTTP */}
             <select
               value={telaData.request.method || "GET"}
               onChange={(e) =>
                 handleInputChange("method", null, e.target.value)
               }
-              className={`bg-zinc-800 text-[0.6rem] px-3 py-2 rounded border !border-zinc-600 focus:outline-none focus:border-yellow-500 font-semibold ${getMethodColor(
+              className={`bg-zinc-800 text-[0.6rem] px-2.5 py-2.5 rounded border !border-zinc-600 focus:outline-none focus:border-yellow-500 font-semibold ${getMethodColor(
                 telaData.request.method
               )}`}
             >
@@ -143,7 +143,7 @@ export default function TabEditor() {
           </div>
 
           {/* Sub-Navegação (Headers, Body, etc) */}
-          <Nav className="border-none px-4">
+          <Nav className="border-none px-0">
             {Object.entries(telaData.request).map(([subKey, subValue]) => {
               if (subKey === "url" || subKey === "method" || !subValue)
                 return null;
@@ -174,7 +174,7 @@ export default function TabEditor() {
         <div className="flex-none max-h-[60%] overflow-auto bg-[#141414]">
           <Tab.Content className="mt-0">
             {Object.entries(telaData.request).map(([subKey, subValue]) => (
-              <Tab.Pane key={subKey} eventKey={subKey} className="p-4">
+              <Tab.Pane key={subKey} eventKey={subKey} className="p-3 pb-1">
                 <RequestEditor
                   subKey={subKey}
                   subValue={subValue}
@@ -201,7 +201,7 @@ export default function TabEditor() {
             {logs.length} logs
           </span>
         </div>
-        <div className="flex-1 overflow-auto p-4">
+        <div className="flex-1 overflow-auto p-3">
           <ResultRequestLog logs={logs} />
         </div>
       </div>

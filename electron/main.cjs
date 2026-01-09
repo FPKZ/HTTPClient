@@ -24,6 +24,7 @@ const StorageProvider = require("./utils/storage-provider.cjs");
 const PostmanTranslator = require("./core/postman-translator.cjs");
 const { AxiosFormatter, HttpFormatter } = require("./core/formatters.cjs");
 const MenuBuilder = require("./core/menu-builder.cjs");
+const ContextMenuBuilder = require("./core/context-menu-builder.cjs");
 
 // Services
 const HistoryService = require("./services/history-service.cjs");
@@ -51,6 +52,7 @@ const networkService = new NetworkService();
 const windowManager = new WindowManager(isDev, preloadPath);
 const autoUpdateService = new AutoUpdateService(isDev);
 const menuBuilder = new MenuBuilder(windowManager, isDev);
+const contextMenuBuilder = new ContextMenuBuilder(windowManager, isDev);
 
 // 3. Orquestrar Inicialização do IpcRouter
 const ipcRouter = new IpcRouter(
@@ -70,6 +72,9 @@ app.whenReady().then(() => {
 
   // Inicializa o menu nativo
   menuBuilder.build();
+
+  // Inicializa o menu de contexto
+  contextMenuBuilder.build();
 
   // Inicializa o fluxo de atualização (que depois lança o app principal)
   // dialog.showMessageBox({ message: '1. App Ready. Checking updates...' }); // Debug
