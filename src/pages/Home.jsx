@@ -12,6 +12,9 @@ import useTabStore from "../store/useTabStore";
 // Hooks
 import { useQuickExit } from "../hooks/useQuickExit";
 
+// Modals
+import NovaCollectionModal from "../components/modals/NovaCollectionModal";
+
 /**
  * Home Page (Refatorada com Sistema de Abas)
  * Novo layout: Sidebar (esquerda) + TabBar + TabEditor (direita)
@@ -71,6 +74,8 @@ export default function Home() {
 
   return (
     <div className="flex h-[calc(100vh-35px)] bg-zinc-950">
+      <NovaCollectionModal />
+      
       {/* Sidebar Esquerda */}
       <Sidebar />
 

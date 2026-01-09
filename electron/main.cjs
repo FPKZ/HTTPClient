@@ -32,7 +32,7 @@ const historyService = new HistoryService(storage);
 const networkService = new NetworkService();
 const windowManager = new WindowManager(isDev, preloadPath);
 const autoUpdateService = new AutoUpdateService(isDev);
-const menuBuilder = new MenuBuilder(windowManager);
+const menuBuilder = new MenuBuilder(windowManager, isDev);
 
 // 3. Orquestrar Inicialização do IpcRouter
 const ipcRouter = new IpcRouter(

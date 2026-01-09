@@ -49,7 +49,8 @@ class WindowManager {
     });
 
     this.mainWindow.loadURL(this.getRouteURL("/upload"));
-    this.mainWindow.removeMenu();
+    // this.mainWindow.removeMenu(); // Remove completely (kills shortcuts on Windows)
+    this.mainWindow.setMenuBarVisibility(false); // Hide visually but keep shortcuts
 
     this.mainWindow.once("ready-to-show", () => {
       if (this.updateWindow) {

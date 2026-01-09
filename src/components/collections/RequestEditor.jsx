@@ -13,6 +13,7 @@ export default function RequestEditor({
   onInputChange,
   // eslint-disable-next-line no-unused-vars
   onSelectFile,
+  onRun,
 }) {
   if (subKey === "url" || subKey === "method" || !subValue) return null;
   // Renderização específica para AUTH
@@ -145,7 +146,6 @@ export default function RequestEditor({
   const isBody = subKey === "body";
   const mode = isBody ? subValue.mode : "list";
   const items = isBody ? subValue.content : subValue;
-  console.log(items);
 
   // Handler para atualizar um item específico na lista
   const handleItemChange = (index, field, value) => {
@@ -412,6 +412,11 @@ export default function RequestEditor({
             scrollBeyondLastLine: false,
             wordWrap: "on",
             automaticLayout: true,
+          }}
+          onMount={(editor, monaco) => {
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+              if (onRun) onRun();
+            });
           }}
         />
 

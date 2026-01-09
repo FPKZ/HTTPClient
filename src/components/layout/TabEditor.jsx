@@ -183,6 +183,7 @@ export default function TabEditor() {
                     handleInputChange(sectionKey, fieldKey, value);
                   }}
                   onSelectFile={handleSelectFile}
+                  onRun={handleExecute}
                 />
               </Tab.Pane>
             ))}
