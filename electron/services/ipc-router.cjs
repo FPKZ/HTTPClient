@@ -102,6 +102,22 @@ class IpcRouter {
     ipcMain.handle("save-file", async (event, { content, defaultPath }) => {
       return this._handleFileSave(content, defaultPath);
     });
+
+    // Context Menu
+    ipcMain.on("show-folder-context-menu", (event, params) => {
+      // Nota: O main.cjs injeta o contextMenuBuilder no ipcRouter se necessário, 
+      // ou podemos passar como dependência. 
+      // Verificando main.cjs...
+      if (global.contextMenuBuilder) {
+        global.contextMenuBuilder.buildContextFolderMenu(params);
+      }
+    });
+
+    ipcMain.on("show-root-context-menu", (event) => {
+      if (global.contextMenuBuilder) {
+        global.contextMenuBuilder.buildRootContextMenu();
+      }
+    });
   }
 
   async _handleConversion(sender, inputPath, isFile) {

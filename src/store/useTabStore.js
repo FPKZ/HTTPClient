@@ -329,7 +329,7 @@ const useTabStore = create(
             params: [],
             body: {
               mode: "json",
-              content: [{ key: "", value: "", enabled: true }],
+              content: "",
             },
             auth: {
               name: "Authorization",
@@ -351,6 +351,24 @@ const useTabStore = create(
           },
         };
 
+        const findTargetFolder = (items, targetId) => {
+          if (!targetId) return null;
+          for (const item of items) {
+            if (item.id === targetId) {
+              return item.type === "folder" ? item.id : null;
+            }
+            if (item.type === "folder" && item.items) {
+              const child = item.items.find((i) => i.id === targetId);
+              if (child) {
+                return child.type === "folder" ? child.id : item.id;
+              }
+              const nested = findTargetFolder(item.items, targetId);
+              if (nested) return nested;
+            }
+          }
+          return null;
+        };
+
         const addItemToTree = (items, targetId, newItem) => {
           return items.map((item) => {
             if (item.id === targetId && item.type === "folder") {
@@ -369,7 +387,9 @@ const useTabStore = create(
           });
         };
 
-        if (!parentId) {
+        const effectiveParentId = findTargetFolder(collection.items, parentId);
+
+        if (!effectiveParentId) {
           set({
             collection: {
               ...collection,
@@ -380,7 +400,7 @@ const useTabStore = create(
           set({
             collection: {
               ...collection,
-              items: addItemToTree(collection.items, parentId, newRoute),
+              items: addItemToTree(collection.items, effectiveParentId, newRoute),
             },
           });
         }
@@ -410,6 +430,24 @@ const useTabStore = create(
           items: [],
         };
 
+        const findTargetFolder = (items, targetId) => {
+          if (!targetId) return null;
+          for (const item of items) {
+            if (item.id === targetId) {
+              return item.type === "folder" ? item.id : null;
+            }
+            if (item.type === "folder" && item.items) {
+              const child = item.items.find((i) => i.id === targetId);
+              if (child) {
+                return child.type === "folder" ? child.id : item.id;
+              }
+              const nested = findTargetFolder(item.items, targetId);
+              if (nested) return nested;
+            }
+          }
+          return null;
+        };
+
         const addItemToTree = (items, targetId, newItem) => {
           return items.map((item) => {
             if (item.id === targetId && item.type === "folder") {
@@ -428,7 +466,9 @@ const useTabStore = create(
           });
         };
 
-        if (!parentId) {
+        const effectiveParentId = findTargetFolder(collection.items, parentId);
+
+        if (!effectiveParentId) {
           set({
             collection: {
               ...collection,
@@ -439,7 +479,7 @@ const useTabStore = create(
           set({
             collection: {
               ...collection,
-              items: addItemToTree(collection.items, parentId, newFolder),
+              items: addItemToTree(collection.items, effectiveParentId, newFolder),
             },
           });
         }
@@ -534,6 +574,149 @@ const useTabStore = create(
           tabs: tabs.map((tab) =>
             tab.screenKey === id ? { ...tab, title: newName } : tab
           ),
+        });
+      },
+
+      isDraggingDisabled: false,
+      setDraggingDisabled: (disabled) => set({ isDraggingDisabled: disabled }),
+
+      /**
+       * Move um item para dentro de uma pasta
+       * @param {string} activeId - ID do item a ser movido
+       * @param {string} folderId - ID da pasta de destino
+       */
+      moveItemToFolder: (activeId, folderId) => {
+        const { collection } = get();
+        if (activeId === folderId) return;
+
+        const findItemPath = (items, id, path = []) => {
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].id === id) return [...path, i];
+            if (items[i].items) {
+              const res = findItemPath(items[i].items, id, [...path, i]);
+              if (res) return res;
+            }
+          }
+          return null;
+        };
+
+        const getItemByPath = (items, path) => {
+          let curr = items;
+          for (let i = 0; i < path.length - 1; i++) {
+            curr = curr[path[i]].items;
+          }
+          return curr[path[path.length - 1]];
+        };
+
+        const removeItemByPath = (items, path) => {
+          const newItems = JSON.parse(JSON.stringify(items)); // Deep copy to avoid mutations
+          let curr = newItems;
+          for (let i = 0; i < path.length - 1; i++) {
+            curr = curr[path[i]].items;
+          }
+          curr.splice(path[path.length - 1], 1);
+          return newItems;
+        };
+
+        const activePath = findItemPath(collection.items, activeId);
+        if (!activePath) return;
+
+        const itemToMove = getItemByPath(collection.items, activePath);
+        let updatedItems = removeItemByPath(collection.items, activePath);
+
+        const addItemToFolder = (items, targetFolderId, item) => {
+          return items.map((f) => {
+            if (f.id === targetFolderId && f.type === "folder") {
+              return { ...f, items: [...(f.items || []), item] };
+            }
+            if (f.items) {
+              return { ...f, items: addItemToFolder(f.items, targetFolderId, item) };
+            }
+            return f;
+          });
+        };
+
+        updatedItems = addItemToFolder(updatedItems, folderId, itemToMove);
+
+        set({
+          collection: { ...collection, items: updatedItems }
+        });
+      },
+
+      /**
+       * Reordena itens na coleção (Drag and Drop)
+       * @param {string} activeId - ID do item sendo arrastado
+       * @param {string|null} overId - ID do item sobre o qual foi solto
+       */
+      reorderItems: (activeId, overId) => {
+        if (activeId === overId) return;
+        const { collection } = get();
+
+        const findItemPath = (items, id, path = []) => {
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].id === id) return [...path, i];
+            if (items[i].type === "folder" && items[i].items) {
+              const res = findItemPath(items[i].items, id, [...path, i]);
+              if (res) return res;
+            }
+          }
+          return null;
+        };
+
+        const getItemByPath = (items, path) => {
+          let curr = items;
+          for (let i = 0; i < path.length - 1; i++) {
+            curr = curr[path[i]].items;
+          }
+          return curr[path[path.length - 1]];
+        };
+
+        const removeItemByPath = (items, path) => {
+          const newItems = [...items];
+          let curr = newItems;
+          for (let i = 0; i < path.length - 1; i++) {
+            curr[path[i]] = {
+              ...curr[path[i]],
+              items: [...curr[path[i]].items],
+            };
+            curr = curr[path[i]].items;
+          }
+          curr.splice(path[path.length - 1], 1);
+          return newItems;
+        };
+
+        const insertItemByPath = (items, path, item) => {
+          const newItems = [...items];
+          let curr = newItems;
+          for (let i = 0; i < path.length - 1; i++) {
+            curr[path[i]] = {
+              ...curr[path[i]],
+              items: [...curr[path[i]].items],
+            };
+            curr = curr[path[i]].items;
+          }
+          curr.splice(path[path.length - 1], 0, item);
+          return newItems;
+        };
+
+        const activePath = findItemPath(collection.items, activeId);
+        const overPath = overId ? findItemPath(collection.items, overId) : [collection.items.length];
+
+        if (!activePath) return;
+
+        const itemToMove = getItemByPath(collection.items, activePath);
+        
+        let updatedItems = removeItemByPath(collection.items, activePath);
+        
+        // Inserir o item na nova posição
+        // Nota: Removido ajuste de -1 ao arrastar para baixo para evitar bug de "um item acima"
+        updatedItems = insertItemByPath(updatedItems, overPath, itemToMove);
+
+        set({
+          collection: {
+            ...collection,
+            items: updatedItems,
+          },
         });
       },
 

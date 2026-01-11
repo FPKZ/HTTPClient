@@ -8,6 +8,22 @@ import { useHistory } from "../../hooks/useHistory";
 //hooks
 import useTabStore from "../../store/useTabStore";
 
+import {
+  DndContext,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+
 /**
  * SidebarHeader
  * Gerencia apenas a parte superior (navegação, nome e descrição).
@@ -122,6 +138,23 @@ const SidebarTree = React.memo(() => {
   const collectionItems = useTabStore((state) => state.collection.items);
   const addRoute = useTabStore((state) => state.addRoute);
   const addFolder = useTabStore((state) => state.addFolder);
+  const renameItem = useTabStore((state) => state.renameItem);
+  const deleteItem = useTabStore((state) => state.deleteItem);
+  const reorderItems = useTabStore((state) => state.reorderItems);
+  const isDraggingDisabled = useTabStore((state) => state.isDraggingDisabled);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+        activationConstraint: {
+            distance: 8,
+        },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const activeSensors = isDraggingDisabled ? [] : sensors;
 
   // Reconstruct simple object for internal use if needed, but iterating items directly is better
   const collection = { items: collectionItems };
@@ -134,9 +167,78 @@ const SidebarTree = React.memo(() => {
     addFolder(null, name);
   };
 
+  // Centraliza o listener do menu de contexto aqui na Sidebar (pai da árvore)
+  // Isso evita que componentes recursivos (TreeFolder) criem múltiplos listeners
+  React.useEffect(() => {
+    if (!window.electronAPI?.onContextMenuAction) return;
+
+    const unsubscribe = window.electronAPI.onContextMenuAction((data) => {
+      const { action, targetId } = data;
+      console.log("[Sidebar] Context Action:", action, "Target:", targetId);
+
+      const isFolderAction = targetId?.includes("folder");
+
+      console.log("[Sidebar] Item is folder:", isFolderAction);
+
+      switch (action) {
+        case "create-folder":
+          addFolder(targetId);
+          break;
+        case "create-file":
+          addRoute(targetId);
+          break;
+        case "rename":
+          const newName = prompt("Digite o novo nome:");
+          if (newName) renameItem(targetId, newName);
+          break;
+        case "delete":
+          if (confirm("Tem certeza que deseja excluir este item?")) {
+            deleteItem(targetId);
+          }
+          break;
+        default:
+          console.warn("Ação desconhecida:", action);
+      }
+    });
+    return unsubscribe;
+  }, [addFolder, addRoute, renameItem, deleteItem]);
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    // Check if dropped ONTO a folder (either specifically the droppable or the sortable folder)
+    const isOverFolder = over.data.current?.type === 'folder' || over.id.toString().startsWith('droppable-');
+    const targetFolderId = over.data.current?.id || (over.id.toString().startsWith('droppable-') ? over.id.toString().replace('droppable-', '') : null);
+
+    if (isOverFolder && targetFolderId && active.id !== targetFolderId) {
+        useTabStore.getState().moveItemToFolder(active.id, targetFolderId);
+        return;
+    }
+
+    if (active.id !== over.id) {
+        reorderItems(active.id, over.id);
+    }
+  };
+
+  const handleContextMenu = (e) => {
+    // Só dispara se clicar diretamente no container ou na área vazia
+    if (e.target === e.currentTarget || e.target.classList.contains('p-2') || e.target.classList.contains('flex-1')) {
+        e.preventDefault();
+        if (window.electronAPI?.showRootContextMenu) {
+            window.electronAPI.showRootContextMenu();
+        }
+    }
+  };
+
+
+
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="p-2">
+    <div 
+        className="flex-1 overflow-y-auto" 
+        onContextMenu={handleContextMenu}
+    >
+      <div className="p-2 h-full">
         <div className="flex items-center justify-between px-2 py-1 mb-2">
           <span className="text-xs font-semibold text-gray-500 uppercase">
             Coleção
@@ -166,9 +268,21 @@ const SidebarTree = React.memo(() => {
             Coleção vazia
           </div>
         ) : (
-          collection.items.map((item) => (
-            <TreeFolder key={item.id} item={item} />
-          ))
+          <DndContext
+            sensors={activeSensors}
+            collisionDetection={closestCorners}
+            onDragEnd={handleDragEnd}
+            modifiers={[restrictToVerticalAxis]}
+          >
+            <SortableContext
+              items={collection.items.map((i) => i.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {collection.items.map((item) => (
+                <TreeFolder key={item.id} item={item} />
+              ))}
+            </SortableContext>
+          </DndContext>
         )}
       </div>
     </div>

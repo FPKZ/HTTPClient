@@ -3,15 +3,16 @@ const { Menu } = require("electron");
 
 class ContextMenuBuilder {
   constructor(windowManager, isDev) {
-    this.win = windowManager.getMainWindow();
+    this.windowManager = windowManager;
     this.isDev = isDev;
   }
 
   build() {
+    const mainWindow = this.windowManager.getMainWindow();
+    if (!mainWindow) return;
 
     const contextMenuOptions = {
-
-        window: this.win,
+        window: mainWindow,
 
         // Filtro: só mostra o menu se 
         shouldShowMenu: (event, params) => {
@@ -22,7 +23,6 @@ class ContextMenuBuilder {
             const hasSelection = params.selectionText.trim().length > 0;
             
             // 3. É uma mídia (imagem, vídeo)? 
-            // (Isso evita que seja uma "área vazia" de puro texto/fundo)
             const isMedia = params.mediaType !== 'none';
 
             // O menu SÓ aparece se for input OU tiver seleção OU for mídia
@@ -30,14 +30,11 @@ class ContextMenuBuilder {
         },
 
         // 1. Funcionalidades de Desenvolvedor e Utilidade
-        showInspectElement: this.isDev, // Habilita o "Inspecionar"
-        showCopyImageAddress: true, // Habilita copiar link da imagem
-        showSaveImageAs: true, // Habilita "Salvar imagem como"
-        // Mostra sugestões do dicionário
+        showInspectElement: this.isDev,
+        showCopyImageAddress: true,
+        showSaveImageAs: true,
         showLookUp: true, 
-        // Mostra opção de pesquisa inteligente
         showSearchWithGoogle: false,
-        // Permite adicionar palavras ao dicionário
         showLearnSpelling: true,
         
         // 2. Tradução dos itens padrão (Labels)
@@ -55,13 +52,8 @@ class ContextMenuBuilder {
 
         // 3. Adicionando itens ANTES do menu padrão (Prepend)
         prepend: (defaultActions, parameters, browserWindow) => [
-            // {
-            //     label: '🔄 Atualizar Página',
-            //     click: () => browserWindow.reload()
-            // },
             {
                 label: '⭐ Adicionar aos Favoritos',
-                // Este item só aparece se você clicar em um Link
                 visible: parameters.linkURL.length > 0,
                 click: () => console.log(`Link favoritado: ${parameters.linkURL}`)
             },
@@ -71,14 +63,6 @@ class ContextMenuBuilder {
         // 4. Adicionando itens DEPOIS do menu padrão (Append)
         append: (defaultActions, parameters, browserWindow) => [
             { type: 'separator' },
-            // {
-            //     label: '🔍 Analisar Texto Selecionado',
-            //     // Só aparece se houver texto selecionado
-            //     visible: parameters.selectionText.trim().length > 0,
-            //     click: () => {
-            //         console.log(`Analisando: ${parameters.selectionText}`);
-            //     }
-            // },
             {
                 label: 'Sobre o App',
                 click: () => {
@@ -86,44 +70,78 @@ class ContextMenuBuilder {
                 }
             }
         ]
-    }
+    };
 
     contextMenu(contextMenuOptions);
-
   }
 
-  buildContextFolderMenu(event) {
+  buildContextFolderMenu(params) {
+    const { id, type } = params;
+    const mainWindow = this.windowManager.getMainWindow();
+    if (!mainWindow) return;
+    
     const contextMenuOptions = [
         {
             label: "Nova Pasta",
             click: () => {
-                console.log("Nova Pasta");
+                mainWindow.webContents.send("context-menu-action", { action: "create-folder", targetId: id });
             }
         },
         {
             label: "Novo Arquivo",
             click: () => {
-                console.log("Novo Arquivo");
+                console.log("Nova Arquivo em ", id);
+                mainWindow.webContents.send("context-menu-action", { action: "create-file", targetId: id });
             }
         },
+        { type: 'separator' },
         {
             label: "Renomear",
             click: () => {
-                console.log("Renomear");
+                mainWindow.webContents.send("context-menu-action", { action: "rename", targetId: id });
             }
         },
         {
             label: "Excluir",
+            style: 'destructive',
             click: () => {
-                console.log("Excluir");
+                mainWindow.webContents.send("context-menu-action", { action: "delete", targetId: id });
             }
         }
-    ]
+    ];
 
     const menu = Menu.buildFromTemplate(contextMenuOptions);
-    menu.popup(this.win.fromWebContents(event.sender));
+    menu.popup({ window: mainWindow });
   }
 
+  buildRootContextMenu() {
+    const mainWindow = this.windowManager.getMainWindow();
+    if (!mainWindow) return;
+
+    const contextMenuOptions = [
+      {
+        label: "Nova Pasta",
+        click: () => {
+          mainWindow.webContents.send("context-menu-action", {
+            action: "create-folder",
+            targetId: null,
+          });
+        },
+      },
+      {
+        label: "Novo Arquivo",
+        click: () => {
+          mainWindow.webContents.send("context-menu-action", {
+            action: "create-file",
+            targetId: null,
+          });
+        },
+      },
+    ];
+
+    const menu = Menu.buildFromTemplate(contextMenuOptions);
+    menu.popup({ window: mainWindow });
+  }
 }
 
 module.exports = ContextMenuBuilder;

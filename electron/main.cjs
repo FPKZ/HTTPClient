@@ -53,6 +53,7 @@ const windowManager = new WindowManager(isDev, preloadPath);
 const autoUpdateService = new AutoUpdateService(isDev);
 const menuBuilder = new MenuBuilder(windowManager, isDev);
 const contextMenuBuilder = new ContextMenuBuilder(windowManager, isDev);
+global.contextMenuBuilder = contextMenuBuilder;
 
 // 3. Orquestrar Inicialização do IpcRouter
 const ipcRouter = new IpcRouter(

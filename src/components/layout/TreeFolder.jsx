@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 import useTabStore from "../../store/useTabStore";
 import RenameItemModal from "../modals/RenameItemModal";
+import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useDroppable } from "@dnd-kit/core";
 
 /**
  * TreeFolder
@@ -27,7 +30,45 @@ export const TreeFolder = React.memo(({ item, level = 0 }) => {
   const deleteItem = useTabStore((state) => state.deleteItem);
   const renameItem = useTabStore((state) => state.renameItem);
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setSortableRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: item.id,
+    data: {
+        type: item.type,
+        id: item.id
+    }
+  });
+
   const isFolder = item.type === "folder";
+
+  // Droppable behavior for folders
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+    id: `droppable-${item.id}`,
+    disabled: !isFolder,
+    data: {
+        type: 'folder',
+        id: item.id
+    }
+  });
+
+  // Combine refs
+  const setNodeRef = (node) => {
+    setSortableRef(node);
+    if (isFolder) setDroppableRef(node);
+  };
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
 
   const handleItemClick = (e) => {
     e.stopPropagation();
@@ -57,31 +98,47 @@ export const TreeFolder = React.memo(({ item, level = 0 }) => {
     return colors[method?.toUpperCase()] || "text-gray-400";
   };
 
+   // Handler para ações do menu de contexto (disparadas pelo Electron)
+  // MOVIDO PARA SIDEBAR.JSX PARA EVITAR DUPLICIDADE EM COMPONENTES RECURSIVOS
+
   return (
     <div className="select-none">
       {/* Item Row */}
       <div
-        className={`flex items-center gap-1 py-1 rounded cursor-pointer hover:bg-zinc-800 transition-colors group`}
-        style={{ paddingLeft: `${level * 12 + 8}px` }}
+        ref={setNodeRef}
+        {...attributes}
+        {...listeners}
+        className={`flex items-center gap-1 py-1 rounded cursor-pointer transition-colors group
+            ${isDragging ? 'opacity-30 bg-zinc-800' : 'hover:bg-zinc-800'}
+            ${isOver && isFolder ? 'bg-yellow-500/10 ring-1 ring-yellow-500/30' : ''}`}
+        style={{ ...style, paddingLeft: `${level * 12 + 8}px` }}
         onClick={handleItemClick}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          if (window.electronAPI?.showFolderContextMenu) {
+            window.electronAPI.showFolderContextMenu({ id: item.id, type: item.type });
+          }
+        }}
       >
         {/* Expander / Icon */}
         {isFolder ? (
-          <>
-            <div className="flex items-center gap-1 min-w-[20px]">
-              {isOpen ? (
-                <ChevronDown size={14} className="text-gray-500" />
-              ) : (
-                <ChevronRight size={14} className="text-gray-500" />
-              )}
-              <Folder
-                size={16}
-                className={`${
-                  isOpen ? "text-yellow-500" : "text-yellow-600/80"
-                }`}
-              />
-            </div>
-          </>
+          <div
+            className={`flex items-center gap-1 min-w-[20px] rounded px-1 transition-colors`}
+          >
+            {isOpen ? (
+              <ChevronDown size={14} className="text-gray-500" />
+            ) : (
+              <ChevronRight size={14} className="text-gray-500" />
+            )}
+            <Folder
+              size={16}
+              className={`${
+                isOpen ? "text-yellow-500" : "text-yellow-600/80"
+              }`}
+            />
+          </div>
         ) : (
           <div className="w-[1px]" /> // Alinhamento para rotas que não tem collapse
         )}
@@ -159,13 +216,25 @@ export const TreeFolder = React.memo(({ item, level = 0 }) => {
             <div
               className="text-[0.7rem] text-gray-600 italic py-1"
               style={{ paddingLeft: `${(level + 1) * 12 + 24}px` }}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.electronAPI?.showFolderContextMenu) {
+                  window.electronAPI.showFolderContextMenu({ id: item.id, type: item.type });
+                }
+              }}
             >
               Pasta vazia
             </div>
           ) : (
-            item.items.map((child) => (
-              <TreeFolder key={child.id} item={child} level={level + 1} />
-            ))
+            <SortableContext 
+                items={item.items.map(i => i.id)} 
+                strategy={verticalListSortingStrategy}
+            >
+                {item.items.map((child) => (
+                    <TreeFolder key={child.id} item={child} level={level + 1} />
+                ))}
+            </SortableContext>
           )}
         </div>
       )}

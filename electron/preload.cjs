@@ -48,7 +48,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("menu-action", subscription);
     return () => ipcRenderer.removeListener("menu-action", subscription);
   },
-
+  onContextMenuAction: (callback) => {
+    const subscription = (_event, value) => callback(value);
+    ipcRenderer.on("context-menu-action", subscription);
+    return () => ipcRenderer.removeListener("context-menu-action", subscription);
+  },
+  
   newFile: () => ipcRenderer.send("new-file"),
 
   saveFile: (data) => ipcRenderer.invoke("save-file", data),
@@ -60,6 +65,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   loadCollection: (fileName) => ipcRenderer.invoke("load-collection", fileName),
   deleteHistoryItem: (id) => ipcRenderer.invoke("delete-history-item", id),
 
+  showFolderContextMenu: (params) => ipcRenderer.send("show-folder-context-menu", params),
+  showRootContextMenu: () => ipcRenderer.send("show-root-context-menu"),
   onRequestSaveSession: (callback) => {
     const subscription = () => callback();
     ipcRenderer.on("request-save-session", subscription);
