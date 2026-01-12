@@ -1,0 +1,74 @@
+name: Release e Distribuicao Automatica
+on:
+  push:
+    tags:
+      - 'v*' # Dispara sempre que você criar uma tag (ex: v1.0.1)
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Build App
+        run: |
+          npm install
+          npx electron-builder --linux --win -p always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # --- PARTE 1: UBUNTU (APT) ---
+      - name: Enviar para Cloudsmith
+        run: |
+          pip install cloudsmith-cli
+          cloudsmith push deb fpkz/httpclient/any-distro/any-version dist/*.deb --api-key ${{ secrets.CLOUDSMITH_API_KEY }}
+
+      # --- PARTE 2: ARCH (AUR) ---
+      - name: Atualizar AUR
+        run: |
+          # 1. Pegar versão e Hash do .deb gerado
+          VERSION=${GITHUB_REF#refs/tags/v}
+          SHA256=$(sha256sum dist/*.deb | cut -d ' ' -f 1)
+          
+          # 2. Configurar Chave SSH para o AUR
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          
+          # 3. Clonar e Atualizar o PKGBUILD
+          git clone ssh://aur@aur.archlinux.org/httpclient-bin.git aur_folder
+          cd aur_folder
+          
+          # Atualiza o arquivo PKGBUILD (Substituindo a versão e o hash)
+          cat <<EOF > PKGBUILD
+          pkgname=httpclient-bin
+          pkgver=$VERSION
+          pkgrel=1
+          arch=('x86_64')
+          depends=('libnss3' 'at-spi2-core' 'libasound2') # Dependências comuns electron
+          source=("https://github.com/${{ github.repository }}/releases/download/v\$pkgver/HTTPClient-$pkgver-linux.deb")
+          sha256sums=('$SHA256')
+          package() {
+            tar -xzf data.tar.xz -C "\${pkgdir}/"
+          }
+          EOF
+          
+          # 4. Gerar .SRCINFO (exigido pelo AUR) e dar Push
+          # Usamos uma imagem docker simples para ter as ferramentas do arch (makepkg)
+          docker run --rm -v $(pwd):/pkg archlinux:latest bash -c "pacman -Syu --noconfirm binutils && cd /pkg && makepkg --printsrcinfo > .SRCINFO"
+          
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add PKGBUILD .SRCINFO
+          git commit -m "Update to $VERSION"
+          git push origin main
+
