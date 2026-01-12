@@ -11,24 +11,20 @@ import {
   Edit,
 } from "lucide-react";
 import useTabStore from "../../store/useTabStore";
-import RenameItemModal from "../modals/RenameItemModal";
-import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  useSortable,
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
 
-/**
- * TreeFolder
- * Componente recursivo para renderizar pastas e rotas da coleção.
- */
-export const TreeFolder = React.memo(({ item, level = 0 }) => {
+export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   // Ações do store
   const addTab = useTabStore((state) => state.addTab);
-  const addRoute = useTabStore((state) => state.addRoute);
-  const addFolder = useTabStore((state) => state.addFolder);
   const deleteItem = useTabStore((state) => state.deleteItem);
-  const renameItem = useTabStore((state) => state.renameItem);
 
   const {
     attributes,
@@ -40,9 +36,9 @@ export const TreeFolder = React.memo(({ item, level = 0 }) => {
   } = useSortable({
     id: item.id,
     data: {
-        type: item.type,
-        id: item.id
-    }
+      type: item.type,
+      id: item.id,
+    },
   });
 
   const isFolder = item.type === "folder";
@@ -52,9 +48,9 @@ export const TreeFolder = React.memo(({ item, level = 0 }) => {
     id: `droppable-${item.id}`,
     disabled: !isFolder,
     data: {
-        type: 'folder',
-        id: item.id
-    }
+      type: "folder",
+      id: item.id,
+    },
   });
 
   // Combine refs
@@ -68,7 +64,6 @@ export const TreeFolder = React.memo(({ item, level = 0 }) => {
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
-
 
   const handleItemClick = (e) => {
     e.stopPropagation();
@@ -97,9 +92,6 @@ export const TreeFolder = React.memo(({ item, level = 0 }) => {
     };
     return colors[method?.toUpperCase()] || "text-gray-400";
   };
-
-   // Handler para ações do menu de contexto (disparadas pelo Electron)
-  // MOVIDO PARA SIDEBAR.JSX PARA EVITAR DUPLICIDADE EM COMPONENTES RECURSIVOS
 
   return (
     <div className="select-none">
@@ -134,9 +126,7 @@ export const TreeFolder = React.memo(({ item, level = 0 }) => {
             )}
             <Folder
               size={16}
-              className={`${
-                isOpen ? "text-yellow-500" : "text-yellow-600/80"
-              }`}
+              className={`${isOpen ? "text-yellow-500" : "text-yellow-600/80"}`}
             />
           </div>
         ) : (
@@ -170,7 +160,11 @@ export const TreeFolder = React.memo(({ item, level = 0 }) => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  addFolder(item.id);
+                  setModalConfig({
+                    open: true,
+                    type: "folder",
+                    targetId: item.id,
+                  });
                   setIsOpen(true);
                 }}
                 className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
@@ -181,7 +175,11 @@ export const TreeFolder = React.memo(({ item, level = 0 }) => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  addRoute(item.id);
+                  setModalConfig({
+                    open: true,
+                    type: "file",
+                    targetId: item.id,
+                  });
                   setIsOpen(true);
                 }}
                 className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
@@ -191,14 +189,16 @@ export const TreeFolder = React.memo(({ item, level = 0 }) => {
               </button>
             </>
           )}
-          <RenameItemModal onAdd={renameItem} id={item.id} initialName={item.name}>
-            <button
-                className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
-                title="Editar"
-            >
-                <Edit size={14} />
-            </button>
-          </RenameItemModal>
+          <button
+            className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
+            title="Editar"
+            onClick={(e) => {
+              e.stopPropagation();
+              setModalConfig({ open: true, type: "rename", targetId: item.id });
+            }}
+          >
+            <Edit size={14} />
+          </button>
           <button
             onClick={handleDelete}
             className="p-1 hover:bg-red-500/20 rounded text-gray-500 hover:text-red-400"
@@ -227,13 +227,18 @@ export const TreeFolder = React.memo(({ item, level = 0 }) => {
               Pasta vazia
             </div>
           ) : (
-            <SortableContext 
-                items={item.items.map(i => i.id)} 
-                strategy={verticalListSortingStrategy}
+            <SortableContext
+              items={item.items.map((i) => i.id)}
+              strategy={verticalListSortingStrategy}
             >
-                {item.items.map((child) => (
-                    <TreeFolder key={child.id} item={child} level={level + 1} />
-                ))}
+              {item.items.map((child) => (
+                <TreeFolder
+                  key={child.id}
+                  item={child}
+                  level={level + 1}
+                  setModalConfig={setModalConfig}
+                />
+              ))}
             </SortableContext>
           )}
         </div>

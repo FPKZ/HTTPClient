@@ -93,12 +93,12 @@ export function useRequestExecutor() {
         bodyMode: requestData.body?.mode || "none", // Passamos o modo para o serviço
       });
 
-      console.log("Response received in hook:", {
-        status: response.status,
-        isImage: response.isImage,
-        contentType: response.contentType,
-        dataLength: response.data?.length,
-      });
+      // console.log("Response received in hook:", {
+      //   status: response.status,
+      //   isImage: response.isImage,
+      //   contentType: response.contentType,
+      //   dataLength: response.data?.length,
+      // });
 
       setLogsPorTela((prev) => ({
         ...prev,

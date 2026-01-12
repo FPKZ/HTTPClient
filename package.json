@@ -1,7 +1,7 @@
 {
   "name": "HTTPClient",
   "private": true,
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "HTTPClient - Ferramenta de testes de API",
   "author": "FPKZ <contato@fpkz.com.br>",
   "type": "module",
@@ -42,8 +42,10 @@
       "icon": "assets/icon1.png",
       "target": [
         "AppImage",
-        "deb"
-      ]
+        "deb",
+        "pacman"
+      ],
+      "category": "Development"
     },
     "mac": {
       "icon": "assets/icon1.png",

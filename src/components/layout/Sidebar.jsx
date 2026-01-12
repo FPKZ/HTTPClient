@@ -7,6 +7,8 @@ import { useHistory } from "../../hooks/useHistory";
 
 //hooks
 import useTabStore from "../../store/useTabStore";
+import useMenuContext from "../../hooks/useMenuContext";
+import useModalConfig from "../../hooks/useModalConfig";
 
 import {
   DndContext,
@@ -17,7 +19,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
+  // arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
@@ -32,7 +34,9 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 const SidebarHeader = () => {
   const collectionName = useTabStore((state) => state.collection.name);
   const collectionDesc = useTabStore((state) => state.collection.descricao);
-  const updateCollectionMeta = useTabStore((state) => state.updateCollectionMeta);
+  const updateCollectionMeta = useTabStore(
+    (state) => state.updateCollectionMeta
+  );
   const { handleSaveCollection } = useHistory(false);
   const navigate = useNavigate();
 
@@ -67,7 +71,7 @@ const SidebarHeader = () => {
           className="flex items-center gap-2 p-2 rounded hover:bg-zinc-700 text-zinc-300 text-[0.75rem]! font-semibold transition-colors"
           onClick={async () => {
             // Salva antes de voltar
-            await handleSaveCollection(); 
+            await handleSaveCollection();
             navigate(-1);
           }}
         >
@@ -145,9 +149,9 @@ const SidebarTree = React.memo(() => {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-        activationConstraint: {
-            distance: 8,
-        },
+      activationConstraint: {
+        distance: 8,
+      },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -169,75 +173,25 @@ const SidebarTree = React.memo(() => {
 
   // Centraliza o listener do menu de contexto aqui na Sidebar (pai da árvore)
   // Isso evita que componentes recursivos (TreeFolder) criem múltiplos listeners
-  React.useEffect(() => {
-    if (!window.electronAPI?.onContextMenuAction) return;
 
-    const unsubscribe = window.electronAPI.onContextMenuAction((data) => {
-      const { action, targetId } = data;
-      console.log("[Sidebar] Context Action:", action, "Target:", targetId);
-
-      const isFolderAction = targetId?.includes("folder");
-
-      console.log("[Sidebar] Item is folder:", isFolderAction);
-
-      switch (action) {
-        case "create-folder":
-          addFolder(targetId);
-          break;
-        case "create-file":
-          addRoute(targetId);
-          break;
-        case "rename":
-          const newName = prompt("Digite o novo nome:");
-          if (newName) renameItem(targetId, newName);
-          break;
-        case "delete":
-          if (confirm("Tem certeza que deseja excluir este item?")) {
-            deleteItem(targetId);
-          }
-          break;
-        default:
-          console.warn("Ação desconhecida:", action);
-      }
+  const { modalConfig, setModalConfig, handleModalAdd, getModalProps } =
+    useModalConfig({
+      addFolder,
+      addRoute,
+      renameItem,
+      deleteItem,
+      reorderItems,
     });
-    return unsubscribe;
-  }, [addFolder, addRoute, renameItem, deleteItem]);
 
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    // Check if dropped ONTO a folder (either specifically the droppable or the sortable folder)
-    const isOverFolder = over.data.current?.type === 'folder' || over.id.toString().startsWith('droppable-');
-    const targetFolderId = over.data.current?.id || (over.id.toString().startsWith('droppable-') ? over.id.toString().replace('droppable-', '') : null);
-
-    if (isOverFolder && targetFolderId && active.id !== targetFolderId) {
-        useTabStore.getState().moveItemToFolder(active.id, targetFolderId);
-        return;
-    }
-
-    if (active.id !== over.id) {
-        reorderItems(active.id, over.id);
-    }
-  };
-
-  const handleContextMenu = (e) => {
-    // Só dispara se clicar diretamente no container ou na área vazia
-    if (e.target === e.currentTarget || e.target.classList.contains('p-2') || e.target.classList.contains('flex-1')) {
-        e.preventDefault();
-        if (window.electronAPI?.showRootContextMenu) {
-            window.electronAPI.showRootContextMenu();
-        }
-    }
-  };
-
-
+  const { handleDragEnd, handleContextMenu } = useMenuContext({
+    modalConfig,
+    setModalConfig,
+    deleteItem,
+    reorderItems,
+  });
 
   return (
-    <div 
-        className="flex-1 overflow-y-auto" 
-        onContextMenu={handleContextMenu}
-    >
+    <div className="flex-1 overflow-y-auto" onContextMenu={handleContextMenu}>
       <div className="p-2 h-full">
         <div className="flex items-center justify-between px-2 py-1 mb-2">
           <span className="text-xs font-semibold text-gray-500 uppercase">
@@ -279,12 +233,24 @@ const SidebarTree = React.memo(() => {
               strategy={verticalListSortingStrategy}
             >
               {collection.items.map((item) => (
-                <TreeFolder key={item.id} item={item} />
+                <TreeFolder
+                  key={item.id}
+                  item={item}
+                  setModalConfig={setModalConfig}
+                />
               ))}
             </SortableContext>
           </DndContext>
         )}
       </div>
+
+      {/* Modal controlado via menu de contexto */}
+      <NovoItemModal
+        {...getModalProps()}
+        open={modalConfig.open}
+        onOpenChange={(open) => setModalConfig({ ...modalConfig, open })}
+        onAdd={handleModalAdd}
+      />
     </div>
   );
 });

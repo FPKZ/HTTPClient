@@ -1,13 +1,13 @@
 import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import useTabStore from "../../store/useTabStore";
+// import useTabStore from "../../store/useTabStore";
 
-export default function EstruturaModal({ title, description, trigger, children, onAdd }) {
-  const setDraggingDisabled = useTabStore((state) => state.setDraggingDisabled);
+export default function EstruturaModal({ title, description, trigger, children, onAdd, open, onOpenChange }) {
+  // const setDraggingDisabled = useTabStore((state) => state.setDraggingDisabled);
 
   return (
-    <Dialog.Root onOpenChange={(open) => setDraggingDisabled(open)}>
-      <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      {trigger && <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>}
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 data-[state=open]:animate-overlayShow z-50" />
         <Dialog.Content
