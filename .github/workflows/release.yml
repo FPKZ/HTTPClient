@@ -27,7 +27,7 @@ jobs:
       - name: Build App
         run: |
           npm install
-	  npm run build
+          npm run build
           chmod +x ./node_modules/app-builder-bin/linux/x64/app-builder
           npx electron-builder --linux --win -p always
         env:
