@@ -71,9 +71,9 @@ jobs:
           }
           EOF
 
-          # 4. Gerar .SRCINFO (evitando erro de root)
+          # 4. Gerar .SRCINFO (Corrigido: instalando sudo e binutils)
           docker run --rm -v $(pwd):/pkg archlinux:latest bash -c "
-            pacman -Syu --noconfirm binutils && 
+            pacman -Syu --noconfirm binutils sudo && 
             useradd -m builder && 
             chown -R builder:builder /pkg && 
             cd /pkg && 
