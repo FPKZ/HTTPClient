@@ -71,7 +71,13 @@ jobs:
           }
           EOF
 
-          docker run --rm -v $(pwd):/pkg archlinux:latest bash -c "pacman -Syu --noconfirm binutils && cd /pkg && makepkg --printsrcinfo > .SRCINFO"
+          # 4. Gerar .SRCINFO (evitando erro de root)
+          docker run --rm -v $(pwd):/pkg archlinux:latest bash -c "
+            pacman -Syu --noconfirm binutils && 
+            useradd -m builder && 
+            chown -R builder:builder /pkg && 
+            cd /pkg && 
+            sudo -u builder makepkg --printsrcinfo > .SRCINFO"
 
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
