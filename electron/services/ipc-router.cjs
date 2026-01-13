@@ -14,7 +14,8 @@ class IpcRouter {
     translator,
     formatters,
     networkService,
-    exportService
+    exportService,
+    dialogReact
   ) {
     this.win = windowManager;
     this.history = historyService;
@@ -22,6 +23,7 @@ class IpcRouter {
     this.formatters = formatters;
     this.network = networkService;
     this.export = exportService;
+    this.dialogReact = dialogReact;
   }
 
   register() {
@@ -65,14 +67,14 @@ class IpcRouter {
     });
 
     ipcMain.handle("dialog:confirm", async (event, message) => {
-      const { response } = await dialog.showMessageBox({
-        type: "question",
-        buttons: ["Cancelar", "Confirmar"],
-        defaultId: 1,
+      return this.dialogReact.showDialog({
         title: "Confirmação",
-        message: message,
+        description: message,
+        options: [
+          { label: "Cancelar", value: false, variant: "secondary" },
+          { label: "Confirmar", value: true, variant: "primary" },
+        ],
       });
-      return response === 1;
     });
 
     // Conversion
@@ -116,8 +118,8 @@ class IpcRouter {
 
     // Context Menu
     ipcMain.on("show-folder-context-menu", (event, params) => {
-      // Nota: O main.cjs injeta o contextMenuBuilder no ipcRouter se necessário, 
-      // ou podemos passar como dependência. 
+      // Nota: O main.cjs injeta o contextMenuBuilder no ipcRouter se necessário,
+      // ou podemos passar como dependência.
       // Verificando main.cjs...
       if (global.contextMenuBuilder) {
         global.contextMenuBuilder.buildContextFolderMenu(params);
@@ -188,6 +190,15 @@ class IpcRouter {
       } catch (err) {
         console.error(`[handleConversion] Erro processando ${file}:`, err);
         sender.send("log", `❌ Erro em ${path.basename(file)}: ${err.message}`);
+
+        console.log(
+          "[IpcRouter] Chamando dialogReact.showDialog por conta de erro..."
+        );
+        return await this.dialogReact.showDialog({
+          title: "Erro",
+          description: `Erro ao processar ${file}: ${err.message}`,
+          options: [{ label: "OK", value: true, variant: "primary" }],
+        });
       }
     }
 

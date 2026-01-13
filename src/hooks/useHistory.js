@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useTabStore from "../store/useTabStore";
+import useDialogStore from "../store/useDialogStore";
 
 export function useHistory(fetchOnMount = true) {
   const [history, setHistory] = useState([]);
   const navigate = useNavigate();
+  const showDialog = useDialogStore((state) => state.showDialog);
 
   // const { getCollectionForExport } = useTabStore();
 
@@ -30,7 +32,14 @@ export function useHistory(fetchOnMount = true) {
   };
 
   const handleDeleteHistoryItem = async (e, id) => {
-    const confirmed = await window.electronAPI.confirm("Tem certeza que deseja remover este item do histórico?");
+    const confirmed = await showDialog({
+      title: "Deletar item do histórico",
+      description: "Tem certeza que deseja remover este item do histórico?",
+      options: [
+        { label: "Cancelar", value: false, variant: "secondary" },
+        { label: "Confirmar", value: true, variant: "danger" },
+      ],
+    });
     if (confirmed) {
       await window.electronAPI.deleteHistoryItem(id);
       const updatedHistory = await window.electronAPI.getHistory();
@@ -40,7 +49,14 @@ export function useHistory(fetchOnMount = true) {
 
   const handleSaveCollection = async () => {
     if (!window.electronAPI) return;
-    const confirmed = await window.electronAPI.confirm("Deseja salvar esta coleção no histórico?");
+    const confirmed = await showDialog({
+      title: "Salvar coleção",
+      description: "Deseja salvar esta coleção no histórico?",
+      options: [
+        { label: "Cancelar", value: false, variant: "secondary" },
+        { label: "Salvar", value: true, variant: "primary" },
+      ],
+    });
     if (confirmed) {
       const collection = useTabStore.getState().getCollectionForExport();
       await window.electronAPI.saveHistory(collection);

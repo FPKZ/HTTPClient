@@ -11,6 +11,7 @@ import useTabStore from "../store/useTabStore";
 
 // Hooks
 import { useQuickExit } from "../hooks/useQuickExit";
+import useDialogStore from "../store/useDialogStore";
 
 // Modals
 import NovaCollectionModal from "../components/modals/NovaCollectionModal";
@@ -23,6 +24,8 @@ import NovaCollectionModal from "../components/modals/NovaCollectionModal";
 export default function Home() {
   const navigate = useNavigate();
   // const location = useLocation();
+
+  const showDialog = useDialogStore((state) => state.showDialog);
 
   // const loadCollection = useTabStore((state) => state.loadCollection);
   const getCollectionForExport = useTabStore(
@@ -63,7 +66,14 @@ export default function Home() {
 
   // 4. Auto-save ao sair (Ctrl+Q)
   useQuickExit(async () => {
-    const confirmed = await window.electronAPI.confirm("Deseja salvar a coleção antes de sair?");
+    const confirmed = await showDialog({
+      title: "Salvar coleção",
+      description: "Deseja salvar a coleção antes de sair?",
+      options: [
+        { label: "Cancelar", value: false, variant: "secondary" },
+        { label: "Salvar", value: true, variant: "primary" },
+      ],
+    });
     if (confirmed) {
       const collectionData = getCollectionForExport();
       // Passa o objeto completo e unificado

@@ -1,7 +1,10 @@
 import React from "react";
 import useTabStore from "../store/useTabStore";
+import useDialogStore from "../store/useDialogStore";
 
 export default function useMenuContext({ modalConfig, setModalConfig, deleteItem, reorderItems }) {
+
+  const showDialog = useDialogStore((state) => state.showDialog);
 
   React.useEffect(() => {
     if (!window.electronAPI?.onContextMenuAction) return;
@@ -21,7 +24,14 @@ export default function useMenuContext({ modalConfig, setModalConfig, deleteItem
           break;
         case "delete":
           (async () => {
-            const confirmed = await window.electronAPI.confirm("Tem certeza que deseja excluir este item?");
+            const confirmed = await showDialog({
+              title: "Deletar item",
+              description: "Tem certeza que deseja excluir este item?",
+              options: [
+                { label: "Cancelar", value: false, variant: "secondary" },
+                { label: "Confirmar", value: true, variant: "danger" },
+              ],
+            });
             if (confirmed) {
               deleteItem(targetId);
             }

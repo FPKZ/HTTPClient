@@ -18,6 +18,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
+import useDialogStore from "../../store/useDialogStore";
 
 export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,6 +26,7 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
   // Ações do store
   const addTab = useTabStore((state) => state.addTab);
   const deleteItem = useTabStore((state) => state.deleteItem);
+  const showDialog = useDialogStore((state) => state.showDialog);
 
   const {
     attributes,
@@ -77,7 +79,14 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
   const handleDelete = async (e) => {
     e.stopPropagation();
     const typeLabel = isFolder ? "a pasta (e tudo dentro dela)" : "a rota";
-    const confirmed = await window.electronAPI.confirm(`Deseja realmente deletar ${typeLabel} "${item.name}"?`);
+    const confirmed = await showDialog({
+      title: "Deletar item",
+      description: `Deseja realmente deletar ${typeLabel} "${item.name}"?`,
+      options: [
+        { label: "Cancelar", value: false, variant: "secondary" },
+        { label: "Confirmar", value: true, variant: "danger" },
+      ],
+    });
     if (confirmed) {
       deleteItem(item.id);
     }

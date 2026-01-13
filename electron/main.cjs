@@ -37,6 +37,7 @@ const WindowManager = require("./services/window-manager.cjs");
 const AutoUpdateService = require("./services/auto-update-service.cjs");
 const IpcRouter = require("./services/ipc-router.cjs");
 const ExportService = require("./services/export-service.cjs");
+const DialogReact = require("./utils/dialog-react.cjs");
 
 // Setup Global Constants
 const isDev = !app.isPackaged;
@@ -56,6 +57,7 @@ const networkService = new NetworkService();
 const windowManager = new WindowManager(isDev, preloadPath);
 const autoUpdateService = new AutoUpdateService(isDev);
 const menuBuilder = new MenuBuilder(windowManager, isDev);
+const dialogReact = new DialogReact(windowManager);
 const contextMenuBuilder = new ContextMenuBuilder(windowManager, isDev);
 global.contextMenuBuilder = contextMenuBuilder;
 
@@ -66,7 +68,8 @@ const ipcRouter = new IpcRouter(
   translator,
   { axios: axiosFormatter, http: httpFormatter },
   networkService,
-  exportService
+  exportService,
+  dialogReact
 );
 
 // --- Lifecycle do App ---

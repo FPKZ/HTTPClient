@@ -61,10 +61,10 @@ function UploadPage() {
   };
 
   return (
-    <div className="d-flex flex-column h-100 position-relative">
+    <div className="d-flex flex-col h-100 position-relative">
       <Container
         fluid
-        className="d-flex flex-column justify-center flex-grow-1 p-3 gap-3"
+        className="d-flex flex-col justify-center grow p-3 gap-3"
         style={{ overflow: "hidden", maxWidth: "900px" }}
       >
         <h1 className="text-center mb-4">HTTPClient</h1>
@@ -75,7 +75,7 @@ function UploadPage() {
               className="
                 flex w-full h-full py-2 px-4
                 rounded items-center justify-center cursor-pointer
-                bg-[#1b1b1b] border !border-[#313131]
+                bg-[#1b1b1b] border border-[#313131]!
                 hover:bg-[#292929] active:bg-[#1d1d1d]
                 transition-colors
                 text-gray-300 font-medium
@@ -93,7 +93,7 @@ function UploadPage() {
               className="
                 flex w-full h-full py-2 px-4
                 rounded items-center justify-center cursor-pointer
-                bg-[#1b1b1b] border !border-[#313131]
+                bg-[#1b1b1b] border border-[#313131]!
                 hover:bg-[#292929] active:bg-[#1d1d1d]
                 transition-colors
                 text-gray-300 font-medium

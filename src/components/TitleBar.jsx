@@ -26,7 +26,7 @@ export default function TitleBar() {
     if (window.electronAPI && window.electronAPI.onMenuAction) {
       window.electronAPI.onMenuAction((action) => {
         if (action === "open-settings") {
-          alert("Configurações abertas via menu nativo!");
+          // alert("Configurações abertas via menu nativo!");
           // Aqui você pode adicionar a lógica para abrir um modal ou navegar
         }
       });
