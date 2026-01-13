@@ -27,8 +27,7 @@ jobs:
       - name: Build App
         run: |
           npm install
-	  vite build
-          # Adicionamos o comando para garantir que o binário tenha permissão de execução
+	  npm run build
           chmod +x ./node_modules/app-builder-bin/linux/x64/app-builder
           npx electron-builder --linux --win -p always
         env:
@@ -61,7 +60,7 @@ jobs:
           pkgrel=1
           arch=('x86_64')
           depends=('libnss3' 'at-spi2-core' 'libasound2')
-          source=("https://github.com/${{ github.repository }}/releases/download/v\$pkgver/HTTPClient-\$pkgver-linux.deb")
+          source=("https://github.com/${{ github.repository }}/releases/download/v\$pkgver/HTTPClient-$pkgver-linux.deb")
           sha256sums=('$SHA256')
           package() {
             tar -xzf data.tar.xz -C "\${pkgdir}/"
