@@ -2,7 +2,7 @@ name: Release e Distribuicao Automatica
 on:
   push:
     tags:
-      - 'v*' # Dispara sempre que você criar uma tag (ex: v1.0.1)
+      - 'v*'
 
 jobs:
   build-and-deploy:
@@ -18,15 +18,18 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install Wine
+      - name: Install Wine (Fix for Windows Build)
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends wine64 wine32
+          sudo apt-get install -y wine64 wine32 mono-devel ca-certificates
 
       - name: Build App
         run: |
           npm install
+	  vite build
+          # Adicionamos o comando para garantir que o binário tenha permissão de execução
+          chmod +x ./node_modules/app-builder-bin/linux/x64/app-builder
           npx electron-builder --linux --win -p always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -40,41 +43,35 @@ jobs:
       # --- PARTE 2: ARCH (AUR) ---
       - name: Atualizar AUR
         run: |
-          # 1. Pegar versão e Hash do .deb gerado
           VERSION=${GITHUB_REF#refs/tags/v}
-          SHA256=$(sha256sum dist_electron/*.deb | cut -d ' ' -f 1)
-          
-          # 2. Configurar Chave SSH para o AUR
+          # Pega apenas o primeiro arquivo .deb encontrado para evitar conflitos de hash
+          SHA256=$(sha256sum dist_electron/*.deb | head -n 1 | cut -d ' ' -f 1)
+
           mkdir -p ~/.ssh
           echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
-          
-          # 3. Clonar e Atualizar o PKGBUILD
+
           git clone ssh://aur@aur.archlinux.org/httpclient-bin.git aur_folder
           cd aur_folder
-          
-          # Atualiza o arquivo PKGBUILD (Substituindo a versão e o hash)
+
           cat <<EOF > PKGBUILD
           pkgname=httpclient-bin
           pkgver=$VERSION
           pkgrel=1
           arch=('x86_64')
-          depends=('libnss3' 'at-spi2-core' 'libasound2') # Dependências comuns electron
-          source=("https://github.com/${{ github.repository }}/releases/download/v\$pkgver/HTTPClient-$pkgver-linux.deb")
+          depends=('libnss3' 'at-spi2-core' 'libasound2')
+          source=("https://github.com/${{ github.repository }}/releases/download/v\$pkgver/HTTPClient-\$pkgver-linux.deb")
           sha256sums=('$SHA256')
           package() {
             tar -xzf data.tar.xz -C "\${pkgdir}/"
           }
           EOF
-          
-          # 4. Gerar .SRCINFO (exigido pelo AUR) e dar Push
-          # Usamos uma imagem docker simples para ter as ferramentas do arch (makepkg)
+
           docker run --rm -v $(pwd):/pkg archlinux:latest bash -c "pacman -Syu --noconfirm binutils && cd /pkg && makepkg --printsrcinfo > .SRCINFO"
-          
+
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
           git add PKGBUILD .SRCINFO
           git commit -m "Update to $VERSION"
           git push origin master
-
