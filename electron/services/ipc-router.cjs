@@ -64,9 +64,20 @@ class IpcRouter {
       return canceled ? null : filePaths[0];
     });
 
+    ipcMain.handle("dialog:confirm", async (event, message) => {
+      const { response } = await dialog.showMessageBox({
+        type: "question",
+        buttons: ["Cancelar", "Confirmar"],
+        defaultId: 1,
+        title: "Confirmação",
+        message: message,
+      });
+      return response === 1;
+    });
+
     // Conversion
     ipcMain.on("start-conversion", async (event, { inputPath, isFile }) => {
-      await this._handleConversion(event.sender, inputPath, isFile);
+      this._handleConversion(event.sender, inputPath, isFile);
     });
 
     // History
@@ -127,7 +138,7 @@ class IpcRouter {
     // mas deixamos aqui por enquanto para simplificar ou movemos para o StorageProvider
     const filesToProcess = isFile
       ? [inputPath]
-      : this._scanForJsonCollections(inputPath);
+      : await this._scanForJsonCollections(inputPath);
 
     if (filesToProcess.length === 0) {
       sender.send(
@@ -138,9 +149,13 @@ class IpcRouter {
     }
     const results = [];
     for (const file of filesToProcess) {
+      // Pequena pausa para permitir que o processo principal respire e processe inputs/eventos
+      await new Promise((resolve) => setImmediate(resolve));
+
       try {
         sender.send("log", `📄 Lendo arquivo: ${file}`);
-        const rawJson = JSON.parse(fs.readFileSync(file, "utf8"));
+        const content = await fs.promises.readFile(file, "utf8");
+        const rawJson = JSON.parse(content);
         let internalModel;
         sender.send("log", `🔄 Traduzindo...`);
         // console.log("iniciando tradução de ", rawJson);
@@ -184,34 +199,38 @@ class IpcRouter {
     });
   }
 
-  _scanForJsonCollections(dir) {
+  async _scanForJsonCollections(dir) {
     let results = [];
-    const list = fs.readdirSync(dir);
-    list.forEach((file) => {
-      const filePath = path.join(dir, file);
-      const stat = fs.statSync(filePath);
-      if (stat.isDirectory()) {
-        if (file !== "node_modules")
-          results = results.concat(this._scanForJsonCollections(filePath));
-      } else if (file.endsWith(".json")) {
-        try {
-          const content = fs.readFileSync(filePath, "utf8");
-          const json = JSON.parse(content);
-          results.push(filePath);
-        } catch (e) {
-          console.error(
-            `[scanForJsonCollections] Erro processando ${file}:`,
-            e
-          );
+    try {
+      const list = await fs.promises.readdir(dir);
+      for (const file of list) {
+        const filePath = path.join(dir, file);
+        const stat = await fs.promises.stat(filePath);
+        if (stat.isDirectory()) {
+          if (file !== "node_modules") {
+            const subResults = await this._scanForJsonCollections(filePath);
+            results = results.concat(subResults);
+          }
+        } else if (file.endsWith(".json")) {
+          // Apenas verifica se é um JSON válido sem ler tudo agora se possível,
+          // mas para manter a lógica original de validação:
+          try {
+            const content = await fs.promises.readFile(filePath, "utf8");
+            JSON.parse(content);
+            results.push(filePath);
+          } catch (e) {
+            console.error(`[scanForJsonCollections] Arquivo JSON inválido ${file}:`, e);
+          }
         }
       }
-    });
+    } catch (error) {
+      console.error(`[scanForJsonCollections] Erro ao ler diretório ${dir}:`, error);
+    }
     return results;
   }
 
   async _handleFileSave(content, defaultPath) {
     try {
-      console.log(content);
       const { canceled, filePath } = await dialog.showSaveDialog({
         title: "Salvar Arquivo",
         defaultPath: defaultPath || `${content.name}.HTTPClient.json`,

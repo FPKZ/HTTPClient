@@ -271,6 +271,14 @@ const useTabStore = create(
             const children = item.items || item.routes || [];
             
             // Constroi objeto limpo para evitar poluição do estado
+            // Se o item já parece estar normalizado (tem id e type), evita re-processamento pesado
+            if (item.id && item.type) {
+                return {
+                    ...item,
+                    items: isFolder ? normalizeItems(children) : undefined
+                };
+            }
+
             const normalizedItem = {
               id: item.id || `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
               name: item.name || "Sem Nome",

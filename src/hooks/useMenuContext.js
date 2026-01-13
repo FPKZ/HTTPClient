@@ -20,9 +20,12 @@ export default function useMenuContext({ modalConfig, setModalConfig, deleteItem
           setModalConfig({ open: true, type: "rename", targetId });
           break;
         case "delete":
-          if (confirm("Tem certeza que deseja excluir este item?")) {
-            deleteItem(targetId);
-          }
+          (async () => {
+            const confirmed = await window.electronAPI.confirm("Tem certeza que deseja excluir este item?");
+            if (confirmed) {
+              deleteItem(targetId);
+            }
+          })();
           break;
         default:
           console.warn("Ação desconhecida:", action);

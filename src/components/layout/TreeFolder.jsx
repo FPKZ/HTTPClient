@@ -74,10 +74,11 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
     }
   };
 
-  const handleDelete = (e) => {
+  const handleDelete = async (e) => {
     e.stopPropagation();
     const typeLabel = isFolder ? "a pasta (e tudo dentro dela)" : "a rota";
-    if (confirm(`Deseja realmente deletar ${typeLabel} "${item.name}"?`)) {
+    const confirmed = await window.electronAPI.confirm(`Deseja realmente deletar ${typeLabel} "${item.name}"?`);
+    if (confirmed) {
       deleteItem(item.id);
     }
   };

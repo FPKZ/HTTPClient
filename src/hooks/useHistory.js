@@ -30,7 +30,8 @@ export function useHistory(fetchOnMount = true) {
   };
 
   const handleDeleteHistoryItem = async (e, id) => {
-    if (window.confirm("Tem certeza que deseja remover este item do histórico?")) {
+    const confirmed = await window.electronAPI.confirm("Tem certeza que deseja remover este item do histórico?");
+    if (confirmed) {
       await window.electronAPI.deleteHistoryItem(id);
       const updatedHistory = await window.electronAPI.getHistory();
       setHistory(updatedHistory || []);
@@ -39,7 +40,8 @@ export function useHistory(fetchOnMount = true) {
 
   const handleSaveCollection = async () => {
     if (!window.electronAPI) return;
-    if (window.confirm("Deseja salvar esta coleção no histórico?")) {
+    const confirmed = await window.electronAPI.confirm("Deseja salvar esta coleção no histórico?");
+    if (confirmed) {
       const collection = useTabStore.getState().getCollectionForExport();
       await window.electronAPI.saveHistory(collection);
     }

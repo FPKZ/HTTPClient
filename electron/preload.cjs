@@ -74,4 +74,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.removeListener("request-save-session", subscription);
   },
   saveAndQuit: (data) => ipcRenderer.send("save-and-quit", data),
+  confirm: (message) => ipcRenderer.invoke("dialog:confirm", message),
 });

@@ -62,8 +62,9 @@ export default function Home() {
   }, [getCollectionForExport]);
 
   // 4. Auto-save ao sair (Ctrl+Q)
-  useQuickExit(() => {
-    if (window.confirm("Deseja salvar a coleção antes de sair?")) {
+  useQuickExit(async () => {
+    const confirmed = await window.electronAPI.confirm("Deseja salvar a coleção antes de sair?");
+    if (confirmed) {
       const collectionData = getCollectionForExport();
       // Passa o objeto completo e unificado
       window.electronAPI.saveAndQuit(collectionData);

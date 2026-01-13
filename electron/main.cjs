@@ -1,6 +1,10 @@
 const { app, dialog } = require("electron");
 const path = require("path");
 
+// Configurações de hardware devem vir antes do ready
+app.disableHardwareAcceleration();
+// app.commandLine.appendSwitch('disable-gpu-compositing'); // Alternativa se necessário
+
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
   dialog.showErrorBox(
@@ -76,6 +80,17 @@ app.whenReady().then(() => {
 
   // Inicializa o menu de contexto
   contextMenuBuilder.build();
+
+  // Monitora falhas no processo de renderização (comum no Windows com drivers de vídeo)
+  app.on("render-process-gone", (event, webContents, details) => {
+    console.error("Render process gone:", details.reason, details.exitCode);
+    if (details.reason === "crashed" || details.reason === "gpu-process-crashed") {
+      dialog.showErrorBox(
+        "Erro de Interface",
+        `A interface do app parou de responder (${details.reason}). Tente reiniciar o aplicativo.`
+      );
+    }
+  });
 
   // Inicializa o fluxo de atualização (que depois lança o app principal)
   // dialog.showMessageBox({ message: '1. App Ready. Checking updates...' }); // Debug

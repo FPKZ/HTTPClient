@@ -10,12 +10,15 @@ class StorageProvider {
   constructor(userDataPath) {
     this.userDataPath = userDataPath;
     this.collectionsDir = path.join(this.userDataPath, "collections");
-    this.ensureDirectory(this.collectionsDir);
+    // Inicialização síncrona no construtor é aceitável para diretórios base
+    if (!fs.existsSync(this.collectionsDir)) {
+      fs.mkdirSync(this.collectionsDir, { recursive: true });
+    }
   }
 
-  ensureDirectory(dir) {
+  async ensureDirectory(dir) {
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+      await fs.promises.mkdir(dir, { recursive: true });
     }
   }
 
@@ -34,8 +37,8 @@ class StorageProvider {
   async writeJson(fileName, data, isAbsolute = false) {
     const filePath = isAbsolute ? fileName : path.join(this.userDataPath, fileName);
     try {
-      this.ensureDirectory(path.dirname(filePath));
-      await fs.promises.writeFile(filePath, JSON.stringify(data, null, 2));
+      await this.ensureDirectory(path.dirname(filePath));
+      await fs.promises.writeFile(filePath, JSON.stringify(data));
       return true;
     } catch (error) {
       console.error(`Erro ao escrever JSON em ${filePath}:`, error);
@@ -57,13 +60,13 @@ class StorageProvider {
     return false;
   }
 
-  listJsonFiles(dir) {
+  async listJsonFiles(dir) {
     const absoluteDir = path.isAbsolute(dir) ? dir : path.join(this.userDataPath, dir);
     if (!fs.existsSync(absoluteDir)) return [];
 
     try {
-      return fs
-        .readdirSync(absoluteDir)
+      const files = await fs.promises.readdir(absoluteDir);
+      return files
         .filter((file) => file.endsWith(".json"))
         .map((file) => path.join(absoluteDir, file));
     } catch (error) {
