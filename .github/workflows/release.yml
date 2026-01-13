@@ -47,38 +47,44 @@ jobs:
       - name: Atualizar AUR
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          # Pega apenas o primeiro arquivo .deb encontrado para evitar conflitos de hash
           SHA256=$(sha256sum dist_electron/*.deb | head -n 1 | cut -d ' ' -f 1)
 
+          # 1. Configurar Chave SSH
           mkdir -p ~/.ssh
-          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          cat <<EOF > ~/.ssh/id_ed25519
+          ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          EOF
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          ssh-keyscan -t ed25519 aur.archlinux.org >> ~/.ssh/known_hosts
 
+          # 2. Clonar repositório
           git clone ssh://aur@aur.archlinux.org/httpclient-bin.git aur_folder
           cd aur_folder
 
+          # 3. Gerar PKGBUILD
           cat <<EOF > PKGBUILD
           pkgname=httpclient-bin
           pkgver=$VERSION
           pkgrel=1
           arch=('x86_64')
           depends=('libnss3' 'at-spi2-core' 'libasound2')
-          source=("https://github.com/${{ github.repository }}/releases/download/v\$pkgver/HTTPClient-$pkgver-linux.deb")
+          source=("https://github.com/${{ github.repository }}/releases/download/v\$pkgver/HTTPClient-\$pkgver-linux.deb")
           sha256sums=('$SHA256')
           package() {
             tar -xzf data.tar.xz -C "\${pkgdir}/"
           }
           EOF
 
-          # 4. Gerar .SRCINFO (Corrigido: instalando sudo e binutils)
+          # 4. Docker: Gerar .SRCINFO e devolver a permissão para o usuário do GitHub (UID 1001)
           docker run --rm -v $(pwd):/pkg archlinux:latest bash -c "
             pacman -Syu --noconfirm binutils sudo && 
             useradd -m builder && 
             chown -R builder:builder /pkg && 
             cd /pkg && 
-            sudo -u builder makepkg --printsrcinfo > .SRCINFO"
+            sudo -u builder makepkg --printsrcinfo > .SRCINFO &&
+            chown -R 1001:1001 /pkg"
 
+          # 5. Git Push (Agora com permissão restaurada)
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
           git add PKGBUILD .SRCINFO
