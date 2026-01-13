@@ -42,8 +42,7 @@
       "icon": "assets/icon1.png",
       "target": [
         "AppImage",
-        "deb",
-        "pacman"
+        "deb"
       ],
       "category": "Development"
     },
