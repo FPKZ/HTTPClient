@@ -14,6 +14,7 @@ export default function RequestEditor({
   // eslint-disable-next-line no-unused-vars
   onSelectFile,
   onRun,
+  requestId,
 }) {
   if (subKey === "url" || subKey === "method" || !subValue) return null;
   // Renderização específica para AUTH
@@ -399,6 +400,8 @@ export default function RequestEditor({
         {renderModeSelector()}
         <JsonBodyEditor
           value={items}
+          requestId={requestId}
+          subKey={subKey}
           onChange={(value) =>
             onInputChange(0, "body", null, {
               ...subValue,
@@ -429,7 +432,7 @@ export default function RequestEditor({
   return null;
 }
 
-function JsonBodyEditor({ value, onChange, onRun }) {
+function JsonBodyEditor({ value, onChange, onRun, requestId, subKey }) {
   const [editorHeight, setEditorHeight] = React.useState("100px");
 
   const handleEditorDidMount = (editor, monaco) => {
@@ -453,6 +456,7 @@ function JsonBodyEditor({ value, onChange, onRun }) {
     <Editor
       height={editorHeight}
       defaultLanguage="json"
+      path={`${subKey}_${requestId}.json`}
       value={value}
       theme="vs-dark"
       onChange={onChange}

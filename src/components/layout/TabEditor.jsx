@@ -54,7 +54,7 @@ export default function TabEditor() {
   const handleExecute = () => {
     handleExecuteRequest(
       activeTab.screenKey || activeTab.id,
-      activeTab.data.request
+      activeTab.data.request,
     );
   };
 
@@ -81,8 +81,8 @@ export default function TabEditor() {
               onChange={(e) =>
                 handleInputChange("method", null, e.target.value)
               }
-              className={`bg-zinc-800 text-[0.6rem] px-2.5 py-2.5 rounded border !border-zinc-600 focus:outline-none focus:border-yellow-500 font-semibold ${getMethodColor(
-                telaData.request.method
+              className={`bg-zinc-800 text-[0.6rem] px-2.5 py-2.5 rounded border border-zinc-600! focus:outline-none focus:border-yellow-500 font-semibold ${getMethodColor(
+                telaData.request.method,
               )}`}
             >
               <option className={getMethodColor("GET")} value="GET">
@@ -108,7 +108,7 @@ export default function TabEditor() {
               value={telaData.request.url || ""}
               onChange={(e) => handleInputChange("url", null, e.target.value)}
               placeholder="https://api.exemplo.com/endpoint"
-              className="flex-1 bg-zinc-800 text-white px-3 py-2 rounded border !border-zinc-600 focus:outline-none focus:border-yellow-500"
+              className="flex-1 bg-zinc-800 text-white px-3 py-2 rounded border border-zinc-600! focus:outline-none focus:border-yellow-500"
             />
 
             {/* Botão Executar */}
@@ -178,6 +178,7 @@ export default function TabEditor() {
                 <RequestEditor
                   subKey={subKey}
                   subValue={subValue}
+                  requestId={activeTab.id}
                   index={0}
                   onInputChange={(idx, sectionKey, fieldKey, value) => {
                     handleInputChange(sectionKey, fieldKey, value);
