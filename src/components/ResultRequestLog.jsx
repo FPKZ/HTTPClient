@@ -68,7 +68,7 @@ export default function ResultRequestLog({ logs }) {
 
   return (
     <div
-      className="shrink w-100 h-100 bg-black rounded p-3 overflow-auto"
+      className="w-100 min-h-full bg-black rounded p-4 mb-6"
       style={{
         fontFamily: "'Fira Code', monospace",
       }}
@@ -78,7 +78,7 @@ export default function ResultRequestLog({ logs }) {
       ) : (
         <div className="text-zinc-700 italic">Aguardando requisição...</div>
       )}
-      <div ref={bottomRef} />
+      <div ref={bottomRef} className="pb-4" />
     </div>
   );
 }

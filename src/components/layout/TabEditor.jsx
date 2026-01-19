@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Tab, Nav, Button } from "react-bootstrap";
-import { Save } from "lucide-react";
+import { Save, Play } from "lucide-react";
 import useTabStore from "../../store/useTabStore";
 import RequestEditor from "../collections/RequestEditor";
 import ResultRequestLog from "../ResultRequestLog";
@@ -66,13 +66,13 @@ export default function TabEditor() {
   const logs = logsPorTela[activeTab.screenKey || activeTab.id] || [];
 
   return (
-    <div className="flex-1 flex flex-col bg-zinc-900 overflow-hidden">
+    <div className="flex-1 flex flex-col bg-zinc-900 overflow-y-auto min-h-0 relative">
       <Tab.Container
         activeKey={activeSection}
         onSelect={(k) => setActiveSection(k)}
       >
         {/* Parte Superior: URL + Navegação das Abas */}
-        <div className="flex-none border-b border-zinc-700 bg-zinc-900/50">
+        <div className="sticky top-0 z-20 flex-none border-b border-zinc-700 bg-[#18181b] shadow-md">
           {/* URL e Método */}
           <div className="p-3 pb-2 flex items-center gap-3">
             {/* Método HTTP */}
@@ -81,7 +81,7 @@ export default function TabEditor() {
               onChange={(e) =>
                 handleInputChange("method", null, e.target.value)
               }
-              className={`bg-zinc-800 text-[0.6rem] px-2.5 py-2.5 rounded border border-zinc-600! focus:outline-none focus:border-yellow-500 font-semibold ${getMethodColor(
+              className={`bg-zinc-800 text-[0.9rem]! px-2 py-2.5 rounded border border-zinc-600! focus:outline-none focus:border-yellow-500 font-semibold ${getMethodColor(
                 telaData.request.method,
               )}`}
             >
@@ -112,34 +112,36 @@ export default function TabEditor() {
             />
 
             {/* Botão Executar */}
-            <button
-              onClick={handleExecute}
-              className="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold transition-colors"
-            >
-              Executar
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                title="Executar requisição"
+                onClick={handleExecute}
+                className="p-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold transition-colors"
+              >
+                <Play size={16} />
+              </button>
 
-            {/* Botão Salvar */}
-            <button
-              onClick={handleSave}
-              disabled={!activeTab.isDirty}
-              className={`
-                px-6 py-2 rounded font-bold transition-colors flex items-center gap-2
-                ${
+              {/* Botão Salvar */}
+              <button
+                onClick={handleSave}
+                disabled={!activeTab.isDirty}
+                className={`
+                  p-2.5 rounded font-bold transition-colors flex items-center gap-2
+                  ${
+                    activeTab.isDirty
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "bg-zinc-700 text-gray-500 cursor-not-allowed"
+                  }
+                `}
+                title={
                   activeTab.isDirty
-                    ? "bg-green-600 hover:bg-green-700 text-white"
-                    : "bg-zinc-700 text-gray-500 cursor-not-allowed"
+                    ? "Salvar mudanças na coleção"
+                    : "Nenhuma mudança para salvar"
                 }
-              `}
-              title={
-                activeTab.isDirty
-                  ? "Salvar mudanças na coleção"
-                  : "Nenhuma mudança para salvar"
-              }
-            >
-              <Save size={16} />
-              Salvar
-            </button>
+              >
+                <Save size={16} />
+              </button>
+            </div>
           </div>
 
           {/* Sub-Navegação (Headers, Body, etc) */}
@@ -171,7 +173,7 @@ export default function TabEditor() {
         </div>
 
         {/* Parte Central: Conteúdo do Editor (Headers, Body, Auth...) */}
-        <div className="flex-none max-h-[60%] overflow-auto bg-[#141414]">
+        <div className="bg-[#141414]">
           <Tab.Content className="mt-0">
             {Object.entries(telaData.request).map(([subKey, subValue]) => (
               <Tab.Pane key={subKey} eventKey={subKey} className="p-3 pb-1">
@@ -193,7 +195,7 @@ export default function TabEditor() {
       </Tab.Container>
 
       {/* Parte Inferior: Console de Logs (Resultado) */}
-      <div className="flex-1 min-h-[200px] border-t border-zinc-700 bg-zinc-950 overflow-hidden flex flex-col">
+      <div className="flex-1 min-h-[350px] border-t border-zinc-700 bg-zinc-950 flex flex-col">
         <div className="px-4 py-2 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/30">
           <span className="text-[0.6rem] uppercase text-zinc-500 font-bold tracking-widest">
             Console de Resposta
@@ -202,7 +204,7 @@ export default function TabEditor() {
             {logs.length} logs
           </span>
         </div>
-        <div className="flex-1 overflow-auto p-3">
+        <div className="flex-1 p-3 pb-10 flex flex-col bg-zinc-950">
           <ResultRequestLog logs={logs} />
         </div>
       </div>

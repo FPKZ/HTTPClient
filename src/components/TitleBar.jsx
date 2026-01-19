@@ -72,7 +72,7 @@ export default function TitleBar() {
           border: none;
           color: white;
           width: 36px;
-          height: 28px;
+
           display: flex;
           justify-content: center;
           align-items: center;

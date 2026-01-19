@@ -31,7 +31,7 @@ function UploadPage() {
     if (window.electronAPI) {
       // Logs de conversão
       const unLog = window.electronAPI.onLog?.((msg) =>
-        setLogs((p) => [...p, msg])
+        setLogs((p) => [...p, msg]),
       );
 
       // Finalização da conversão
@@ -61,54 +61,60 @@ function UploadPage() {
   };
 
   return (
-    <div className="d-flex flex-col h-100 position-relative">
+    <div className="d-flex flex-col h-100 position-relative overflow-hidden">
       <Container
         fluid
-        className="d-flex flex-col justify-center grow p-3 gap-3"
+        className="d-flex flex-col p-3 h-full mb-4"
         style={{ overflow: "hidden", maxWidth: "900px" }}
       >
-        <h1 className="text-center mb-4">HTTPClient</h1>
+        <div className="my-auto w-full flex flex-col min-h-0 max-h-full">
+          <div className="flex shrink-0 flex-col justify-center gap-2">
+            <h1 className="text-center mb-4">HTTPClient</h1>
 
-        <div className="grid grid-cols-2 h-20 gap-2 mb-4">
-          <NovaCollectionModal>
-            <div
-              className="
-                flex w-full h-full py-2 px-4
-                rounded items-center justify-center cursor-pointer
-                bg-[#1b1b1b] border border-[#313131]!
-                hover:bg-[#292929] active:bg-[#1d1d1d]
-                transition-colors
-                text-gray-300 font-medium
-                "
-            >
-              Nova Collection
-            </div>
-          </NovaCollectionModal>
+            <div className="grid grid-cols-2 h-20 gap-2 mb-4">
+              <NovaCollectionModal>
+                <div
+                  className="
+                    flex w-full h-full py-2 px-4
+                    rounded items-center justify-center cursor-pointer
+                    bg-[#1b1b1b] border border-[#313131]!
+                    hover:bg-[#292929] active:bg-[#1d1d1d]
+                    transition-colors
+                    text-gray-300 font-medium
+                    "
+                >
+                  Nova Coleção
+                </div>
+              </NovaCollectionModal>
 
-          <ImportCollectionModal
-            onImport={(path) => startConversion(path, true)}
-            onFolderSelect={handleFolderSelect}
-          >
-            <div
-              className="
-                flex w-full h-full py-2 px-4
-                rounded items-center justify-center cursor-pointer
-                bg-[#1b1b1b] border border-[#313131]!
-                hover:bg-[#292929] active:bg-[#1d1d1d]
-                transition-colors
-                text-gray-300 font-medium
-                "
-            >
-              Importar Collection
+              <ImportCollectionModal
+                onImport={(path) => startConversion(path, true)}
+                onFolderSelect={handleFolderSelect}
+              >
+                <div
+                  className="
+                    flex w-full h-full py-2 px-4
+                    rounded items-center justify-center cursor-pointer
+                    bg-[#1b1b1b] border border-[#313131]!
+                    hover:bg-[#292929] active:bg-[#1d1d1d]
+                    transition-colors
+                    text-gray-300 font-medium
+                    "
+                >
+                  Importar Coleção
+                </div>
+              </ImportCollectionModal>
             </div>
-          </ImportCollectionModal>
+          </div>
+
+          <div className="flex-1 min-h-0">
+            <HistoryList
+              history={history}
+              onLoad={handleLoadHistory}
+              onDelete={handleDeleteHistoryItem}
+            />
+          </div>
         </div>
-
-        <HistoryList
-          history={history}
-          onLoad={handleLoadHistory}
-          onDelete={handleDeleteHistoryItem}
-        />
       </Container>
 
       <div className="position-absolute bottom-0 end-0 px-2">

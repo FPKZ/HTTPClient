@@ -35,7 +35,7 @@ const SidebarHeader = () => {
   const collectionName = useTabStore((state) => state.collection.name);
   const collectionDesc = useTabStore((state) => state.collection.descricao);
   const updateCollectionMeta = useTabStore(
-    (state) => state.updateCollectionMeta
+    (state) => state.updateCollectionMeta,
   );
   const { handleSaveCollection } = useHistory(false);
   const navigate = useNavigate();
@@ -155,7 +155,7 @@ const SidebarTree = React.memo(() => {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const activeSensors = isDraggingDisabled ? [] : sensors;
@@ -191,7 +191,10 @@ const SidebarTree = React.memo(() => {
   });
 
   return (
-    <div className="flex-1 overflow-y-auto" onContextMenu={handleContextMenu}>
+    <div
+      className="flex-1 overflow-y-auto min-h-0"
+      onContextMenu={handleContextMenu}
+    >
       <div className="p-2 h-full">
         <div className="flex items-center justify-between px-2 py-1 mb-2">
           <span className="text-xs font-semibold text-gray-500 uppercase">
@@ -260,7 +263,7 @@ const SidebarTree = React.memo(() => {
  */
 export default function Sidebar() {
   return (
-    <div className="w-80 bg-zinc-900 border-r border-zinc-700 flex flex-col h-full">
+    <div className="bg-zinc-900 border-r border-zinc-700 flex flex-col h-full">
       <SidebarHeader />
       <SidebarTree />
     </div>

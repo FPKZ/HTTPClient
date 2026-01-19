@@ -36,9 +36,9 @@ const DropZone = ({ onFileDrop, onFolderSelect }) => {
     <div
       id="drop-zone"
       className={`d-flex flex-column justify-content-center align-items-center text-center p-5 border rounded transition-all ${
-        isHovering ? 'bg-[#131313] border-primary' : 'bg-[#1b1b1b] !border-[#313131]'
+        isHovering ? 'bg-[#131313] border-primary' : 'bg-[#1b1b1b] border-[#313131]!'
       }`}
-      style={{ borderStyle: 'dashed', minHeight: '150px' }}
+      style={{ borderStyle: 'dashed'}}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

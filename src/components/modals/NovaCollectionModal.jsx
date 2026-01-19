@@ -92,7 +92,14 @@ export default function NovaCollectionModal({ children }) {
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50 animate-overlayShow" />
         <Dialog.Content
           onOpenAutoFocus={(e) => e.preventDefault()}
-          className="fixed left-1/2 top-1/2 w-[90vw] max-w-[450px] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-zinc-900 p-6 shadow-xl z-50 border !border-zinc-800 focus:outline-none animate-contentShow"
+          className="
+            fixed left-1/2 top-1/2 
+            w-[65vw] max-w-[700px] p-6 max-h-[95vh] overflow-y-auto
+            -translate-x-1/2 -translate-y-1/2 
+            rounded-lg border
+            bg-zinc-900 border-zinc-800! shadow-xl 
+            focus:outline-none z-50  data-[state=open]:animate-contentShow
+          "
         >
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="text-lg font-bold text-white">

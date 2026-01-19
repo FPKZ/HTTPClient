@@ -111,8 +111,8 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
         {...attributes}
         {...listeners}
         className={`flex items-center gap-1 py-1 rounded cursor-pointer transition-colors group
-            ${isDragging ? 'opacity-30 bg-zinc-800' : 'hover:bg-zinc-800'}
-            ${isOver && isFolder ? 'bg-yellow-500/10 ring-1 ring-yellow-500/30' : ''}`}
+            ${isDragging ? "opacity-30 bg-zinc-800" : "hover:bg-zinc-800"}
+            ${isOver && isFolder ? "bg-yellow-500/10 ring-1 ring-yellow-500/30" : ""}`}
         style={{ ...style, paddingLeft: `${level * 12 + 8}px` }}
         onClick={handleItemClick}
         onContextMenu={(e) => {
@@ -120,7 +120,10 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
           e.stopPropagation();
 
           if (window.electronAPI?.showFolderContextMenu) {
-            window.electronAPI.showFolderContextMenu({ id: item.id, type: item.type });
+            window.electronAPI.showFolderContextMenu({
+              id: item.id,
+              type: item.type,
+            });
           }
         }}
       >
@@ -148,7 +151,7 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
           {!isFolder && (
             <span
               className={`text-[0.65rem]! font-bold ${getMethodColor(
-                item.request?.method
+                item.request?.method,
               )} min-w-[35px]`}
             >
               {item.request?.method || "GET"}
@@ -164,7 +167,7 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
         </div>
 
         {/* Ações (Hover) */}
-        <div className="pe-1 opacity-0 group-hover:!opacity-100 flex items-center gap-1 transition-opacity">
+        <div className="pe-1 opacity-0 hidden group-hover:block! group-hover:opacity-100! flex items-center gap-1 transition-opacity">
           {isFolder && (
             <>
               <button
@@ -230,7 +233,10 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
                 e.preventDefault();
                 e.stopPropagation();
                 if (window.electronAPI?.showFolderContextMenu) {
-                  window.electronAPI.showFolderContextMenu({ id: item.id, type: item.type });
+                  window.electronAPI.showFolderContextMenu({
+                    id: item.id,
+                    type: item.type,
+                  });
                 }
               }}
             >

@@ -12,7 +12,14 @@ export default function EstruturaModal({ title, description, trigger, children, 
         <Dialog.Overlay className="fixed inset-0 bg-black/60 data-[state=open]:animate-overlayShow z-50" />
         <Dialog.Content
           onOpenAutoFocus={(e) => e.preventDefault()}
-          className="fixed left-1/2 top-1/2 max-h-[85vh] w-[80vw] max-w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-zinc-900 p-6 shadow-xl focus:outline-none z-50 border !border-zinc-800 data-[state=open]:animate-contentShow"
+          className="
+            fixed left-1/2 top-1/2 
+            w-[80vw] max-w-[700px] p-6 max-h-[95vh] overflow-y-auto
+            -translate-x-1/2 -translate-y-1/2 
+            rounded-lg border
+            bg-zinc-900 border-zinc-800! shadow-xl 
+            focus:outline-none z-50  data-[state=open]:animate-contentShow
+          "
         >
           <Dialog.Title className="text-lg font-bold mb-4">
             {title}

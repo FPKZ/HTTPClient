@@ -84,7 +84,7 @@ export default function TabBar() {
   }
 
   return (
-    <div className="w-full h-9 bg-zinc-800 border-b border-zinc-700 flex items-center overflow-x-hidden">
+    <div className="w-full bg-zinc-800 border-b border-zinc-700 flex items-center overflow-x-hidden">
       {/* Botão Scroll Esquerda */}
       {showScrollButtons && canScrollLeft && (
         <button

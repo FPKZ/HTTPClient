@@ -29,7 +29,7 @@ export default function Home() {
 
   // const loadCollection = useTabStore((state) => state.loadCollection);
   const getCollectionForExport = useTabStore(
-    (state) => state.getCollectionForExport
+    (state) => state.getCollectionForExport,
   );
 
   const collection = useTabStore((state) => state.collection);
@@ -86,14 +86,16 @@ export default function Home() {
   // if (!collection.items.length) return null; // Pode exibir loading ou null se quiser force
 
   return (
-    <div className="flex h-[calc(100vh-35px)] bg-zinc-950">
+    <div className="row m-0 p-0 flex h-full bg-zinc-950">
       <NovaCollectionModal />
 
       {/* Sidebar Esquerda */}
-      <Sidebar />
+      <div className="col-4 col-md-3 col-lg-3 col-xl-2 m-0 p-0 h-full">
+        <Sidebar />
+      </div>
 
       {/* Área Principal (Abas + Editor) */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="col flex-1 flex flex-col min-w-0 min-h-0 m-0 p-0 h-full">
         <TabBar />
         <TabEditor />
       </div>

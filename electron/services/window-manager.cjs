@@ -36,8 +36,8 @@ class WindowManager {
       icon: path.join(__dirname, "../../assets/icon1.png"),
       width: 1100,
       height: 800,
-      minWidth: 950,
-      minHeight: 700,
+      minWidth: 730,
+      minHeight: 400,
       fullscreen: false,
       show: true, // Força a visibilidade para debug
       center: true,
