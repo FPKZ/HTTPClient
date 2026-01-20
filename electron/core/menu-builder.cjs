@@ -12,7 +12,6 @@ class MenuBuilder {
   }
 
   build() {
-
     const devMenu = [
       {
         label: "Desenvolvedor",
@@ -26,7 +25,7 @@ class MenuBuilder {
             },
           },
         ],
-      }
+      },
     ];
 
     const template = [
@@ -34,7 +33,8 @@ class MenuBuilder {
         label: "Novo Arquivo",
         click: () => {
           const mainWindow = this.win.getMainWindow();
-          if (mainWindow) mainWindow.webContents.send("menu-action", "new-collection");
+          if (mainWindow)
+            mainWindow.webContents.send("menu-action", "new-collection");
         },
         accelerator: "CmdOrCtrl+N",
       },
@@ -60,8 +60,8 @@ class MenuBuilder {
           console.log("[Menu] Sair clicked");
           const mainWindow = this.win.getMainWindow();
           if (mainWindow) {
-             console.log("[Menu] Sending request-save-session");
-             mainWindow.webContents.send("request-save-session");
+            console.log("[Menu] Sending request-save-session");
+            mainWindow.webContents.send("request-save-session");
           } else {
             console.error("[Menu] MainWindow not found");
           }
@@ -69,7 +69,9 @@ class MenuBuilder {
       },
     ];
 
-    const menu = Menu.buildFromTemplate(this.isDev ? [...template, ...devMenu] : template);
+    const menu = Menu.buildFromTemplate(
+      this.isDev ? [...template, ...devMenu] : template,
+    );
     Menu.setApplicationMenu(menu);
     return menu;
   }

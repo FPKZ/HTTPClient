@@ -35,7 +35,7 @@ export default function TabBar() {
   useEffect(() => {
     if (navRef.current && activeTabId) {
       const activeTabElement = navRef.current.querySelector(
-        `[data-tab-id="${activeTabId}"]`
+        `[data-tab-id="${activeTabId}"]`,
       );
       if (activeTabElement) {
         activeTabElement.scrollIntoView({
@@ -46,6 +46,21 @@ export default function TabBar() {
       }
     }
   }, [activeTabId, navRef]);
+
+  // Handle horizontal scroll with mouse wheel (non-passive)
+  useEffect(() => {
+    const el = navRef.current;
+    if (el) {
+      const handleWheel = (e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          el.scrollLeft += e.deltaY;
+        }
+      };
+      el.addEventListener("wheel", handleWheel, { passive: false });
+      return () => el.removeEventListener("wheel", handleWheel);
+    }
+  }, [navRef, tabs]);
 
   const handleCloseTab = (e, tabId) => {
     e.stopPropagation();
@@ -122,15 +137,15 @@ export default function TabBar() {
             >
               {/* Método HTTP */}
               <span
-                className={`!text-[0.6rem] font-bold ${getMethodColor(
-                  tab.method
+                className={`text-[0.6rem]! font-bold ${getMethodColor(
+                  tab.method,
                 )} min-w-[40px]`}
               >
                 {tab.method}
               </span>
 
               {/* Título da Aba */}
-              <span className="flex-1 !text-[0.7rem] truncate">
+              <span className="flex-1 text-[0.7rem]! truncate">
                 {tab.title}
               </span>
 
@@ -145,7 +160,7 @@ export default function TabBar() {
               {/* Botão Fechar */}
               <button
                 onClick={(e) => handleCloseTab(e, tab.id)}
-                className="opacity-0 group-hover:!opacity-100 p-0.5 hover:bg-zinc-600 rounded transition-all"
+                className="opacity-0 group-hover:opacity-100! p-0.5 hover:bg-zinc-600 rounded transition-all"
                 title="Fechar aba"
               >
                 <X size={14} />

@@ -1,8 +1,26 @@
 import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-// import useTabStore from "../../store/useTabStore";
+import { cn } from "../../lib/utils";
 
-export default function EstruturaModal({ title, description, trigger, children, onAdd, open, onOpenChange }) {
+/**
+ *
+ * @param {string} title - Título do modal.
+ * @param {string} description - Descrição do modal.
+ * @param {React.ReactNode} trigger - Trigger do modal.
+ * @param {React.ReactNode} children - Conteúdo do modal.
+ * @param {boolean} open - Estado do modal.
+ * @param {function} onOpenChange - Função a ser chamada quando o estado do modal mudar.
+ * @param {Array<{label: string, onClick: function, className?: string, disabled?: boolean}>} buttons - Botões customizados.
+ */
+export default function EstruturaModal({
+  title,
+  description,
+  trigger,
+  children,
+  open,
+  onOpenChange,
+  buttons,
+}) {
   // const setDraggingDisabled = useTabStore((state) => state.setDraggingDisabled);
 
   return (
@@ -28,19 +46,25 @@ export default function EstruturaModal({ title, description, trigger, children, 
                         Adicione uma nova collection para organizar suas requisições.
                     </Dialog.Description> */}
           {/* <input type="text" placeholder="Nome da collection" className="w-full p-2 border rounded mb-4 !border-zinc-800" /> */}
-          <Dialog.Description>
-            {description}
-          </Dialog.Description>
-         {children}
+          <Dialog.Description>{description}</Dialog.Description>
+          {children}
           <div className="flex justify-end gap-2">
-            <Dialog.Close asChild>
-              <button className="bg-zinc-800 text-zinc-200 px-4 py-2 rounded mr-2">
-                Cancelar
-              </button>
-            </Dialog.Close>
-            <Dialog.Close asChild>
+            {buttons?.map((button, index) => (
+              <Dialog.Close asChild key={index}>
+                <button
+                  className={cn(
+                    "bg-zinc-800 text-zinc-200 font-semibold px-4 py-2 rounded mr-2",
+                    button.className,
+                  )}
+                  onClick={button.onClick}
+                >
+                  {button.label}
+                </button>
+              </Dialog.Close>
+            ))}
+            {/* <Dialog.Close asChild>
                 <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={onAdd}>Salvar</button>
-            </Dialog.Close>
+            </Dialog.Close> */}
           </div>
         </Dialog.Content>
       </Dialog.Portal>

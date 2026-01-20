@@ -122,7 +122,7 @@ export default function NovaCollectionModal({ children }) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: API de Produção"
-                className="w-full p-2 bg-zinc-950 border !border-zinc-800 rounded text-sm text-white focus:border-yellow-600 outline-none transition-colors"
+                className="w-full p-2 bg-zinc-950 border border-zinc-800! rounded text-sm text-white focus:border-yellow-600 outline-none transition-colors"
                 autoFocus
               />
             </div>
@@ -134,10 +134,10 @@ export default function NovaCollectionModal({ children }) {
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
                 placeholder="Uma breve descrição sobre esta coleção..."
-                className="w-full p-2 bg-zinc-950 border !border-zinc-800 rounded text-sm text-white focus:border-yellow-600 outline-none h-20 resize-none transition-colors"
+                className="w-full p-2 bg-zinc-950 border border-zinc-800! rounded text-sm text-white focus:border-yellow-600 outline-none h-20 resize-none transition-colors"
               />
             </div>
-            <div className="bg-blue-500/10 border !border-blue-500/20 p-3 rounded">
+            <div className="bg-blue-500/10 border border-blue-500/20! p-3 rounded">
               <p className="text-[0.7rem] text-blue-400">
                 💡 Esta coleção será criada com 5 rotas de teste (GET, POST,
                 PUT, DELETE, PATCH) para você começar a explorar.

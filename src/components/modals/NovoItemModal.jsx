@@ -38,14 +38,25 @@ export default function NovoItemModal({
         title={title || "Adicionar Nome do Item"}
         description={description || "Insira o nome do item"}
         trigger={children}
-        onAdd={() => onAdd(name)}
         open={open}
         onOpenChange={setOpen}
+        buttons={[
+          {
+            label: "Cancelar",
+            onClick: () => setOpen(false),
+            className: "bg-zinc-800 text-zinc-200 px-4 py-2 rounded mr-2",
+          },
+          {
+            label: "Salvar",
+            onClick: () => onAdd(name),
+            className: "bg-zinc-100 text-zinc-800 px-4 py-2 rounded",
+          },
+        ]}
       >
         <input
           type="text"
           placeholder={placeholder || "Nome do item"}
-          className="w-full p-2 border rounded mb-4 !border-zinc-800 bg-zinc-800 text-white outline-none focus:border-blue-500"
+          className="w-full p-2 border rounded mb-4 border-zinc-800! bg-zinc-800 text-white outline-none focus:border-blue-500"
           onChange={(e) => setName(e.target.value)}
           value={name}
           onKeyDown={(e) => {

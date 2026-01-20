@@ -72,6 +72,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-progress": "^1.1.8",
     "@tailwindcss/postcss": "^4.1.18",
     "autoprefixer": "^10.4.23",
@@ -103,7 +104,7 @@
     "@vitejs/plugin-react": "^5.1.1",
     "concurrently": "^9.2.1",
     "electron": "^39.2.7",
-    "electron-builder": "^26.0.12",
+    "electron-builder": "^24.13.3",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
@@ -111,5 +112,8 @@
     "nodemon": "^3.1.11",
     "vite": "^7.2.4",
     "wait-on": "^9.0.3"
+  },
+  "overrides": {
+    "tar": "^7.4.3"
   }
 }

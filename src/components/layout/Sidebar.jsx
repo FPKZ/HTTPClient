@@ -1,9 +1,22 @@
 import React, { useState } from "react";
-import { Plus, Trash2, FolderPlus, FilePlus, ArrowLeft } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  FolderPlus,
+  FilePlus,
+  ArrowLeft,
+  MoreVertical,
+  Edit2,
+  Download,
+  Settings,
+} from "lucide-react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { TreeFolder } from "./TreeFolder";
 import { useNavigate } from "react-router-dom";
 import NovoItemModal from "../modals/NovoItemModal";
 import { useHistory } from "../../hooks/useHistory";
+import DropdownMenuComponent from "../DropdownMenu";
+import EditCollectionModal from "../modals/EditCollectionModal";
 
 //hooks
 import useTabStore from "../../store/useTabStore";
@@ -33,7 +46,7 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
  */
 const SidebarHeader = () => {
   const collectionName = useTabStore((state) => state.collection.name);
-  const collectionDesc = useTabStore((state) => state.collection.descricao);
+  const collectionDesc = useTabStore((state) => state.collection.desc);
   const updateCollectionMeta = useTabStore(
     (state) => state.updateCollectionMeta,
   );
@@ -41,7 +54,6 @@ const SidebarHeader = () => {
   const navigate = useNavigate();
 
   const [isEditingName, setIsEditingName] = useState(false);
-  const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [tempName, setTempName] = useState(collectionName);
   const [tempDesc, setTempDesc] = useState(collectionDesc);
 
@@ -51,22 +63,17 @@ const SidebarHeader = () => {
   // Mas apenas se não estiver editando, para evitar sobrescrever digitação
   React.useEffect(() => {
     if (!isEditingName) setTempName(collectionName || "");
-    if (!isEditingDesc) setTempDesc(collectionDesc || "");
-  }, [collectionName, collectionDesc, isEditingName, isEditingDesc]);
+    if (!isEditingName) setTempDesc(collectionDesc || "");
+  }, [collectionName, collectionDesc, isEditingName]);
 
-  const handleSaveName = () => {
-    updateCollectionMeta(tempName, undefined);
+  const handleSaveCollectionMeta = (name, desc) => {
+    updateCollectionMeta(name, desc);
     setIsEditingName(false);
-  };
-
-  const handleSaveDesc = () => {
-    updateCollectionMeta(undefined, tempDesc);
-    setIsEditingDesc(false);
   };
 
   return (
     <div>
-      <div className="p-2">
+      <div className="p-2 justify-between items-center flex">
         <button
           className="flex items-center gap-2 p-2 rounded hover:bg-zinc-700 text-zinc-300 text-[0.75rem]! font-semibold transition-colors"
           onClick={async () => {
@@ -80,55 +87,68 @@ const SidebarHeader = () => {
           </div>
           Voltar
         </button>
+
+        <DropdownMenuComponent
+          buttonContent={<MoreVertical size={20} />}
+          items={[
+            {
+              icon: <Edit2 size={14} />,
+              label: "Editar Nome",
+              onClick: () => setIsEditingName(true),
+            },
+            {
+              icon: <Download size={14} />,
+              label: "Exportar Coleção",
+              onClick: () => {
+                const collectionData = useTabStore
+                  .getState()
+                  .getCollectionForExport();
+                window.electronAPI.saveFile({ content: collectionData });
+              },
+            },
+            {
+              separator: true,
+            },
+            {
+              icon: <Trash2 size={14} />,
+              label: "Fechar Coleção",
+              className: "text-red-500",
+              shortcut: "Ctrl+Q",
+              onClick: () => navigate("/upload"),
+            },
+          ]}
+        />
       </div>
 
       {/* Header da Coleção */}
       <div className="p-3 pt-0 border-b border-zinc-700">
-        {/* Nome da Coleção */}
-        {isEditingName ? (
-          <input
-            type="text"
-            value={tempName}
-            onChange={(e) => setTempName(e.target.value)}
-            onBlur={handleSaveName}
-            onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
-            className="w-full bg-zinc-800 text-white px-2 py-1 rounded border border-zinc-600 focus:outline-none focus:border-yellow-500"
-            autoFocus
-          />
-        ) : (
-          <h2
-            className="!text-lg font-bold text-white cursor-pointer hover:text-yellow-500 transition-colors"
-            onClick={() => {
-              setTempName(collectionName);
-              setIsEditingName(true);
-            }}
-          >
-            {collectionName || "Collection"}
-          </h2>
-        )}
+        <div className="flex items-center justify-between gap-2">
+          {/* Nome da Coleção */}
+          {isEditingName ? (
+            <input
+              type="text"
+              value={tempName}
+              onChange={(e) => setTempName(e.target.value)}
+              onBlur={handleSaveCollectionMeta}
+              onKeyDown={(e) => e.key === "Enter" && handleSaveCollectionMeta()}
+              className="w-full bg-zinc-800 text-white px-2 py-1 rounded border border-zinc-600! focus:outline-none! focus:border-yellow-500! text-sm!"
+              autoFocus
+            />
+          ) : (
+            <h2 className="text-lg! font-bold text-white flex-1 mb-0">
+              {collectionName || "Collection"}
+            </h2>
+          )}
+        </div>
 
-        {/* Descrição da Coleção */}
-        {isEditingDesc ? (
-          <textarea
-            value={tempDesc}
-            onChange={(e) => setTempDesc(e.target.value)}
-            onBlur={handleSaveDesc}
-            className="w-full mt-2 bg-zinc-800 text-gray-400 text-sm px-2 py-1 rounded border border-zinc-600 focus:outline-none focus:border-yellow-500 resize-none"
-            rows={2}
-            autoFocus
-          />
-        ) : (
-          <p
-            className="text-sm text-gray-400 mt-1 cursor-pointer hover:text-gray-300 transition-colors"
-            onClick={() => {
-              setTempDesc(collectionDesc);
-              setIsEditingDesc(true);
-            }}
-          >
-            {collectionDesc || "Clique para adicionar descrição"}
+        {/* Descrição Simplificada (Somente leitura se não estiver editando nome) */}
+        {!isEditingName && (
+          <p className="text-[0.7rem]! text-gray-500 mt-1 truncate opacity-80">
+            {collectionDesc || "Nenhuma descrição"}
           </p>
         )}
       </div>
+    <EditCollectionModal openExternal={isEditingName} setExternalOpen={setIsEditingName} func={handleSaveCollectionMeta} externalName={tempName} externalDesc={tempDesc} />
     </div>
   );
 };
