@@ -131,6 +131,12 @@ class IpcRouter {
         global.contextMenuBuilder.buildRootContextMenu();
       }
     });
+
+    ipcMain.on("toggle-dev-tools", (event) => {
+      const mainWindow = this.win.getMainWindow();
+      if (mainWindow) mainWindow.webContents.toggleDevTools();
+    });
+
   }
 
   async _handleConversion(sender, inputPath, isFile) {

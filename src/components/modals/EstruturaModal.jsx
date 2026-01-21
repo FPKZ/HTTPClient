@@ -29,7 +29,6 @@ export default function EstruturaModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 data-[state=open]:animate-overlayShow z-50" />
         <Dialog.Content
-          onOpenAutoFocus={(e) => e.preventDefault()}
           className="
             fixed left-1/2 top-1/2 
             w-[80vw] max-w-[700px] p-6 max-h-[95vh] overflow-y-auto

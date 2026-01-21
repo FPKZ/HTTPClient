@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Container, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import useTabStore from "../store/useTabStore";
@@ -18,8 +18,7 @@ import { useHistory } from "../hooks/useHistory";
  * SRP: Focada no carregamento de novos arquivos e visualização do histórico.
  */
 function UploadPage() {
-  // eslint-disable-next-line no-unused-vars
-  const [logs, setLogs] = useState([]);
+
   const navigate = useNavigate();
 
   const { history, handleLoadHistory, handleDeleteHistoryItem } = useHistory();
@@ -29,10 +28,6 @@ function UploadPage() {
 
   useEffect(() => {
     if (window.electronAPI) {
-      // Logs de conversão
-      const unLog = window.electronAPI.onLog?.((msg) =>
-        setLogs((p) => [...p, msg]),
-      );
 
       // Finalização da conversão
       const unFinished = window.electronAPI.onFinished?.((result) => {
@@ -45,7 +40,6 @@ function UploadPage() {
       });
 
       return () => {
-        unLog?.();
         unFinished?.();
       };
     }

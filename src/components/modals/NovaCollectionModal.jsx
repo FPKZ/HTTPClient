@@ -3,14 +3,13 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useTabStore from "../../store/useTabStore";
-import { useHistory } from "@/hooks/useHistory";
+import useModalStore from "../../store/useModalStore";
 
 export default function NovaCollectionModal({ children }) {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const navigate = useNavigate();
   const loadCollection = useTabStore((state) => state.loadCollection);
-  const { handleSaveCollection } = useHistory();
 
   const createTestRoute = (method) => ({
     id: `route_${Date.now()}_${Math.random()
@@ -48,6 +47,13 @@ export default function NovaCollectionModal({ children }) {
     },
   });
 
+  const isNovaCollectionOpen = useModalStore(
+    (state) => state.isNovaCollectionOpen,
+  );
+  const setNovaCollectionOpen = useModalStore(
+    (state) => state.setNovaCollectionOpen,
+  );
+
   const handleCreate = () => {
     const methods = ["GET", "POST", "PUT", "DELETE", "PATCH"];
     const testRoutes = methods.map(createTestRoute);
@@ -58,35 +64,18 @@ export default function NovaCollectionModal({ children }) {
       description: desc,
       items: testRoutes, // Adiciona as 5 rotas teste
     };
-    
+
     // Atualiza diretamente o store, forçando a re-renderização da Home
     loadCollection(newCollection);
-    setOpen(false);
+    setNovaCollectionOpen(false);
     navigate("/");
   };
 
-  const [open, setOpen] = useState(false);
-  
-  React.useEffect(() => {
-    if (window.electronAPI?.onMenuAction) {
-      const unsubscribe = window.electronAPI.onMenuAction(async (action) => {
-        if (action === "new-collection") {
-          try {
-            // Aguarda o usuário decidir se quer salvar/salvar antes de abrir o modal
-            await handleSaveCollection();
-          } catch (error) {
-            console.error("Erro ao tentar salvar coleção:", error);
-          } finally {
-            setOpen(true);
-          }
-        }
-      });
-      return () => unsubscribe();
-    }
-  }, [handleSaveCollection]);
-
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root
+      open={isNovaCollectionOpen}
+      onOpenChange={setNovaCollectionOpen}
+    >
       {children && <Dialog.Trigger asChild>{children}</Dialog.Trigger>}
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50 animate-overlayShow" />

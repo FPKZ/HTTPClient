@@ -46,7 +46,7 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
  */
 const SidebarHeader = () => {
   const collectionName = useTabStore((state) => state.collection.name);
-  const collectionDesc = useTabStore((state) => state.collection.desc);
+  const collectionDesc = useTabStore((state) => state.collection.descricao);
   const updateCollectionMeta = useTabStore(
     (state) => state.updateCollectionMeta,
   );
@@ -93,7 +93,7 @@ const SidebarHeader = () => {
           items={[
             {
               icon: <Edit2 size={14} />,
-              label: "Editar Nome",
+              label: "Editar Coleção",
               onClick: () => setIsEditingName(true),
             },
             {
@@ -112,7 +112,7 @@ const SidebarHeader = () => {
             {
               icon: <Trash2 size={14} />,
               label: "Fechar Coleção",
-              className: "text-red-500",
+              className: "text-red-500 hover:bg-red-500/10",
               shortcut: "Ctrl+Q",
               onClick: () => navigate("/upload"),
             },
@@ -124,31 +124,26 @@ const SidebarHeader = () => {
       <div className="p-3 pt-0 border-b border-zinc-700">
         <div className="flex items-center justify-between gap-2">
           {/* Nome da Coleção */}
-          {isEditingName ? (
-            <input
-              type="text"
-              value={tempName}
-              onChange={(e) => setTempName(e.target.value)}
-              onBlur={handleSaveCollectionMeta}
-              onKeyDown={(e) => e.key === "Enter" && handleSaveCollectionMeta()}
-              className="w-full bg-zinc-800 text-white px-2 py-1 rounded border border-zinc-600! focus:outline-none! focus:border-yellow-500! text-sm!"
-              autoFocus
-            />
-          ) : (
-            <h2 className="text-lg! font-bold text-white flex-1 mb-0">
-              {collectionName || "Collection"}
-            </h2>
-          )}
+          <h2
+            className="text-lg! font-bold text-white flex-1 mb-0 cursor-pointer hover:text-yellow-500 transition-colors"
+            onClick={() => setIsEditingName(true)}
+          >
+            {collectionName || "Collection"}
+          </h2>
         </div>
 
         {/* Descrição Simplificada (Somente leitura se não estiver editando nome) */}
-        {!isEditingName && (
-          <p className="text-[0.7rem]! text-gray-500 mt-1 truncate opacity-80">
-            {collectionDesc || "Nenhuma descrição"}
-          </p>
-        )}
+        <p className="text-[0.7rem]! text-gray-500 mt-1 truncate opacity-80">
+          {collectionDesc || "Nenhuma descrição"}
+        </p>
       </div>
-    <EditCollectionModal openExternal={isEditingName} setExternalOpen={setIsEditingName} func={handleSaveCollectionMeta} externalName={tempName} externalDesc={tempDesc} />
+      <EditCollectionModal
+        openExternal={isEditingName}
+        setExternalOpen={setIsEditingName}
+        func={handleSaveCollectionMeta}
+        externalName={tempName}
+        externalDesc={tempDesc}
+      />
     </div>
   );
 };

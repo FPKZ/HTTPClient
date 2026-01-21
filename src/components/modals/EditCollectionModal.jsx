@@ -52,7 +52,7 @@ export default function EditCollectionModal({
           },
         ]}
     >
-        <div className="space-y-4">
+        <div className="space-y-4 mb-4">
             <div>
                 <label className="text-[0.65rem] font-bold text-zinc-500 mb-1 block uppercase tracking-wider">
                 Nome da Coleção

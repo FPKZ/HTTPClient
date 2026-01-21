@@ -46,23 +46,6 @@ export default function Home() {
     }
   }, [collection.items, navigate]);
 
-  // 2. Carregar Coleção no Store -> REMOVIDO (Agora feito antes de navegar)
-
-  // 3. IPC Menu Action (Exportar Collection)
-  useEffect(() => {
-    if (window.electronAPI?.onMenuAction) {
-      const unsubscribe = window.electronAPI.onMenuAction((action) => {
-        if (action === "save-file") {
-          const collectionData = getCollectionForExport();
-          // Passa o objeto completo e unificado
-          window.electronAPI.saveFile({
-            content: collectionData,
-          });
-        }
-      });
-      return () => unsubscribe();
-    }
-  }, [getCollectionForExport]);
 
   // 4. Auto-save ao sair (Ctrl+Q)
   useQuickExit(async () => {
