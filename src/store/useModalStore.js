@@ -6,12 +6,10 @@ import { create } from "zustand";
  */
 const useModalStore = create((set) => ({
   isNovaCollectionOpen: false,
+  isEnvInfoOpen: false,
 
   setNovaCollectionOpen: (isOpen) => set({ isNovaCollectionOpen: isOpen }),
-
-  // Pode adicionar outros modais aqui no futuro
-  // isSettingsOpen: false,
-  // setSettingsOpen: (isOpen) => set({ isSettingsOpen: isOpen }),
+  setEnvInfoOpen: (isOpen) => set({ isEnvInfoOpen: isOpen }),
 }));
 
 export default useModalStore;

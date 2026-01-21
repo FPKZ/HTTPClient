@@ -63,6 +63,7 @@ export default function NovaCollectionModal({ children }) {
       collectionName: name || "Nova Coleção",
       description: desc,
       items: testRoutes, // Adiciona as 5 rotas teste
+      environments: [{ name: "", value: "", enabled: true }],
     };
 
     // Atualiza diretamente o store, forçando a re-renderização da Home

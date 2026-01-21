@@ -10,6 +10,7 @@ export const createCollectionSlice = (set, get) => ({
     name: "",
     descricao: "",
     items: [],
+    environments: [],
   },
   isDraggingDisabled: false,
 
@@ -30,6 +31,7 @@ export const createCollectionSlice = (set, get) => ({
         name: data?.name || data?.collectionName || "Collection",
         descricao: data?.descricao || data?.description || "",
         items: cleanItems,
+        environments: data?.environments || [],
       },
       tabs: [],
       activeTabId: null,
@@ -192,6 +194,23 @@ export const createCollectionSlice = (set, get) => ({
           descricao !== undefined ? descricao : state.collection.descricao,
       },
     }));
+  },
+
+  updateEnvironments: (environments) => {
+    set((state) => ({
+      collection: { ...state.collection, environments },
+    }));
+  },
+
+  addEnvironment: () => {
+    const { collection } = get();
+    const newEnv = { name: "", value: "", enabled: true };
+    set({
+      collection: {
+        ...collection,
+        environments: [...(collection.environments || []), newEnv],
+      },
+    });
   },
 
   getCollectionForExport: () => {

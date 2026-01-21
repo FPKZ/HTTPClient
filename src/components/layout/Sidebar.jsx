@@ -9,6 +9,8 @@ import {
   Edit2,
   Download,
   Settings,
+  ChevronUp,
+  Info,
 } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { TreeFolder } from "./TreeFolder";
@@ -17,11 +19,13 @@ import NovoItemModal from "../modals/NovoItemModal";
 import { useHistory } from "../../hooks/useHistory";
 import DropdownMenuComponent from "../DropdownMenu";
 import EditCollectionModal from "../modals/EditCollectionModal";
+import EnvInfoModal from "../modals/EnvInfoModal";
 
 //hooks
 import useTabStore from "../../store/useTabStore";
 import useMenuContext from "../../hooks/useMenuContext";
 import useModalConfig from "../../hooks/useModalConfig";
+import useModalStore from "../../store/useModalStore";
 
 import {
   DndContext,
@@ -57,10 +61,16 @@ const SidebarHeader = () => {
   const [tempName, setTempName] = useState(collectionName);
   const [tempDesc, setTempDesc] = useState(collectionDesc);
 
+  // Ambientes
+  const environments = useTabStore(
+    (state) => state.collection.environments || [],
+  );
+  const addEnvironment = useTabStore((state) => state.addEnvironment);
+  const updateEnvironments = useTabStore((state) => state.updateEnvironments);
+
+  const setEnvInfoOpen = useModalStore((state) => state.setEnvInfoOpen);
+
   // Sincroniza estado local quando a coleção muda (ex: carregamento do histórico)
-  // Mas apenas se não estiver editando, para evitar sobrescrever digitação
-  // Sincroniza estado local quando a coleção muda (ex: carregamento do histórico)
-  // Mas apenas se não estiver editando, para evitar sobrescrever digitação
   React.useEffect(() => {
     if (!isEditingName) setTempName(collectionName || "");
     if (!isEditingName) setTempDesc(collectionDesc || "");
@@ -69,6 +79,17 @@ const SidebarHeader = () => {
   const handleSaveCollectionMeta = (name, desc) => {
     updateCollectionMeta(name, desc);
     setIsEditingName(false);
+  };
+
+  const handleUpdateEnv = (index, field, value) => {
+    const newEnvs = [...environments];
+    newEnvs[index] = { ...newEnvs[index], [field]: value };
+    updateEnvironments(newEnvs);
+  };
+
+  const handleDeleteEnv = (index) => {
+    const newEnvs = environments.filter((_, i) => i !== index);
+    updateEnvironments(newEnvs);
   };
 
   return (
@@ -133,10 +154,96 @@ const SidebarHeader = () => {
         </div>
 
         {/* Descrição Simplificada (Somente leitura se não estiver editando nome) */}
-        <p className="text-[0.7rem]! text-gray-500 mt-1 truncate opacity-80">
+        <p className="text-[0.7rem]! text-gray-500 mt-1 mb-0 truncate opacity-80">
           {collectionDesc || "Nenhuma descrição"}
         </p>
       </div>
+
+      {/* Variaveis ambientes */}
+      <div className="px-2 py-2 border-b border-zinc-700">
+        <details className="group">
+          <summary className="flex! items-center justify-between! cursor-pointer list-none text-zinc-400 hover:text-zinc-200 transition-colors">
+            <div className="flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-wider">
+              <Info
+                size={14}
+                className="hover:text-blue-400 transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setEnvInfoOpen(true);
+                }}
+              />
+              Variáveis de Ambiente
+            </div>
+            <div className="flex items-center gap-2">
+              <Plus
+                size={14}
+                className="hover:text-yellow-500 transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  addEnvironment();
+                }}
+              />
+              <ChevronUp
+                size={14}
+                className="group-open:rotate-180 transition-transform"
+              />
+            </div>
+          </summary>
+          <div className="mt-2 px-0 space-y-1">
+            {environments.length === 0 ? (
+              <span className="text-[0.65rem] text-zinc-500 italic ps-1">
+                Nenhum ambiente configurado
+              </span>
+            ) : (
+              environments.map((env, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-1 group/env px-1"
+                >
+                  <input
+                    type="text"
+                    placeholder="Chave"
+                    value={env.name}
+                    onChange={(e) =>
+                      handleUpdateEnv(index, "name", e.target.value)
+                    }
+                    className="w-1/2 bg-zinc-800  rounded px-1 py-0.5 text-[0.6rem] text-zinc-300 outline-none focus:border-yellow-600/50"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Valor"
+                    value={env.value}
+                    onChange={(e) =>
+                      handleUpdateEnv(index, "value", e.target.value)
+                    }
+                    className="
+                      w-1/2 px-1 py-0.5
+                      bg-zinc-800 
+                      rounded 
+                      text-[0.6rem] text-zinc-300 
+                      outline-none focus:border-yellow-600/50
+                    "
+                  />
+                  <button
+                    onClick={() => handleDeleteEnv(index)}
+                    className="
+                      hidden group-hover/env:block!
+                      text-zinc-500 hover:text-red-500
+                      transition-all
+                      ms-1
+                    "
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </details>
+      </div>
+
       <EditCollectionModal
         openExternal={isEditingName}
         setExternalOpen={setIsEditingName}
@@ -144,6 +251,7 @@ const SidebarHeader = () => {
         externalName={tempName}
         externalDesc={tempDesc}
       />
+      <EnvInfoModal />
     </div>
   );
 };

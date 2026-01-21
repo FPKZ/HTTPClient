@@ -58,6 +58,7 @@ export interface CollectionData {
   collectionName: string;
   description: string;
   routes: RouteData[] | FolderData[]; // Alterado de 'telas' para 'routes'
+  environments: [{name: string, value: string, enabled: boolean}];
 }
 
 export class CollectionTemplate {
@@ -73,11 +74,12 @@ export class CollectionTemplate {
       collectionName: name,
       description: description,
       routes: [],
+      environments: [{name: "", value: "", enabled: true}],
     };
   }
 
   /**
-   * Cria uma nova rota com estrutura padrão e body em modo 'inputs'
+   * Cria uma nova rota com estrutura padrão e body
    */
   static createRoute(name: string = "Nova Rota"): RouteData {
     return {
@@ -91,8 +93,8 @@ export class CollectionTemplate {
         ],
         params: [],
         body: {
-          mode: "inputs",
-          content: [{ key: "", value: "", enabled: true }],
+          mode: "json",
+          content: {},
         },
         auth: {
           name: "Authorization",
@@ -123,7 +125,4 @@ export class CollectionTemplate {
     return { key: "", value: "", enabled: true };
   }
 
-  static createEmptyBodyInput(): KeyValuePair {
-    return { key: "", value: "", enabled: true };
-  }
 }

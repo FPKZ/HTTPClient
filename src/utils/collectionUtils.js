@@ -179,3 +179,48 @@ export const insertItemByPath = (items, path, item) => {
   curr.splice(path[path.length - 1], 0, item);
   return newItems;
 };
+
+/**
+ * Substitui ocorrências de {{variable}} por seus valores correspondentes nos ambientes.
+ * Suporta strings, arrays e objetos aninhados.
+ */
+export const applyVariables = (data, environments = []) => {
+  if (!data) return data;
+  if (!Array.isArray(environments) || environments.length === 0) return data;
+
+  // Cria um mapa de variáveis ativas para busca rápida
+  const envMap = environments.reduce((acc, env) => {
+    if (env.enabled && env.name) {
+      acc[env.name] = env.value;
+    }
+    return acc;
+  }, {});
+
+  const regex = /\{\{(.+?)\}\}/g;
+
+  const processString = (str) => {
+    return str.replace(regex, (match, varName) => {
+      const trimmedName = varName.trim();
+      return envMap[trimmedName] !== undefined ? envMap[trimmedName] : match;
+    });
+  };
+
+  const processAny = (val) => {
+    if (typeof val === "string") {
+      return processString(val);
+    }
+    if (Array.isArray(val)) {
+      return val.map(processAny);
+    }
+    if (typeof val === "object" && val !== null) {
+      const newObj = {};
+      for (const [key, value] of Object.entries(val)) {
+        newObj[key] = processAny(value);
+      }
+      return newObj;
+    }
+    return val;
+  };
+
+  return processAny(data);
+};

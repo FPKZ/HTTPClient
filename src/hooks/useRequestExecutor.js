@@ -1,4 +1,6 @@
 import { useState } from "react";
+import useTabStore from "../store/useTabStore";
+import { applyVariables } from "../utils/collectionUtils";
 
 /**
  * useRequestExecutor
@@ -7,9 +9,15 @@ import { useState } from "react";
  */
 export function useRequestExecutor() {
   const [logsPorTela, setLogsPorTela] = useState({});
+  const environments = useTabStore(
+    (state) => state.collection.environments || [],
+  );
 
-  const handleExecuteRequest = async (screenKey, requestData) => {
+  const handleExecuteRequest = async (screenKey, requestDataOrigin) => {
     if (!window.electronAPI) return;
+
+    // Aplica variáveis em todo o objeto de requisição
+    const requestData = applyVariables(requestDataOrigin, environments);
 
     // Helper para converter lista [{key, value, enabled, type}] em objeto {key: value}
     const listToObj = (list) => {
@@ -74,14 +82,18 @@ export function useRequestExecutor() {
         };
       } else if (requestData.body?.mode === "json") {
         try {
-          const parsed = JSON.parse(requestData.body.content);
+          const content =
+            typeof requestData.body.content === "string"
+              ? requestData.body.content
+              : JSON.stringify(requestData.body.content);
+
+          const parsed = JSON.parse(content);
           bodyToExecute = { ...parsed, ...authBodyInjection };
         } catch (e) {
-          console.log(e);
-          bodyToExecute = requestData.body.content; // Se falhar, enviamos bruto (mas auth via body pode falhar aqui)
+          console.log("JSON parse error in executor:", e);
+          bodyToExecute = requestData.body.content;
         }
       } else if (Object.keys(authBodyInjection).length > 0) {
-        // Se o modo era none mas tem injeção de auth no body
         bodyToExecute = authBodyInjection;
       }
 
@@ -90,15 +102,8 @@ export function useRequestExecutor() {
         method: requestData.method,
         headers,
         body: bodyToExecute,
-        bodyMode: requestData.body?.mode || "none", // Passamos o modo para o serviço
+        bodyMode: requestData.body?.mode || "none",
       });
-
-      // console.log("Response received in hook:", {
-      //   status: response.status,
-      //   isImage: response.isImage,
-      //   contentType: response.contentType,
-      //   dataLength: response.data?.length,
-      // });
 
       setLogsPorTela((prev) => ({
         ...prev,
