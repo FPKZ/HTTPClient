@@ -48,6 +48,7 @@ class WindowManager {
         preload: this.preloadPath,
         nodeIntegration: false,
         contextIsolation: true,
+        additionalArguments: [`--is-dev=${this.isDev}`],
       },
     });
 
@@ -56,8 +57,8 @@ class WindowManager {
       dialog.showErrorBox(
         "Erro ao carregar janela",
         `Falha ao carregar URL: ${e.message}\nPath: ${this.getRouteURL(
-          "/upload"
-        )}`
+          "/upload",
+        )}`,
       );
     });
     // this.mainWindow.removeMenu(); // Remove completely (kills shortcuts on Windows)
@@ -107,6 +108,7 @@ class WindowManager {
         preload: this.preloadPath,
         nodeIntegration: false,
         contextIsolation: true,
+        additionalArguments: [`--is-dev=${this.isDev}`],
       },
     });
 

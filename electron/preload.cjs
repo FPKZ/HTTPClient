@@ -1,10 +1,11 @@
 const { contextBridge, ipcRenderer, webUtils } = require("electron");
 
-const isDev = process.env.NODE_ENV === "development";
+// Detecta o ambiente via argumento injetado pelo WindowManager
+const isDev = process.argv.some((arg) => arg === "--is-dev=true");
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // --- Estado e Utilitários ---
-  isDev: !isDev,
+  isDev: isDev,
   getFilePath: (file) => webUtils.getPathForFile(file),
 
   // --- Comunicação IPC Básica ---

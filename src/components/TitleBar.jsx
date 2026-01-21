@@ -1,16 +1,21 @@
 import React from "react";
 import icon from "../assets/icon1.png";
-import { Boxes, Menu, Settings, SquareTerminal } from "lucide-react";
+import { Menu, Plus, Settings, SquareTerminal, FileDown } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import DropdownMenuComponent from "./DropdownMenu";
-import useTabStore from "../store/useTabStore";
-import { useNewCollection } from "../hooks/useNewCollection";
+import { useMenuGeral } from "../hooks/useMenuGeral";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 
 export default function TitleBar() {
-  const { triggerNewCollection } = useNewCollection();
-  const getCollectionForExport = useTabStore(
-    (state) => state.getCollectionForExport,
-  );
+  const { templete, devTemplete, isDev } = useMenuGeral();
+  const location = useLocation();
+
+  // Registra os atalhos de teclado globais apenas quando o menu geral é visível
+  const menuItems =
+    (location.pathname === "/" &&
+      (isDev ? [...templete, ...devTemplete] : templete)) ||
+    [];
+  useKeyboardShortcuts(menuItems);
 
   const handleMinimize = () => window.electronAPI.minimize();
   const handleMaximize = () => window.electronAPI.maximize();
@@ -23,8 +28,6 @@ export default function TitleBar() {
     }
   };
 
-  const location = useLocation();
-
   React.useEffect(() => {
     if (window.electronAPI && window.electronAPI.onMenuAction) {
       window.electronAPI.onMenuAction((action) => {
@@ -35,45 +38,6 @@ export default function TitleBar() {
       });
     }
   }, []);
-
-  const handleExportCollection = () => {
-    const collection = getCollectionForExport();
-    window.electronAPI.saveFile({ content: collection });
-  };
-
-  const isDev = window.electronAPI.isDev;
-
-  const templete = [
-    {
-      icon: <Settings size={14} />,
-      label: "Nova Coleção",
-      shortcut: "Ctrl+N",
-      onClick: () => triggerNewCollection(),
-    },
-    {
-      icon: <Settings size={14} />,
-      label: "Exportar Coleção",
-      shortcut: "Ctrl+S",
-      onClick: () => handleExportCollection(),
-    },
-    {
-      separator: true,
-    },
-    {
-      icon: <Settings size={14} />,
-      label: "Sair",
-      shortcut: "Ctrl+Q",
-      onClick: () => window.electronAPI.close(),
-    },
-  ];
-
-  const devTemplete = [
-    {
-      icon: <SquareTerminal size={14} />,
-      label: "Desenvolvedor",
-      onClick: () => window.electronAPI.toggleDevTools(),
-    },
-  ];
 
   return (
     <div
@@ -89,7 +53,7 @@ export default function TitleBar() {
         {location.pathname === "/" && (
           <DropdownMenuComponent
             buttonContent={<Menu size={16} />}
-            items={isDev ? [...templete, ...devTemplete] : templete}
+            items={menuItems}
           />
         )}
         <button onClick={handleMinimize} className="btn-control h-100">
