@@ -12,8 +12,16 @@ export default function ResultRequestLog({ logs }) {
       return <div className="text-zinc-500">{String(log)}</div>;
     }
 
-    const { status, statusText, headers, data, isError, isImage, contentType } =
-      log;
+    const {
+      status,
+      statusText,
+      headers,
+      data,
+      isError,
+      isImage,
+      contentType,
+      url,
+    } = log;
     const statusColor = isError ? "text-red-500" : "text-green-400";
     const mimeType = contentType
       ? contentType.split(";")[0].trim()
@@ -52,6 +60,35 @@ export default function ResultRequestLog({ logs }) {
               {mimeType} ({Math.round((data.length * 0.75) / 1024)} KB)
             </span>
           </div>
+        ) : mimeType.includes("text/html") ? (
+          <div className="mt-2 bg-white rounded overflow-hidden">
+            <iframe
+              title="HTML Preview"
+              src={URL.createObjectURL(
+                new Blob(
+                  [url ? `<head><base href="${url}" /></head>${data}` : data],
+                  { type: "text/html" },
+                ),
+              )}
+              style={{ width: "100%", height: "500px", border: "none" }}
+              sandbox="allow-scripts"
+              onLoad={(e) => URL.revokeObjectURL(e.target.src)}
+            />
+            {/* <div className="bg-zinc-800 px-2 py-1 text-xs text-zinc-400 border-t border-zinc-700 flex justify-between items-center">
+              <span>HTML Preview</span>
+              <button
+                className="text-blue-400 hover:text-blue-300"
+                onClick={() => {
+                  const win = window.open();
+                  win.document.write(
+                    url ? `<head><base href="${url}" /></head>${data}` : data,
+                  );
+                }}
+              >
+                Abrir em nova aba
+              </button>
+            </div> */}
+          </div>
         ) : (
           <pre
             className="permitirSelect text-gray-300 bg-zinc-900/50 p-2 rounded overflow-x-auto"
@@ -68,7 +105,7 @@ export default function ResultRequestLog({ logs }) {
 
   return (
     <div
-      className="w-100 min-h-full bg-black rounded p-4 mb-6"
+      className="w-100 min-h-full bg-black rounded p-4"
       style={{
         fontFamily: "'Fira Code', monospace",
       }}
@@ -78,7 +115,7 @@ export default function ResultRequestLog({ logs }) {
       ) : (
         <div className="text-zinc-700 italic">Aguardando requisição...</div>
       )}
-      <div ref={bottomRef} className="pb-4" />
+      <div ref={bottomRef} className="" />
     </div>
   );
 }

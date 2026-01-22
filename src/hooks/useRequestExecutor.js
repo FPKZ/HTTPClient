@@ -87,8 +87,12 @@ export function useRequestExecutor() {
               ? requestData.body.content
               : JSON.stringify(requestData.body.content);
 
-          const parsed = JSON.parse(content);
-          bodyToExecute = { ...parsed, ...authBodyInjection };
+          if (!content || !content.trim()) {
+            bodyToExecute = {}; // ou null, dependendo do que o backend espera
+          } else {
+            const parsed = JSON.parse(content);
+            bodyToExecute = { ...parsed, ...authBodyInjection };
+          }
         } catch (e) {
           console.log("JSON parse error in executor:", e);
           bodyToExecute = requestData.body.content;

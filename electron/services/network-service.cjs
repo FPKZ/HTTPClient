@@ -42,7 +42,7 @@ class NetworkService {
           } else {
             form.append(
               key,
-              typeof value === "object" ? JSON.stringify(value) : value
+              typeof value === "object" ? JSON.stringify(value) : value,
             );
           }
         }
@@ -87,7 +87,7 @@ class NetworkService {
   _processSuccessResponse(response) {
     const { body, isImage, contentType } = this._processResponseData(
       response.data,
-      response.headers
+      response.headers,
     );
 
     return {
@@ -97,6 +97,7 @@ class NetworkService {
       data: body,
       isImage,
       contentType,
+      url: response.config?.url,
     };
   }
 
