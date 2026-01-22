@@ -9,7 +9,7 @@ import {
   Edit2,
   Download,
   Settings,
-  ChevronUp,
+  ChevronDown,
   Info,
 } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -185,7 +185,7 @@ const SidebarHeader = () => {
                   addEnvironment();
                 }}
               />
-              <ChevronUp
+              <ChevronDown
                 size={14}
                 className="group-open:rotate-180 transition-transform"
               />
