@@ -125,7 +125,13 @@ export default function TabBar() {
             <div
               key={tab.id}
               data-tab-id={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onAuxClick={(e) => {
+                e.stopPropagation();
+                handleCloseTab(e, tab.id)
+              }}
+              onClick={() => {
+                setActiveTab(tab.id);
+              }}
               className={`
                 group flex items-center gap-1 px-2 h-full min-w-[180px] max-w-[220px] shrink-0 border-r border-zinc-700 cursor-pointer transition-colors
                 ${
