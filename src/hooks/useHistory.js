@@ -63,10 +63,26 @@ export function useHistory(fetchOnMount = true) {
     }
   };
 
+  const handleDeleteAllHistory = async () => {
+    const confirmed = await showDialog({
+      title: "Deletar todo o histórico",
+      description: "Tem certeza que deseja remover todo o histórico?",
+      options: [
+        { label: "Cancelar", value: false, variant: "secondary" },
+        { label: "Confirmar", value: true, variant: "danger" },
+      ],
+    });
+    if (confirmed) {
+      await window.electronAPI.deleteAllHistory();
+      setHistory([]);
+    }
+  };
+
   return {
     history,
     handleLoadHistory,
     handleDeleteHistoryItem,
     handleSaveCollection,
+    handleDeleteAllHistory,
   };
 }

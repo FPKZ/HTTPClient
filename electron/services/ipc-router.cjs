@@ -103,6 +103,7 @@ class IpcRouter {
     ipcMain.handle("delete-history-item", (event, id) =>
       this.history.deleteHistoryItem(id)
     );
+    ipcMain.handle("delete-all-history", () => this.history.deleteAllHistory());
 
     // Network / Request
     ipcMain.handle("request", async (event, params) => {

@@ -16,7 +16,7 @@ export default function HistoryItem({ item, onLoad, onDelete }) {
           {item.name}
         </span>
         <small className="text-zinc-500" style={{ fontSize: '0.65rem' }}>
-          {new Date(item.updatedAt).toLocaleString('pt-BR')} • {item.sourceType}
+          {new Date(item.updatedAt).toLocaleString('pt-BR')} • {item.description || item.descricao || item.sourceType}
         </small>
       </div>
       <div className="d-flex items-center gap-3">

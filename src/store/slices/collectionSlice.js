@@ -8,7 +8,7 @@ export const createCollectionSlice = (set, get) => ({
   collection: {
     id: null,
     name: "",
-    descricao: "",
+    description: "",
     items: [],
     environments: [],
   },
@@ -29,7 +29,7 @@ export const createCollectionSlice = (set, get) => ({
       collection: {
         id: data?.id || null,
         name: data?.name || data?.collectionName || "Collection",
-        descricao: data?.descricao || data?.description || "",
+        description: data?.descricao || data?.description || "",
         items: cleanItems,
         environments: data?.environments || [],
       },
@@ -185,13 +185,13 @@ export const createCollectionSlice = (set, get) => ({
     set({ collection: { ...collection, items: updatedItems } });
   },
 
-  updateCollectionMeta: (name, descricao) => {
+  updateCollectionMeta: (name, description) => {
     set((state) => ({
       collection: {
         ...state.collection,
         name: name !== undefined ? name : state.collection.name,
-        descricao:
-          descricao !== undefined ? descricao : state.collection.descricao,
+        description:
+          description !== undefined ? description : state.collection.description,
       },
     }));
   },

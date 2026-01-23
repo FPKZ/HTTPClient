@@ -51,16 +51,16 @@ class HistoryService {
         const [existingItem] = history.splice(index, 1);
         existingItem.updatedAt = new Date().toISOString();
         existingItem.name = name;
-        existingItem.descricao = collectionData.descricao || "";
+        existingItem.description = collectionData.description || collectionData.descricao || "";
         history.unshift(existingItem);
       } else {
         fileName = `${collectionId}.json`;
-        history.unshift(this._createNewHistoryItem(collectionId, name, collectionData.descricao || "", "native", fileName));
+        history.unshift(this._createNewHistoryItem(collectionId, name, collectionData.description || collectionData.descricao || "", "native", fileName));
       }
     } else {
       collectionId = Date.now().toString();
       fileName = `${collectionId}.json`;
-      history.unshift(this._createNewHistoryItem(collectionId, name, collectionData.descricao || "", "native", fileName));
+      history.unshift(this._createNewHistoryItem(collectionId, name, collectionData.description || collectionData.descricao || "", "native", fileName));
     }
 
     // Salva o JSON da coleção
@@ -95,11 +95,11 @@ class HistoryService {
     // await this.storage.writeJson(this.historyFile, []);
   }
 
-  _createNewHistoryItem(id, name, descricao, type, file) {
+  _createNewHistoryItem(id, name, description, type, file) {
     return {
       id,
       name,
-      descricao: descricao || "",
+      description: description || "",
       updatedAt: new Date().toISOString(),
       sourceType: type,
       file,

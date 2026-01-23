@@ -13,7 +13,7 @@ class PostmanTranslator {
     return {
       id: `${postmanJson.info.name}_${Date.now()}`,
       name: postmanJson.info.name,
-      descricao: postmanJson.info.description || "",
+      description: postmanJson.info.description || "",
       items: this._cleanAndDeduplicateRoutes(
         this._processItems(postmanJson.item)
       ),

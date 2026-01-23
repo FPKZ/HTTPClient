@@ -83,6 +83,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveHistory: (data) => ipcRenderer.invoke("save-history", data),
   loadCollection: (fileName) => ipcRenderer.invoke("load-collection", fileName),
   deleteHistoryItem: (id) => ipcRenderer.invoke("delete-history-item", id),
+  deleteAllHistory: () => ipcRenderer.invoke("delete-all-history"),
   onRequestSaveSession: (callback) => {
     const subscription = () => callback();
     ipcRenderer.on("request-save-session", subscription);
