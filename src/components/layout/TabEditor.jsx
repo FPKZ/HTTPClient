@@ -130,7 +130,7 @@ export default function TabEditor() {
                   ${
                     activeTab.isDirty
                       ? "bg-green-600 hover:bg-green-700 text-white"
-                      : "bg-zinc-700 text-gray-500 cursor-not-allowed"
+                      : "bg-zinc-700 text-gray-500"
                   }
                 `}
                 title={
