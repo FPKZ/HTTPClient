@@ -50,7 +50,7 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
  */
 const SidebarHeader = () => {
   const collectionName = useTabStore((state) => state.collection.name);
-  const collectionDesc = useTabStore((state) => state.collection.descricao);
+  const collectionDesc = useTabStore((state) => state.collection.description);
   const updateCollectionMeta = useTabStore(
     (state) => state.updateCollectionMeta,
   );
@@ -91,6 +91,8 @@ const SidebarHeader = () => {
     const newEnvs = environments.filter((_, i) => i !== index);
     updateEnvironments(newEnvs);
   };
+
+  const [isEnvOpen, setIsEnvOpen] = useState(false);
 
   return (
     <div>
@@ -161,7 +163,10 @@ const SidebarHeader = () => {
 
       {/* Variaveis ambientes */}
       <div className="px-2 py-2 border-b border-zinc-700">
-        <details className="group">
+        <details
+          className="group"
+          onToggle={(e) => setIsEnvOpen(e.currentTarget.open)}
+        >
           <summary className="flex! items-center justify-between! cursor-pointer list-none text-zinc-400 hover:text-zinc-200 transition-colors">
             <div className="flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-wider">
               <Info
@@ -177,12 +182,19 @@ const SidebarHeader = () => {
             </div>
             <div className="flex items-center gap-2">
               <Plus
+                // disabled={!isEnvOpen}
                 size={14}
-                className="hover:text-yellow-500 transition-colors"
+                className={
+                  !isEnvOpen
+                    ? "opacity-50"
+                    : "hover:text-yellow-500 transition-colors"
+                }
                 onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  addEnvironment();
+                  if (isEnvOpen) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addEnvironment();
+                  }
                 }}
               />
               <ChevronDown

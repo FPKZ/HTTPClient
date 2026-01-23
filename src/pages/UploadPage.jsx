@@ -21,7 +21,7 @@ function UploadPage() {
 
   const navigate = useNavigate();
 
-  const { history, handleLoadHistory, handleDeleteHistoryItem } = useHistory();
+  const { history, handleLoadHistory, handleDeleteHistoryItem, handleDeleteAllHistory } = useHistory();
 
   // 1. Inicialização e Listeners IPC
   useQuickExit();
@@ -106,6 +106,7 @@ function UploadPage() {
               history={history}
               onLoad={handleLoadHistory}
               onDelete={handleDeleteHistoryItem}
+              onAllDelete={handleDeleteAllHistory}
             />
           </div>
         </div>

@@ -39,7 +39,7 @@ export default function RequestEditor({
         </div>
 
         <div
-          className={`grid grid-cols-[30px_1fr_1fr_40px] gap-2 items-start bg-zinc-900/50 p-2 rounded hover:bg-zinc-800/50 group border !border-zinc-800/50 transition-all ${
+          className={`grid grid-cols-[30px_1fr_1fr_40px] gap-2 items-start bg-zinc-900/50 p-2 rounded hover:bg-zinc-800/50 group border border-zinc-800/50! transition-all ${
             !isEnabled && "opacity-60"
           }`}
         >
@@ -267,15 +267,15 @@ export default function RequestEditor({
             <div
               className={`w-3 h-3 rounded-full border ${
                 mode === m
-                  ? "!bg-yellow-500 !border-yellow-500"
+                  ? "bg-yellow-500! border-yellow-500!"
                   : "border-zinc-600! group-hover:border-zinc-400!"
               }`}
             />
             <span
               className={`text-[0.65rem] uppercase font-bold mt-0.5 ${
                 mode === m
-                  ? "!text-yellow-500"
-                  : "!text-zinc-500 group-hover:!text-zinc-300"
+                  ? "text-yellow-500!"
+                  : "text-zinc-500! group-hover:text-zinc-300!"
               }`}
             >
               {m}
@@ -338,7 +338,7 @@ export default function RequestEditor({
               <div className="flex flex-col gap-1">
                 {mode === "formdata" ? (
                   <div className="flex gap-2">
-                    <div className="flex-1 bg-zinc-800/50 text-zinc-300 text-[0.7rem] px-2 py-1 rounded border !border-zinc-700 truncate">
+                    <div className="flex-1 bg-zinc-800/50 text-zinc-300 text-[0.7rem] px-2 py-1 rounded border border-zinc-700! truncate">
                       {item.value || "Selecione um arquivo..."}
                     </div>
                     <button
@@ -372,7 +372,7 @@ export default function RequestEditor({
               {/* Remove Action */}
               <button
                 onClick={() => handleRemoveItem(idx)}
-                className="flex justify-center opacity-0 group-hover:!opacity-100 text-zinc-600 hover:text-red-500 transition-opacity"
+                className="flex justify-center opacity-0 group-hover:opacity-100! text-zinc-600 hover:text-red-500 transition-opacity"
               >
                 <Trash2 size={14} />
               </button>
@@ -382,7 +382,7 @@ export default function RequestEditor({
         <div className="flex justify-end">
           <button
             onClick={handleAddItem}
-            className="mt-2 flex items-center gap-1 !text-[0.65rem] text-zinc-500 hover:text-yellow-500 font-bold transition-colors w-fit px-2"
+            className="mt-2 flex items-center gap-1 text-[0.65rem]! text-zinc-500 hover:text-yellow-500 font-bold transition-colors w-fit px-2"
           >
             <Plus size={14} />
             <span>ADICIONAR CAMPO</span>
