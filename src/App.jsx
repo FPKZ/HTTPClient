@@ -8,9 +8,9 @@ import Layout from "./pages/layout";
 // Components
 import Dialog from "./components/Dialog";
 import useDialogStore from "./store/useDialogStore";
+import GlobalContextMenu from "./components/GlobalContextMenu";
 
 function App() {
-
   const navigate = useNavigate();
   const showDialog = useDialogStore((state) => state.showDialog);
 
@@ -20,7 +20,7 @@ function App() {
       "navigate-to",
       (path) => {
         navigate(path);
-      }
+      },
     );
 
     // Listener para diálogos globais vindos do backend
@@ -36,10 +36,10 @@ function App() {
         if (params.id) {
           window.electronAPI.ipcRenderer.send(
             `dialog-response-${params.id}`,
-            result
+            result,
           );
         }
-      }
+      },
     );
 
     return () => {
@@ -50,26 +50,28 @@ function App() {
 
   return (
     <div className="d-flex flex-column h-screen">
-      <Dialog />
-      <Routes>
-        <Route
-          path="/upload"
-          element={
-            <Layout>
-              <UploadPage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/"
-          element={
-            <Layout>
-              <Home />
-            </Layout>
-          }
-        />
-        <Route path="/update" element={<UpdatePage />} />
-      </Routes>
+      <GlobalContextMenu>
+        <Dialog />
+        <Routes>
+          <Route
+            path="/upload"
+            element={
+              <Layout>
+                <UploadPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <Layout>
+                <Home />
+              </Layout>
+            }
+          />
+          <Route path="/update" element={<UpdatePage />} />
+        </Routes>
+      </GlobalContextMenu>
     </div>
   );
 }

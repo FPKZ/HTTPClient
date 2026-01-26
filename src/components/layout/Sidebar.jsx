@@ -17,6 +17,7 @@ import { TreeFolder } from "./TreeFolder";
 import { useNavigate } from "react-router-dom";
 import NovoItemModal from "../modals/NovoItemModal";
 import { useHistory } from "../../hooks/useHistory";
+import ContextMenu from "../ContextMenu";
 import DropdownMenuComponent from "../DropdownMenu";
 import EditCollectionModal from "../modals/EditCollectionModal";
 import EnvInfoModal from "../modals/EnvInfoModal";
@@ -318,78 +319,96 @@ const SidebarTree = React.memo(() => {
       reorderItems,
     });
 
-  const { handleDragEnd, handleContextMenu } = useMenuContext({
+  // const { handleDragEnd, handleContextMenu } = useMenuContext({
+  const { handleDragEnd } = useMenuContext({
     modalConfig,
     setModalConfig,
     deleteItem,
     reorderItems,
   });
 
+  const rootContextMenuItems = React.useMemo(
+    () => [
+      {
+        label: "Nova Pasta",
+        icon: <FolderPlus size={14} />,
+        onClick: () =>
+          setModalConfig({ open: true, type: "folder", targetId: null }),
+      },
+      {
+        label: "Nova Rota",
+        icon: <FilePlus size={14} />,
+        onClick: () =>
+          setModalConfig({ open: true, type: "file", targetId: null }),
+      },
+    ],
+    [setModalConfig],
+  );
+
   return (
-    <div
-      className="flex-1 overflow-y-auto min-h-0"
-      onContextMenu={handleContextMenu}
-    >
-      <div className="p-2 h-full">
-        <div className="flex items-center justify-between px-2 py-1 mb-2">
-          <span className="text-xs font-semibold text-gray-500 uppercase">
-            Coleção
-          </span>
-          <div>
-            <NovoItemModal onAdd={handleAddFolder}>
-              <button
-                className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
-                title="Nova Pasta"
-              >
-                <FolderPlus size={14} />
-              </button>
-            </NovoItemModal>
-            <NovoItemModal onAdd={handleAddRoute}>
-              <button
-                className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
-                title="Nova Rota"
-              >
-                <FilePlus size={14} />
-              </button>
-            </NovoItemModal>
+    <ContextMenu items={rootContextMenuItems}>
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="p-2 h-full">
+          <div className="flex items-center justify-between px-2 py-1 mb-2">
+            <span className="text-xs font-semibold text-gray-500 uppercase">
+              Coleção
+            </span>
+            <div>
+              <NovoItemModal onAdd={handleAddFolder}>
+                <button
+                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
+                  title="Nova Pasta"
+                >
+                  <FolderPlus size={14} />
+                </button>
+              </NovoItemModal>
+              <NovoItemModal onAdd={handleAddRoute}>
+                <button
+                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
+                  title="Nova Rota"
+                >
+                  <FilePlus size={14} />
+                </button>
+              </NovoItemModal>
+            </div>
           </div>
+
+          {collection.items.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 text-sm">
+              Coleção vazia
+            </div>
+          ) : (
+            <DndContext
+              sensors={activeSensors}
+              collisionDetection={closestCorners}
+              onDragEnd={handleDragEnd}
+              modifiers={[restrictToVerticalAxis]}
+            >
+              <SortableContext
+                items={collection.items.map((i) => i.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {collection.items.map((item) => (
+                  <TreeFolder
+                    key={item.id}
+                    item={item}
+                    setModalConfig={setModalConfig}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
+          )}
         </div>
 
-        {collection.items.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 text-sm">
-            Coleção vazia
-          </div>
-        ) : (
-          <DndContext
-            sensors={activeSensors}
-            collisionDetection={closestCorners}
-            onDragEnd={handleDragEnd}
-            modifiers={[restrictToVerticalAxis]}
-          >
-            <SortableContext
-              items={collection.items.map((i) => i.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              {collection.items.map((item) => (
-                <TreeFolder
-                  key={item.id}
-                  item={item}
-                  setModalConfig={setModalConfig}
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
-        )}
+        {/* Modal controlado via menu de contexto */}
+        <NovoItemModal
+          {...getModalProps()}
+          open={modalConfig.open}
+          onOpenChange={(open) => setModalConfig({ ...modalConfig, open })}
+          onAdd={handleModalAdd}
+        />
       </div>
-
-      {/* Modal controlado via menu de contexto */}
-      <NovoItemModal
-        {...getModalProps()}
-        open={modalConfig.open}
-        onOpenChange={(open) => setModalConfig({ ...modalConfig, open })}
-        onAdd={handleModalAdd}
-      />
-    </div>
+    </ContextMenu>
   );
 });
 

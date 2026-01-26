@@ -44,6 +44,7 @@ class AutoUpdateService {
       updateWindow.webContents.send("update-downloaded");
       log.info("🔁 Atualização baixada:", info);
       // Parâmetros: (isSilent, isForceRunAfter)
+      // setTimeout(() => , 2000);
       setTimeout(() => autoUpdater.quitAndInstall(true, true), 2000);
     });
 

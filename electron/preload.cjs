@@ -61,21 +61,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.removeListener("conversion-finished", subscription);
   },
 
-  // --- Menus (App e Contextual) ---
+  // --- Menus (App) ---
   openMenu: () => ipcRenderer.send("open-menu"),
-  showFolderContextMenu: (params) =>
-    ipcRenderer.send("show-folder-context-menu", params),
-  showRootContextMenu: () => ipcRenderer.send("show-root-context-menu"),
   onMenuAction: (callback) => {
     const subscription = (_event, value) => callback(value);
     ipcRenderer.on("menu-action", subscription);
     return () => ipcRenderer.removeListener("menu-action", subscription);
-  },
-  onContextMenuAction: (callback) => {
-    const subscription = (_event, value) => callback(value);
-    ipcRenderer.on("context-menu-action", subscription);
-    return () =>
-      ipcRenderer.removeListener("context-menu-action", subscription);
   },
 
   // --- Gestão de Coleções e Histórico ---

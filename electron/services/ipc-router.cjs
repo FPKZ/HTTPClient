@@ -15,7 +15,7 @@ class IpcRouter {
     formatters,
     networkService,
     exportService,
-    dialogReact
+    dialogReact,
   ) {
     this.win = windowManager;
     this.history = historyService;
@@ -85,7 +85,7 @@ class IpcRouter {
     // History
     ipcMain.handle("get-history", () => this.history.getHistory());
     ipcMain.handle("load-collection", (event, fileName) =>
-      this.history.loadCollection(fileName)
+      this.history.loadCollection(fileName),
     );
     ipcMain.on("save-and-quit", async (event, collectionData) => {
       if (collectionData && collectionData.name) {
@@ -101,14 +101,14 @@ class IpcRouter {
     });
 
     ipcMain.handle("delete-history-item", (event, id) =>
-      this.history.deleteHistoryItem(id)
+      this.history.deleteHistoryItem(id),
     );
     ipcMain.handle("delete-all-history", () => this.history.deleteAllHistory());
 
     // Network / Request
     ipcMain.handle("request", async (event, params) => {
       return this.network.execute(params, (data) =>
-        event.sender.send("log", data)
+        event.sender.send("log", data),
       );
     });
 
@@ -117,27 +117,10 @@ class IpcRouter {
       return this._handleFileSave(content, defaultPath);
     });
 
-    // Context Menu
-    ipcMain.on("show-folder-context-menu", (event, params) => {
-      // Nota: O main.cjs injeta o contextMenuBuilder no ipcRouter se necessário,
-      // ou podemos passar como dependência.
-      // Verificando main.cjs...
-      if (global.contextMenuBuilder) {
-        global.contextMenuBuilder.buildContextFolderMenu(params);
-      }
-    });
-
-    ipcMain.on("show-root-context-menu", (event) => {
-      if (global.contextMenuBuilder) {
-        global.contextMenuBuilder.buildRootContextMenu();
-      }
-    });
-
     ipcMain.on("toggle-dev-tools", (event) => {
       const mainWindow = this.win.getMainWindow();
       if (mainWindow) mainWindow.webContents.toggleDevTools();
     });
-
   }
 
   async _handleConversion(sender, inputPath, isFile) {
@@ -152,7 +135,7 @@ class IpcRouter {
     if (filesToProcess.length === 0) {
       sender.send(
         "log",
-        "⚠️ Nenhum arquivo de coleção Postman válido encontrado."
+        "⚠️ Nenhum arquivo de coleção Postman válido encontrado.",
       );
       return;
     }
@@ -199,7 +182,7 @@ class IpcRouter {
         sender.send("log", `❌ Erro em ${path.basename(file)}: ${err.message}`);
 
         console.log(
-          "[IpcRouter] Chamando dialogReact.showDialog por conta de erro..."
+          "[IpcRouter] Chamando dialogReact.showDialog por conta de erro...",
         );
         return await this.dialogReact.showDialog({
           title: "Erro",
@@ -237,12 +220,18 @@ class IpcRouter {
             JSON.parse(content);
             results.push(filePath);
           } catch (e) {
-            console.error(`[scanForJsonCollections] Arquivo JSON inválido ${file}:`, e);
+            console.error(
+              `[scanForJsonCollections] Arquivo JSON inválido ${file}:`,
+              e,
+            );
           }
         }
       }
     } catch (error) {
-      console.error(`[scanForJsonCollections] Erro ao ler diretório ${dir}:`, error);
+      console.error(
+        `[scanForJsonCollections] Erro ao ler diretório ${dir}:`,
+        error,
+      );
     }
     return results;
   }

@@ -20,7 +20,7 @@
     "preview": "vite preview"
   },
   "build": {
-    "appId": "com.httpclient",
+    "appId": "com.fpkz.httpclient",
     "productName": "HTTPClient",
     "artifactName": "${productName}-${version}-${os}.${ext}",
     "directories": {
@@ -34,6 +34,7 @@
     ],
     "win": {
       "icon": "assets/icon1.png",
+      "publisherName": "FPKZ",
       "target": [
         "nsis"
       ]
@@ -60,9 +61,14 @@
     },
     "nsis": {
       "oneClick": true,
+      "perMachine": false,
+      "allowElevation": true,
       "allowToChangeInstallationDirectory": false,
-      "deleteAppDataOnUninstall": true,
-      "installerHeaderIcon": "assets/icon1.png"
+      "deleteAppDataOnUninstall": false,
+      "installerHeaderIcon": "assets/icon1.png",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "HTTPClient"
     }
   },
   "dependencies": {
@@ -71,6 +77,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@monaco-editor/react": "^4.7.0",
+    "@radix-ui/react-context-menu": "^2.2.16",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-progress": "^1.1.8",
