@@ -19,6 +19,7 @@ import { cn } from "../lib/utils";
  * Wrapper global que fornece menu de contexto dinâmico baseado no elemento clicado.
  */
 export default function GlobalContextMenu({ children }) {
+  const [open, setOpen] = useState(false);
   const [targetDetails, setTargetDetails] = useState({
     isEditable: false,
     selectionText: "",
@@ -32,15 +33,7 @@ export default function GlobalContextMenu({ children }) {
 
   // Atualiza detalhes do alvo ao abrir o menu
   const handleOpenChange = (open) => {
-    if (open) {
-      // Pequeno delay ou lógica síncrona para pegar a seleção atual
-      // const selection = window.getSelection()?.toString() || "";
-      // Para pegar o elemento exato que recebeu o evento 'contextmenu',
-      // precisariamos interceptar o evento antes.
-      // O Radix captura o evento. Mas podemos usar um listener global de 'contextmenu'
-      // em captura para pegar o target antes do Radix abrir, ou tentar inferir.
-      // Melhor abordagem: usar um ref ou state global temporário atualizado no onContextMenu do wrapper.
-    }
+    setOpen(open);
   };
 
   // Referência temporária para o último evento de context menu
@@ -62,6 +55,15 @@ export default function GlobalContextMenu({ children }) {
     const srcURL = target.src || "";
     const mediaType = target.tagName === "IMG" ? "image" : "none";
 
+    // Verifica se teremos itens (replicando lógica do render abaixo)
+    const hasItems =
+      isEditable || !!selection || !!linkURL || mediaType === "image" || isDev;
+
+    if (!hasItems) {
+      setOpen(false);
+      return;
+    }
+
     lastEventRef.current = { target, e };
 
     setTargetDetails({
@@ -72,6 +74,7 @@ export default function GlobalContextMenu({ children }) {
       mediaType,
       tagName: target.tagName,
     });
+    setOpen(true);
   };
 
   const menuItems = [];
@@ -191,40 +194,20 @@ export default function GlobalContextMenu({ children }) {
   }
 
   // 5. Ações Gerais / Dev
-  menuItems
-    .push
-    //    {
-    //        label: "Sobre o App",
-    //        icon: <Info size={14} />,
-    //        onClick: () => console.log("Versão 1.0.0"), // Poderia abrir modal
-    //    }
-    ();
-
   if (isDev) {
-    menuItems.push(
-      { separator: true },
-      {
-        label: "Inspecionar Elemento",
-        icon: <Code size={14} />,
-        onClick: () => {
-          // IPC para abrir devtools
-          window.electronAPI.toggleDevTools();
-        },
-      },
-    );
-  }
-
-  // Se não houver itens, o menu pode não abrir ou mostrar apenas "Sobre"
-  if (menuItems.length === 0 && !isDev) {
+    if (menuItems.length > 0) menuItems.push({ separator: true });
     menuItems.push({
-      label: "HTTPClient v1.0",
-      icon: <Info size={14} />,
-      disabled: true,
+      label: "Inspecionar Elemento",
+      icon: <Code size={14} />,
+      onClick: () => {
+        // IPC para abrir devtools
+        window.electronAPI.toggleDevTools();
+      },
     });
   }
 
   return (
-    <ContextMenuPrimitive.Root onOpenChange={handleOpenChange}>
+    <ContextMenuPrimitive.Root open={open} onOpenChange={handleOpenChange}>
       <ContextMenuPrimitive.Trigger
         onContextMenu={handleContextMenu}
         className="h-full w-full"
@@ -232,46 +215,48 @@ export default function GlobalContextMenu({ children }) {
         {children}
       </ContextMenuPrimitive.Trigger>
 
-      <ContextMenuPrimitive.Portal>
-        <ContextMenuPrimitive.Content
-          className="min-w-[180px] bg-zinc-900 border border-zinc-700! p-1 rounded-sm shadow-2xl z-50!"
-          alignOffset={5}
-        >
-          {menuItems.map((item, index) => {
-            if (item.separator) {
-              return (
-                <ContextMenuPrimitive.Separator
-                  key={`sep-${index}`}
-                  className="h-px bg-zinc-700! m-1"
-                />
-              );
-            }
+      {menuItems.length > 0 && (
+        <ContextMenuPrimitive.Portal>
+          <ContextMenuPrimitive.Content
+            className="min-w-[180px] bg-zinc-900 border border-zinc-700! p-1 rounded-sm shadow-2xl z-50!"
+            alignOffset={5}
+          >
+            {menuItems.map((item, index) => {
+              if (item.separator) {
+                return (
+                  <ContextMenuPrimitive.Separator
+                    key={`sep-${index}`}
+                    className="h-px bg-zinc-700! m-1"
+                  />
+                );
+              }
 
-            return (
-              <ContextMenuPrimitive.Item
-                key={index}
-                disabled={item.disabled}
-                onSelect={(e) => {
-                  if (!item.disabled && item.onClick) item.onClick(e);
-                }}
-                className={cn(
-                  "flex items-center gap-2 px-3 py-2 text-xs! font-semibold text-zinc-300 outline-none cursor-pointer hover:bg-zinc-800 rounded transition-colors",
-                  item.disabled && "opacity-50 cursor-not-allowed",
-                  item.className,
-                )}
-              >
-                {item.icon && <span className="shrink-0">{item.icon}</span>}
-                <span className="flex-1">{item.label}</span>
-                {item.shortcut && (
-                  <span className="ml-auto text-[10px] text-zinc-500 font-semibold tracking-widest pl-4">
-                    {item.shortcut}
-                  </span>
-                )}
-              </ContextMenuPrimitive.Item>
-            );
-          })}
-        </ContextMenuPrimitive.Content>
-      </ContextMenuPrimitive.Portal>
+              return (
+                <ContextMenuPrimitive.Item
+                  key={index}
+                  disabled={item.disabled}
+                  onSelect={(e) => {
+                    if (!item.disabled && item.onClick) item.onClick(e);
+                  }}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 text-xs! font-semibold text-zinc-300 outline-none cursor-pointer hover:bg-zinc-800 rounded transition-colors",
+                    item.disabled && "opacity-50 cursor-not-allowed",
+                    item.className,
+                  )}
+                >
+                  {item.icon && <span className="shrink-0">{item.icon}</span>}
+                  <span className="flex-1">{item.label}</span>
+                  {item.shortcut && (
+                    <span className="ml-auto text-[10px] text-zinc-500 font-semibold tracking-widest pl-4">
+                      {item.shortcut}
+                    </span>
+                  )}
+                </ContextMenuPrimitive.Item>
+              );
+            })}
+          </ContextMenuPrimitive.Content>
+        </ContextMenuPrimitive.Portal>
+      )}
     </ContextMenuPrimitive.Root>
   );
 }
