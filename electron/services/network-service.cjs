@@ -1,6 +1,7 @@
 const axios = require("axios");
 const FormData = require("form-data");
 const fs = require("fs");
+const path = require("path");
 
 /**
  * NetworkService
@@ -8,17 +9,25 @@ const fs = require("fs");
  * Segue o SRP ao isolar toda a complexidade de FormData e buffers de resposta.
  */
 class NetworkService {
+  constructor() {
+    this.MAX_MEMORY_BUFFER = 50 * 1024 * 1024; // 50MB
+    this.DEFAULT_TIMEOUT = 60000; // 60s
+  }
+
   /**
    * Executa uma requisição HTTP.
-   * @param {Object} params - { url, method, headers, body }
+   * @param {Object} params - { url, method, headers, body, bodyMode, timeout, streamPath }
    * @param {Function} logCallback - Callback para enviar logs parciais.
    * @returns {Promise<Object>} - Resposta processada.
    */
-  async execute({ url, method, headers, body, bodyMode }, logCallback) {
+  async execute(
+    { url, method, headers, body, bodyMode, timeout, streamPath },
+    logCallback,
+  ) {
     let requestData = body;
     let requestHeaders = { ...headers };
 
-    // Verifica se deve usar FormData (modo explícito ou presença de arquivos)
+    // 1. FormData (modo explícito ou presença de arquivos em objeto genérico)
     const isFormData = bodyMode === "formdata";
     const hasFiles = this._checkIfHasFiles(body);
 
@@ -27,14 +36,14 @@ class NetworkService {
       if (body && typeof body === "object") {
         for (const [key, value] of Object.entries(body)) {
           if (this._isFileData(value)) {
-            if (fs.existsSync(value.src)) {
+            if (this._validateFilePath(value.src)) {
               form.append(key, fs.createReadStream(value.src));
             }
           } else if (
             typeof value === "string" &&
             (value.includes("/") || value.includes("\\"))
           ) {
-            if (fs.existsSync(value)) {
+            if (this._validateFilePath(value)) {
               form.append(key, fs.createReadStream(value));
             } else {
               form.append(key, value);
@@ -51,14 +60,84 @@ class NetworkService {
       requestHeaders = { ...requestHeaders, ...form.getHeaders() };
     }
 
+    // 2. URL-Encoded
+    if (bodyMode === "urlencoded") {
+      const params = new URLSearchParams();
+      if (body && typeof body === "object") {
+        for (const [key, value] of Object.entries(body)) {
+          params.append(key, value);
+        }
+      }
+      requestData = params.toString();
+      requestHeaders["content-type"] = "application/x-www-form-urlencoded";
+    }
+
+    // 3. Binary Raw
+    if (bodyMode === "binary") {
+      if (this._isFileData(body)) {
+        if (this._validateFilePath(body.src)) {
+          requestData = fs.createReadStream(body.src);
+        }
+      } else if (Buffer.isBuffer(body) || typeof body === "string") {
+        requestData = body;
+      }
+    }
+
     try {
       const response = await axios({
         method,
         url,
         headers: requestHeaders,
         data: requestData,
-        responseType: "arraybuffer",
+        timeout: timeout || this.DEFAULT_TIMEOUT,
+        responseType: bodyMode === "stream" ? "stream" : "arraybuffer",
+        onDownloadProgress: (progressEvent) => {
+          if (logCallback && progressEvent.total) {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total,
+            );
+            logCallback({
+              status: "downloading",
+              progress: percentCompleted,
+              loaded: progressEvent.loaded,
+              total: progressEvent.total,
+            });
+          }
+        },
       });
+
+      // Proteção contra OOM (Out of Memory)
+      if (bodyMode !== "stream") {
+        const contentLength = parseInt(response.headers["content-length"], 10);
+        if (contentLength > this.MAX_MEMORY_BUFFER) {
+          throw new Error(
+            `Resposta muito grande (${(contentLength / 1024 / 1024).toFixed(2)}MB). Para evitar crash, use o modo 'Streaming' ou salve diretamente em arquivo.`,
+          );
+        }
+      }
+
+      // Se for stream e tiver um path para salvar, pipe para o arquivo
+      const finalStreamPath = headers["x-save-path"] || streamPath;
+      if (bodyMode === "stream" && finalStreamPath) {
+        const writer = fs.createWriteStream(finalStreamPath);
+        response.data.pipe(writer);
+
+        return new Promise((resolve, reject) => {
+          writer.on("finish", () =>
+            resolve({
+              status: response.status,
+              statusText: response.statusText,
+              headers: response.headers,
+              data: {
+                message: "Download finalizado com sucesso",
+                path: finalStreamPath,
+              },
+              contentType: response.headers["content-type"],
+            }),
+          );
+          writer.on("error", reject);
+        });
+      }
 
       const processed = this._processSuccessResponse(response);
       if (logCallback) logCallback(processed);
@@ -67,6 +146,17 @@ class NetworkService {
       const errorData = this._processErrorResponse(error);
       if (logCallback) logCallback(errorData);
       return errorData;
+    }
+  }
+
+  _validateFilePath(filePath) {
+    try {
+      if (!filePath || typeof filePath !== "string") return false;
+      if (!fs.existsSync(filePath)) return false;
+      const stats = fs.statSync(filePath);
+      return stats.isFile();
+    } catch (e) {
+      return false;
     }
   }
 
