@@ -54,7 +54,7 @@ export default function ResultRequestLog({ logs }) {
                 maxHeight: "400px",
                 objectFit: "contain",
               }}
-              className="rounded shadow-sm border border-zinc-800"
+              className="rounded shadow-sm"
             />
             <span className="text-[10px] text-zinc-500 uppercase font-bold">
               {mimeType} ({Math.round((data.length * 0.75) / 1024)} KB)
