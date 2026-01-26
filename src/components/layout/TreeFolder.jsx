@@ -201,7 +201,7 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
               </span>
             )}
             <span
-              className={`truncate text-[0.8rem]! ${
+              className={`truncate text-[0.8rem]! whitespace-normal group-hover:whitespace-nowrap transition-all duration-200 ${
                 isFolder ? "text-gray-300 font-medium" : "text-gray-400"
               }`}
             >
