@@ -106,10 +106,31 @@ class IpcRouter {
     ipcMain.handle("delete-all-history", () => this.history.deleteAllHistory());
 
     // Network / Request
+    this.activeRequests = new Map();
+
     ipcMain.handle("request", async (event, params) => {
-      return this.network.execute(params, (data) =>
-        event.sender.send("log", data),
-      );
+      const requestId = params.requestId || Date.now().toString();
+      const controller = new AbortController();
+      this.activeRequests.set(requestId, controller);
+
+      try {
+        const result = await this.network.execute(
+          { ...params, signal: controller.signal },
+          (data) => event.sender.send("log", data),
+        );
+        return result;
+      } finally {
+        this.activeRequests.delete(requestId);
+      }
+    });
+
+    ipcMain.on("cancel-request", (event, requestId) => {
+      const controller = this.activeRequests.get(requestId);
+      if (controller) {
+        controller.abort();
+        this.activeRequests.delete(requestId);
+        console.log(`[IpcRouter] Requisição ${requestId} cancelada.`);
+      }
     });
 
     // Export

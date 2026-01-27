@@ -19,6 +19,9 @@ export default function ResultRequestLog({ logs }) {
       data,
       isError,
       isImage,
+      isPDF,
+      isAudio,
+      isVideo,
       contentType,
       url,
     } = log;
@@ -59,6 +62,78 @@ export default function ResultRequestLog({ logs }) {
             <span className="text-[10px] text-zinc-500 uppercase font-bold">
               {mimeType} ({Math.round((data.length * 0.75) / 1024)} KB)
             </span>
+          </div>
+        ) : isPDF ? (
+          <div className="mt-2 bg-zinc-900 rounded overflow-hidden">
+            <iframe
+              title="PDF Viewer"
+              src={
+                URL.createObjectURL(
+                  new Blob(
+                    [
+                      new Uint8Array(
+                        atob(data)
+                          .split("")
+                          .map((c) => c.charCodeAt(0)),
+                      ),
+                    ],
+                    { type: "application/pdf" },
+                  ),
+                ) + "#navpanes=0"
+              }
+              style={{ width: "100%", height: "600px", border: "none" }}
+              className="rounded shadow-sm"
+              onLoad={(e) => URL.revokeObjectURL(e.target.src)}
+            />
+          </div>
+        ) : isAudio ? (
+          <div className="mt-2 bg-zinc-900/50 p-4 rounded flex flex-col items-center gap-2">
+            <audio
+              controls
+              className="w-full"
+              src={URL.createObjectURL(
+                new Blob(
+                  [
+                    new Uint8Array(
+                      atob(data)
+                        .split("")
+                        .map((c) => c.charCodeAt(0)),
+                    ),
+                  ],
+                  { type: contentType },
+                ),
+              )}
+              onLoadedData={(e) => URL.revokeObjectURL(e.target.src)}
+            />
+            <span className="text-[10px] text-zinc-500 uppercase font-bold">
+              {contentType} ({Math.round((data.length * 0.75) / 1024)} KB)
+            </span>
+          </div>
+        ) : isVideo ? (
+          <div className="mt-2 bg-zinc-900 rounded overflow-hidden flex flex-col items-center">
+            <video
+              controls
+              className="max-h-[500px] w-full"
+              src={URL.createObjectURL(
+                new Blob(
+                  [
+                    new Uint8Array(
+                      atob(data)
+                        .split("")
+                        .map((c) => c.charCodeAt(0)),
+                    ),
+                  ],
+                  { type: contentType },
+                ),
+              )}
+              onLoadedData={(e) => URL.revokeObjectURL(e.target.src)}
+            />
+            <div className="p-2 bg-zinc-800 w-full flex justify-center">
+              <span className="text-[10px] text-zinc-500 uppercase font-bold">
+                {contentType} ({Math.round((data.length * 0.75) / 1024 / 1024)}{" "}
+                MB)
+              </span>
+            </div>
           </div>
         ) : mimeType.includes("text/html") ? (
           <div className="mt-2 bg-white rounded overflow-hidden">

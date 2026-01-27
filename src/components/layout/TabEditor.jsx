@@ -16,7 +16,12 @@ export default function TabEditor() {
   const updateTabRequest = useTabStore((state) => state.updateTabRequest);
   const saveTabToCollection = useTabStore((state) => state.saveTabToCollection);
 
-  const { logsPorTela, handleExecuteRequest } = useRequestExecutor();
+  const {
+    logsPorTela,
+    executandoPorTela,
+    handleExecuteRequest,
+    cancelRequest,
+  } = useRequestExecutor();
   const [activeSection, setActiveSection] = useState("headers");
 
   if (!activeTab) {
@@ -111,20 +116,37 @@ export default function TabEditor() {
               className="flex-1 bg-zinc-800 text-white px-3 py-2 rounded border border-zinc-600! focus:outline-none focus:border-yellow-500"
             />
 
-            {/* Botão Executar */}
+            {/* Botão Executar / Cancelar */}
             <div className="flex items-center gap-1">
-              <button
-                title="Executar requisição"
-                onClick={handleExecute}
-                className="p-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold transition-colors"
-              >
-                <Play size={16} />
-              </button>
+              {executandoPorTela[activeTab.screenKey || activeTab.id] ? (
+                <button
+                  title="Cancelar requisição"
+                  onClick={() =>
+                    cancelRequest(
+                      executandoPorTela[activeTab.screenKey || activeTab.id],
+                    )
+                  }
+                  className="p-2.5 bg-red-600 hover:bg-red-700 text-white rounded font-bold transition-colors animate-pulse"
+                >
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </button>
+              ) : (
+                <button
+                  title="Executar requisição"
+                  onClick={handleExecute}
+                  className="p-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold transition-colors"
+                >
+                  <Play size={16} />
+                </button>
+              )}
 
               {/* Botão Salvar */}
               <button
                 onClick={handleSave}
-                disabled={!activeTab.isDirty}
+                disabled={
+                  !activeTab.isDirty ||
+                  !!executandoPorTela[activeTab.screenKey || activeTab.id]
+                }
                 className={`
                   p-2.5 rounded font-bold transition-colors flex items-center gap-2
                   ${

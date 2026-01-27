@@ -47,6 +47,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // --- Requisições e Conversão ---
   request: (data) => ipcRenderer.invoke("request", data),
+  cancelRequest: (requestId) => ipcRenderer.send("cancel-request", requestId),
   startConversion: (data) => ipcRenderer.send("start-conversion", data),
   startDownload: () => ipcRenderer.send("start-download"),
   onLog: (callback) => {

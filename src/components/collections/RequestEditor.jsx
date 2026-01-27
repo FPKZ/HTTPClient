@@ -228,20 +228,36 @@ export default function RequestEditor({
   const handleModeChange = (newMode) => {
     let newContent = subValue.content;
 
-    // Conversões de JSON para Lista (Inputs ou FormData)
-    if (mode === "json" && (newMode === "inputs" || newMode === "formdata")) {
+    // Conversões de JSON para Lista (Inputs, FormData ou URL-Encoded)
+    if (
+      mode === "json" &&
+      (newMode === "inputs" ||
+        newMode === "formdata" ||
+        newMode === "urlencoded")
+    ) {
       newContent = jsonToList(subValue.content);
     }
     // Conversões de Lista para JSON
-    else if ((mode === "inputs" || mode === "formdata") && newMode === "json") {
+    else if (
+      (mode === "inputs" || mode === "formdata" || mode === "urlencoded") &&
+      newMode === "json"
+    ) {
       newContent = listToJson(subValue.content);
     }
     // Mudança para None
     else if (newMode === "none") {
       newContent = "";
     }
-    // Inicialização se vazio
-    else if (newMode === "inputs" || newMode === "formdata") {
+    // Mudança para Binary ou Stream (Limpa ou mantém string se for arquivo)
+    else if (newMode === "binary" || newMode === "stream") {
+      newContent = typeof newContent === "string" ? newContent : "";
+    }
+    // Inicialização se vazio para tabelas
+    else if (
+      newMode === "inputs" ||
+      newMode === "formdata" ||
+      newMode === "urlencoded"
+    ) {
       if (!Array.isArray(newContent)) newContent = [];
     }
 
@@ -254,40 +270,50 @@ export default function RequestEditor({
   // Renderização do seletor de modo (apenas para Body)
   const renderModeSelector = () => (
     <div className="flex gap-4 mb-0 border-b border-zinc-800 pb-2">
-      {["json", "formdata"].map((m) => (
-        <label key={m} className="flex items-center gap-2 cursor-pointer group">
-          <input
-            type="radio"
-            name="bodyMode"
-            checked={mode === m}
-            onChange={() => handleModeChange(m)}
-            className="hidden"
-          />
-          <div className="flex items-center justify-center gap-2">
-            <div
-              className={`w-3 h-3 rounded-full border ${
-                mode === m
-                  ? "bg-yellow-500! border-yellow-500!"
-                  : "border-zinc-600! group-hover:border-zinc-400!"
-              }`}
+      {["none", "json", "formdata", "urlencoded", "binary", "stream"].map(
+        (m) => (
+          <label
+            key={m}
+            className={`flex items-center gap-2 cursor-pointer group ${m === "stream" ? "ml-auto" : ""}`}
+          >
+            <input
+              type="radio"
+              name="bodyMode"
+              checked={mode === m}
+              onChange={() => handleModeChange(m)}
+              className="hidden"
             />
-            <span
-              className={`text-[0.65rem] uppercase font-bold mt-0.5 ${
-                mode === m
-                  ? "text-yellow-500!"
-                  : "text-zinc-500! group-hover:text-zinc-300!"
-              }`}
-            >
-              {m}
-            </span>
-          </div>
-        </label>
-      ))}
+            <div className="flex items-center justify-center gap-2">
+              <div
+                className={`w-3 h-3 rounded-full border ${
+                  mode === m
+                    ? "bg-yellow-500! border-yellow-500!"
+                    : "border-zinc-600! group-hover:border-zinc-400!"
+                }`}
+              />
+              <span
+                className={`text-[0.65rem] uppercase font-bold mt-0.5 ${
+                  mode === m
+                    ? "text-yellow-500!"
+                    : "text-zinc-500! group-hover:text-zinc-300!"
+                }`}
+              >
+                {m}
+              </span>
+            </div>
+          </label>
+        ),
+      )}
     </div>
   );
 
-  // Renderização de lista (Headers, Params, Body Inputs)
-  if (mode === "list" || mode === "inputs" || mode === "formdata") {
+  // Renderização de lista (Headers, Params, Body Inputs, URL-Encoded)
+  if (
+    mode === "list" ||
+    mode === "inputs" ||
+    mode === "formdata" ||
+    mode === "urlencoded"
+  ) {
     return (
       <div className="flex flex-col gap-1">
         {isBody && renderModeSelector()}
@@ -347,7 +373,6 @@ export default function RequestEditor({
                         const path = await window.electronAPI.selectFile();
                         if (path) {
                           handleItemChange(idx, "value", path);
-                          // Também podemos salvar 'src' se o backend precisar, mas 'value' costuma ser o path
                         }
                       }}
                       className="bg-zinc-700 hover:bg-zinc-600 text-white px-2 py-1 rounded text-[0.6rem]"
@@ -393,7 +418,6 @@ export default function RequestEditor({
   }
 
   // Renderização de JSON
-  // Renderização de JSON
   if (mode === "json") {
     return (
       <div className="flex flex-col gap-2">
@@ -413,6 +437,89 @@ export default function RequestEditor({
         <p className="text-[0.6rem] text-zinc-600 mb-0">
           DICA: Use o modo JSON para requisições complexas.
         </p>
+      </div>
+    );
+  }
+
+  // Renderização de Binary
+  if (mode === "binary") {
+    return (
+      <div className="flex flex-col gap-2 px-2">
+        {renderModeSelector()}
+        <div className="py-4 flex flex-col gap-2 bg-zinc-900/30 p-3 rounded border border-zinc-800 border-dashed!">
+          <span className="text-[0.6rem] text-zinc-500 font-bold uppercase">
+            Caminho do Arquivo Binário
+          </span>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              readOnly
+              value={subValue.content || ""}
+              placeholder="Nenhum arquivo selecionado..."
+              className="flex-1 bg-zinc-800 text-zinc-300 text-[0.7rem] px-3 py-2 rounded focus:outline-none"
+            />
+            <button
+              onClick={async () => {
+                if (!window.electronAPI) return;
+                const path = await window.electronAPI.selectFile();
+                if (path) {
+                  onInputChange(0, "body", null, {
+                    ...subValue,
+                    content: path,
+                  });
+                }
+              }}
+              className="bg-yellow-600 hover:bg-yellow-700 text-black font-bold px-4 py-2 rounded text-[0.7rem] transition-colors"
+            >
+              SELECIONAR ARQUIVO
+            </button>
+          </div>
+          <p className="text-[0.6rem] text-zinc-600 italic">
+            O corpo da requisição será enviado como um stream binário puro.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Renderização de Stream (Download direto)
+  if (mode === "stream") {
+    return (
+      <div className="flex flex-col gap-2 px-2">
+        {renderModeSelector()}
+        <div className="py-4 flex flex-col gap-2 bg-blue-900/10 p-3 rounded border border-blue-800 border-dashed!">
+          <span className="text-[0.6rem] text-blue-500 font-bold uppercase">
+            Local para Salvar o Download
+          </span>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              readOnly
+              value={subValue.content || ""}
+              placeholder="Clique em 'Localizar' para escolher onde salvar..."
+              className="flex-1 bg-zinc-800 text-zinc-300 text-[0.7rem] px-3 py-2 rounded focus:outline-none"
+            />
+            <button
+              onClick={async () => {
+                if (!window.electronAPI) return;
+                const path = await window.electronAPI.selectSaveLocation();
+                if (path) {
+                  onInputChange(0, "body", null, {
+                    ...subValue,
+                    content: path,
+                  });
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded text-[0.7rem] transition-colors"
+            >
+              LOCALIZAR
+            </button>
+          </div>
+          <p className="text-[0.6rem] text-zinc-600 italic">
+            O resultado da requisição será gravado diretamente neste arquivo,
+            sem carregar na memória RAM. Ideal para arquivos grandes.
+          </p>
+        </div>
       </div>
     );
   }

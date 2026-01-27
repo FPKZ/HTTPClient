@@ -2,6 +2,7 @@ const axios = require("axios");
 const FormData = require("form-data");
 const fs = require("fs");
 const path = require("path");
+const { Worker } = require("worker_threads");
 
 /**
  * NetworkService
@@ -12,16 +13,17 @@ class NetworkService {
   constructor() {
     this.MAX_MEMORY_BUFFER = 50 * 1024 * 1024; // 50MB
     this.DEFAULT_TIMEOUT = 60000; // 60s
+    this.WORKER_THRESHOLD = 256 * 1024; // 256KB - Limite para usar Worker
   }
 
   /**
    * Executa uma requisição HTTP.
-   * @param {Object} params - { url, method, headers, body, bodyMode, timeout, streamPath }
+   * @param {Object} params - { url, method, headers, body, bodyMode, timeout, streamPath, signal }
    * @param {Function} logCallback - Callback para enviar logs parciais.
    * @returns {Promise<Object>} - Resposta processada.
    */
   async execute(
-    { url, method, headers, body, bodyMode, timeout, streamPath },
+    { url, method, headers, body, bodyMode, timeout, streamPath, signal },
     logCallback,
   ) {
     let requestData = body;
@@ -90,6 +92,7 @@ class NetworkService {
         headers: requestHeaders,
         data: requestData,
         timeout: timeout || this.DEFAULT_TIMEOUT,
+        signal: signal, // Suporte a cancelamento
         responseType: bodyMode === "stream" ? "stream" : "arraybuffer",
         onDownloadProgress: (progressEvent) => {
           if (logCallback && progressEvent.total) {
@@ -139,11 +142,21 @@ class NetworkService {
         });
       }
 
-      const processed = this._processSuccessResponse(response);
+      const processed = await this._processSuccessResponse(response);
       if (logCallback) logCallback(processed);
       return processed;
     } catch (error) {
-      const errorData = this._processErrorResponse(error);
+      // Se o erro foi por cancelamento, tratamos de forma específica se necessário
+      if (axios.isCancel(error) || error.name === "CanceledError") {
+        return {
+          status: 0,
+          statusText: "Cancelled",
+          headers: {},
+          data: "Requisição cancelada pelo usuário",
+          isCancelled: true,
+        };
+      }
+      const errorData = await this._processErrorResponse(error);
       if (logCallback) logCallback(errorData);
       return errorData;
     }
@@ -174,8 +187,8 @@ class NetworkService {
     );
   }
 
-  _processSuccessResponse(response) {
-    const { body, isImage, contentType } = this._processResponseData(
+  async _processSuccessResponse(response) {
+    const { body, isImage, contentType } = await this._processResponseData(
       response.data,
       response.headers,
     );
@@ -186,12 +199,15 @@ class NetworkService {
       headers: response.headers,
       data: body,
       isImage,
+      isPDF: contentType.includes("application/pdf"),
+      isAudio: contentType.includes("audio/"),
+      isVideo: contentType.includes("video/"),
       contentType,
       url: response.config?.url,
     };
   }
 
-  _processErrorResponse(error) {
+  async _processErrorResponse(error) {
     let status = error.response?.status || 500;
     let statusText = error.response?.statusText || "Internal Server Error";
     let headers = error.response?.headers || {};
@@ -201,7 +217,10 @@ class NetworkService {
     let contentType = headers["content-type"] || "text/plain";
 
     if (error.response?.data) {
-      const processed = this._processResponseData(error.response.data, headers);
+      const processed = await this._processResponseData(
+        error.response.data,
+        headers,
+      );
       data = processed.body;
       isImage = processed.isImage;
       contentType = processed.contentType;
@@ -213,6 +232,9 @@ class NetworkService {
       headers,
       data,
       isImage,
+      isPDF: contentType.includes("application/pdf"),
+      isAudio: contentType.includes("audio/"),
+      isVideo: contentType.includes("video/"),
       isError: true,
       contentType,
     };
@@ -220,8 +242,43 @@ class NetworkService {
 
   /**
    * Centraliza o processamento de dados binários da resposta.
+   * Usa Worker Thread se o dado for grande para não travar o processo principal.
    */
-  _processResponseData(arrayBuffer, headers) {
+  async _processResponseData(arrayBuffer, headers) {
+    const dataSize = arrayBuffer.byteLength;
+
+    // Se for maior que o threshold, delega para o Worker
+    if (dataSize > this.WORKER_THRESHOLD) {
+      console.log(
+        `[NetworkService] Resposta grande (${(dataSize / 1024).toFixed(1)}KB). Usando Worker Thread...`,
+      );
+      return new Promise((resolve, reject) => {
+        const worker = new Worker(
+          path.join(__dirname, "../workers/response-processor.cjs"),
+          {
+            workerData: { arrayBuffer, headers },
+          },
+        );
+
+        worker.on("message", (msg) => {
+          if (msg.success) resolve(msg);
+          else reject(new Error(msg.error));
+          worker.terminate();
+        });
+
+        worker.on("error", (err) => {
+          reject(err);
+          worker.terminate();
+        });
+
+        worker.on("exit", (code) => {
+          if (code !== 0)
+            reject(new Error(`Worker stopped with exit code ${code}`));
+        });
+      });
+    }
+
+    // Processamento síncrono para dados pequenos (Main Thread)
     const buffer = Buffer.from(arrayBuffer);
     let contentType = (headers["content-type"] || "").toLowerCase();
 
@@ -250,11 +307,13 @@ class NetworkService {
       } else if (hex.startsWith("424d")) {
         isImage = true;
         detectedMime = "image/bmp";
+      } else if (hex.startsWith("25504446")) {
+        detectedMime = "application/pdf";
       }
     }
 
-    // 2. Se detectamos via bytes, forçamos o contentType correto se o original for genérico ou ausente
-    if (isImage && detectedMime) {
+    // 2. Se detectamos via bytes, forçamos o contentType correto
+    if (detectedMime) {
       if (
         !contentType ||
         contentType.includes("application/octet-stream") ||
@@ -264,13 +323,17 @@ class NetworkService {
       }
     }
 
-    // 3. Fallback por Content-Type se não detectou por bytes
-    if (!isImage && contentType.startsWith("image/")) {
+    // 3. Fallback por Content-Type
+    if (!detectedMime && contentType.startsWith("image/")) {
       isImage = true;
     }
 
+    const isPDF = contentType.includes("application/pdf");
+    const isAudio = contentType.includes("audio/");
+    const isVideo = contentType.includes("video/");
+
     let body;
-    if (isImage) {
+    if (isImage || isPDF || isAudio || isVideo) {
       body = buffer.toString("base64");
     } else {
       body = buffer.toString("utf8");
