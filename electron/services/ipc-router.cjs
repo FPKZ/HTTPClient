@@ -138,6 +138,18 @@ class IpcRouter {
       return this._handleFileSave(content, defaultPath);
     });
 
+    ipcMain.handle(
+      "export-http",
+      async (event, { content: collectionData, defaultPath }) => {
+        const formatter = this.formatters.http;
+        const content = formatter.format(collectionData);
+        return this._handleFileSave(content, defaultPath, [
+          { name: "HTTP Files", extensions: ["http"] },
+          { name: "Text Files", extensions: ["txt"] },
+        ]);
+      },
+    );
+
     ipcMain.on("toggle-dev-tools", (event) => {
       const mainWindow = this.win.getMainWindow();
       if (mainWindow) mainWindow.webContents.toggleDevTools();
@@ -257,21 +269,23 @@ class IpcRouter {
     return results;
   }
 
-  async _handleFileSave(content, defaultPath) {
+  async _handleFileSave(content, defaultPath, filters) {
     try {
+      const isString = typeof content === "string";
       const { canceled, filePath } = await dialog.showSaveDialog({
         title: "Salvar Arquivo",
-        defaultPath: defaultPath || `${content.name}.HTTPClient.json`,
-        filters: [{ name: "JSON Files", extensions: ["json"] }],
+        defaultPath:
+          defaultPath || (isString ? "request.http" : "colecao.json"),
+        filters: filters || [{ name: "JSON Files", extensions: ["json"] }],
       });
 
       if (canceled || !filePath) return { success: false };
 
-      // Se o conteúdo for um objeto, assume que é o modelo interno do HttpFormatter
-      // Note: O HttpFormatter atualmente não tem um flatten estático fácil aqui,
-      // mas podemos injetar ou o frontend já manda formatado.
-      // Por simplicidade, assumimos que o conteúdo já vem formatado do frontend ou é uma string.
-      this.export.exportJson(filePath, content);
+      if (isString) {
+        await fs.promises.writeFile(filePath, content, "utf8");
+      } else {
+        this.export.exportJson(filePath, content);
+      }
       return { success: true, filePath };
     } catch (error) {
       return { success: false, error: error.message };

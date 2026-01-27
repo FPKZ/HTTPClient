@@ -39,7 +39,30 @@ class AxiosFormatter {
 
 class HttpFormatter {
   format(internalModel) {
-    return this._processRoutes(internalModel.items);
+    let content = `### REST Client Documentation\n`;
+    content += `# Use 'Ctrol+Shift+O' (Cmd+Shift+O on macOS) para pesquisar.\n`;
+    content += `# Use 'Ctrl+Alt+R' (Cmd+Alt+R on macOS) para executar uma requisição.\n`;
+    content += `# Use '###' para separar requisições.\n`;
+    content += `# Documentação: https://marketplace.visualstudio.com/items?itemName=humao.rest-client\n\n`;
+
+    // Variáveis de Ambiente
+    if (
+      internalModel.environments &&
+      Array.isArray(internalModel.environments)
+    ) {
+      const activeEnvs = internalModel.environments.filter(
+        (env) => env.enabled,
+      );
+      if (activeEnvs.length > 0) {
+        activeEnvs.forEach((env) => {
+          // Exporta sem aspas para evitar que o REST Client as inclua no valor final do header
+          content += `@${env.name} = ${env.value}\n`;
+        });
+        content += `\n`;
+      }
+    }
+
+    return content + this._processRoutes(internalModel.items);
   }
 
   _processRoutes(routes) {
@@ -47,7 +70,9 @@ class HttpFormatter {
     routes.forEach((route) => {
       if (route.items && Array.isArray(route.items)) {
         // É uma pasta, processa os itens internos recursivamente
-        content += `### PASTA: ${route.name}\n\n`;
+        content += `############################################################\n`;
+        content += `# PASTA: ${route.name}\n`;
+        content += `############################################################\n\n`;
         content += this._processRoutes(route.items);
       } else if (route.request) {
         content += this._formatRequest(route);
@@ -58,12 +83,61 @@ class HttpFormatter {
 
   _formatRequest(route) {
     const req = route.request;
-    let httpContent = `### ${route.name || "Request"}\n`;
-    httpContent += `${req.method} ${req.url}\n`;
+    const method = (req.method || "GET").toUpperCase();
+    const name = route.name || "Request";
+    const safeName = name.replace(/[^a-zA-Z0-9]/g, "_");
 
-    route.request.headers?.forEach(({ key, value, enabled }) => {
+    let httpContent = `### ${name}\n`;
+    httpContent += `# @name req_${safeName}\n`;
+    httpContent += this._getMethodComment(method);
+    httpContent += `${method} ${req.url}\n`;
+
+    // Headers
+    const headers = route.request.headers || [];
+    const hasContentType = headers.some(
+      (h) => h.key.toLowerCase() === "content-type" && h.enabled,
+    );
+
+    headers.forEach(({ key, value, enabled }) => {
       if (enabled) httpContent += `${key}: ${value}\n`;
     });
+
+    // Auth Header handling
+    if (
+      req.auth &&
+      req.auth.name !== "none" &&
+      req.auth.config &&
+      req.auth.config.value === "header"
+    ) {
+      const authHeaderName = req.auth.name;
+      const type = req.auth.config.type;
+      const key = req.auth.config.key || "";
+
+      // Adicionamos o prefixo automaticamente se configurado no sistema (ex: Bearer, Basic),
+      // mesmo que o valor seja uma variável {{...}}.
+      // Só evitamos se o valor já começar com o prefixo para não duplicar.
+      const needsPrefix =
+        type &&
+        type !== "none" &&
+        !key.toLowerCase().startsWith(type.toLowerCase());
+
+      const authPrefix = needsPrefix ? `${type} ` : "";
+      const authValue = `${authPrefix}${key}`.trim();
+
+      const alreadyHasAuth = headers.some(
+        (h) =>
+          h.key.toLowerCase() === authHeaderName.toLowerCase() && h.enabled,
+      );
+
+      if (!alreadyHasAuth && authValue) {
+        httpContent += `${authHeaderName}: ${authValue}\n`;
+      }
+    }
+
+    // Auto-add Content-Type if missing for JSON bodies
+    if (!hasContentType && req.body && req.body.mode === "json") {
+      httpContent += `Content-Type: application/json\n`;
+    }
 
     if (req.body && req.body.mode !== "none") {
       httpContent += "\n";
@@ -87,20 +161,36 @@ class HttpFormatter {
     return httpContent + "\n";
   }
 
+  _getMethodComment(method) {
+    switch (method) {
+      case "GET":
+        return `# Requisição para buscar dados\n`;
+      case "POST":
+        return `# Requisição para criar um novo recurso\n`;
+      case "PUT":
+        return `# Requisição para atualizar um recurso existente\n`;
+      case "PATCH":
+        return `# Requisição para atualização parcial de um recurso\n`;
+      case "DELETE":
+        return `# Requisição para remover um recurso\n`;
+      default:
+        return `# Requisição ${method}\n`;
+    }
+  }
+
   _formatFormData(formData) {
     const boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
     let content = "";
 
-    // formData aqui é a lista 'content' se for mode 'formdata' ou 'inputs'
     if (Array.isArray(formData)) {
       formData.forEach(({ key, value, enabled }) => {
         if (!enabled) return;
         content += `--${boundary}\n`;
-        // Nota: se for arquivo, o valor é o path no nosso modelo simplificado
         if (
           typeof value === "string" &&
           (value.includes("/") || value.includes("\\"))
         ) {
+          // REST Client syntax for files: < path/to/file
           content += `Content-Disposition: form-data; name="${key}"; filename="${value
             .split(/[/\\]/)
             .pop()}"\n\n`;
