@@ -73,7 +73,7 @@ export default function Home() {
       <NovaCollectionModal />
 
       {/* Sidebar Esquerda */}
-      <div className="col-4 col-md-3 col-lg-3 col-xl-3 m-0 p-0 h-full">
+      <div className="col-4 col-md-4 col-lg-3 col-xl-3 col-xxl-2 m-0 p-0 h-full">
         <Sidebar />
       </div>
 
