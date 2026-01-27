@@ -103,7 +103,7 @@ const SidebarHeader = () => {
           onClick={async () => {
             // Salva antes de voltar
             await handleSaveCollection();
-            navigate(-1);
+            navigate("/upload");
           }}
         >
           <div>
