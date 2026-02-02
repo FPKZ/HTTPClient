@@ -29,7 +29,7 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div className="flex flex-col items-center justify-center h-screen w-full bg-[#1e1e1e] text-white p-8 overflow-auto">
-          <div className="max-w-2xl w-full bg-[#2d2d2d] border border-red-900/50 rounded-lg p-6 shadow-2xl">
+          <div className="max-w-2xl w-full bg-[#2d2d2d] border border-red-900/50! rounded-lg p-6 shadow-2xl">
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-red-500/10 rounded-full">
                 <AlertTriangle className="text-red-500" size={32} />
@@ -45,7 +45,7 @@ class ErrorBoundary extends React.Component {
               </div>
             </div>
 
-            <div className="bg-black/40 rounded p-4 mb-6 overflow-auto max-h-[300px] border border-zinc-800">
+            <div className="bg-black/40 rounded p-4 mb-6 overflow-auto max-h-[300px] border border-zinc-800!">
               <p className="text-red-400 font-mono text-sm mb-2 font-bold">
                 {this.state.error?.toString()}
               </p>
@@ -67,7 +67,7 @@ class ErrorBoundary extends React.Component {
                 onClick={() => {
                   if (window.electronAPI) window.electronAPI.forceClose();
                 }}
-                className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-500 border border-red-500/30 rounded text-sm font-semibold transition-colors"
+                className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-500 border border-red-500/30! rounded text-sm font-semibold transition-colors"
               >
                 Sair
               </button>

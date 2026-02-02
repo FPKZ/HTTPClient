@@ -44,6 +44,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
+
 /**
  * SidebarHeader
  * Gerencia apenas a parte superior (navegação, nome e descrição).
@@ -163,12 +164,12 @@ const SidebarHeader = () => {
       </div>
 
       {/* Variaveis ambientes */}
-      <div className="px-2 py-2 border-b border-zinc-700">
+      <div className="px-0 pt-2 border-b border-zinc-700">
         <details
           className="group"
           onToggle={(e) => setIsEnvOpen(e.currentTarget.open)}
         >
-          <summary className="flex! items-center justify-between! cursor-pointer list-none text-zinc-400 hover:text-zinc-200 transition-colors">
+          <summary className="flex! items-center pb-1.5 px-2 justify-between! cursor-pointer list-none text-zinc-400 hover:text-zinc-200 transition-colors">
             <div className="flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-wider">
               <Info
                 size={14}
@@ -204,7 +205,7 @@ const SidebarHeader = () => {
               />
             </div>
           </summary>
-          <div className="mt-2 px-0 space-y-1">
+          <div className="mt-2 px-0  max-h-[30vh] overflow-y-auto">
             {environments.length === 0 ? (
               <span className="text-[0.65rem] text-zinc-500 italic ps-1">
                 Nenhum ambiente configurado
@@ -213,32 +214,43 @@ const SidebarHeader = () => {
               environments.map((env, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-1 group/env px-1"
+                  className="flex items-center group/env border-t border-zinc-700/30!  px-0 hover:bg-zinc-800/30!"
                 >
-                  <input
-                    type="text"
-                    placeholder="Chave"
-                    value={env.name}
-                    onChange={(e) =>
-                      handleUpdateEnv(index, "name", e.target.value)
-                    }
-                    className="w-1/2 bg-zinc-800  rounded px-1 py-0.5 text-[0.6rem] text-zinc-300 outline-none focus:border-yellow-600/50"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Valor"
-                    value={env.value}
-                    onChange={(e) =>
-                      handleUpdateEnv(index, "value", e.target.value)
-                    }
-                    className="
-                      w-1/2 px-1 py-0.5
-                      bg-zinc-800 
-                      rounded 
-                      text-[0.6rem] text-zinc-300 
-                      outline-none focus:border-yellow-600/50
-                    "
-                  />
+                  <div className="flex items-center flex-wrap gap-0 ">
+                    <div className="flex p-0 w-full border-b border-zinc-700! position-relative">
+                      <label className="text-[0.6rem] text-zinc-500 position-absolute ps-1 pt-1">Chave:</label>
+                      <input
+                        type="text"
+                        placeholder="Chave"
+                        value={env.name}
+                        onChange={(e) =>
+                          handleUpdateEnv(index, "name", e.target.value)
+                        }
+                        className="
+                          w-full px-2.5 pe-1 pb-0 pt-3
+                          text-[0.9rem]! text-zinc-300
+                          outline-none 
+                          focus:border-b focus:border-b-yellow-600/50 focus:bg-zinc-800/50
+                        "
+                      />
+                    </div>
+                    <div className="flex gap-0.5 w-full">
+                      {/* <label className="text-[0.6rem] text-zinc-500 position-absolute">Valor:</label> */}
+                      <input
+                        type="text"
+                        placeholder="Valor"
+                        value={env.value}
+                        onChange={(e) =>
+                          handleUpdateEnv(index, "value", e.target.value)
+                        }
+                        className="
+                          w-full ps-2.5 pe-1 py-1
+                          text-[0.7rem]! text-zinc-300/50 
+                          outline-none focus:border-b focus:border-b-yellow-600/50 focus:bg-zinc-800/50
+                        "
+                      />
+                    </div>
+                  </div>
                   <button
                     onClick={() => handleDeleteEnv(index)}
                     className="

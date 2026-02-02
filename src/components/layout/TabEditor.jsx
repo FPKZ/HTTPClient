@@ -69,7 +69,7 @@ export default function TabEditor() {
 
   const telaData = activeTab.data;
   const logs = logsPorTela[activeTab.screenKey || activeTab.id] || [];
-
+  
   return (
     <div className="flex-1 flex flex-col bg-zinc-900 overflow-y-auto min-h-0 relative">
       <Tab.Container
@@ -78,8 +78,12 @@ export default function TabEditor() {
       >
         {/* Parte Superior: URL + Navegação das Abas */}
         <div className="sticky top-0 z-20 flex-none border-b border-zinc-700 bg-[#18181b] shadow-md">
+          {/* Nome */}
+          <div className="p-1 flex items-center justify-center">
+            <p className="m-0 text-[0.7rem]">{activeTab.title}</p>
+          </div>
           {/* URL e Método */}
-          <div className="p-3 pb-2 flex items-center gap-3">
+          <div className="p-3 pb-2 pt-0 flex items-center gap-3">
             {/* Método HTTP */}
             <select
               value={telaData.request.method || "GET"}
