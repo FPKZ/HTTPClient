@@ -154,6 +154,11 @@ class IpcRouter {
       const mainWindow = this.win.getMainWindow();
       if (mainWindow) mainWindow.webContents.toggleDevTools();
     });
+
+    ipcMain.on("log-error", (event, errorData) => {
+      const log = require("electron-log");
+      log.error("[Renderer Error]", errorData);
+    });
   }
 
   async _handleConversion(sender, inputPath, isFile) {

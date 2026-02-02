@@ -1,5 +1,7 @@
 const { contextBridge, ipcRenderer, webUtils } = require("electron");
 
+console.log("[Preload] Initializing...");
+
 // Detecta o ambiente via argumento injetado pelo WindowManager
 const isDev = process.argv.some((arg) => arg === "--is-dev=true");
 
@@ -18,6 +20,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
         "navigate-to",
         "check-for-updates",
         "show-dialog",
+        "log-error",
       ];
       if (validChannels.includes(channel)) {
         const subscription = (event, ...args) => func(...args);

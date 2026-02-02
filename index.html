@@ -1,25 +1,39 @@
 <!doctype html>
-<html lang="pt-br">
+<html lang="pt-br" class="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="stylesheet" href="src/index.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Content-Security-Policy"
       content="
-        default-src 'self' https://cdn.jsdelivr.net; 
-        frame-src 'self' data: blob:; 
+        default-src 'self' https://cdn.jsdelivr.net *; 
+        frame-src 'self' data: blob: *; 
         script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://cdn.jsdelivr.net *; 
         worker-src 'self' blob:; 
         style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net *; 
         font-src 'self' data: https://cdn.jsdelivr.net *; 
-        connect-src *; 
+        connect-src 'self' http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:* *; 
         img-src 'self' data: blob: *;"
     />
     <title>httpclient-react</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div
+      id="root"
+      style="
+        background: #1e1e1e;
+        color: #555;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100dvh;
+        font-family: sans-serif;
+      "
+    >
+      <!-- Loading Application... -->
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -1,24 +1,27 @@
 const { app, dialog } = require("electron");
 const path = require("path");
+const log = require("electron-log");
+
+log.info("--- APP STARTING ---");
 
 // Configurações de hardware devem vir antes do ready
-app.disableHardwareAcceleration();
+// app.disableHardwareAcceleration();
 // app.commandLine.appendSwitch('disable-gpu-compositing'); // Alternativa se necessário
 
 process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception:", error);
+  log.error("Uncaught Exception (Main):", error);
   dialog.showErrorBox(
     "Erro Fatal",
-    `Ocorreu um erro inesperado:\n${error.message}\n${error.stack}`
+    `Ocorreu um erro inesperado:\n${error.message}\n${error.stack}`,
   );
   app.quit();
 });
 
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  log.error("Unhandled Rejection (Main):", reason);
   dialog.showErrorBox(
     "Promessa Rejeitada",
-    `Razão: ${reason}\n${reason?.stack || ""}`
+    `Razão: ${reason}\n${reason?.stack || ""}`,
   );
   app.quit();
 });
@@ -69,7 +72,7 @@ const ipcRouter = new IpcRouter(
   { axios: axiosFormatter, http: httpFormatter },
   networkService,
   exportService,
-  dialogReact
+  dialogReact,
 );
 
 // --- Lifecycle do App ---
@@ -86,14 +89,19 @@ app.whenReady().then(() => {
 
   // Monitora falhas no processo de renderização (comum no Windows com drivers de vídeo)
   app.on("render-process-gone", (event, webContents, details) => {
-    console.error("Render process gone:", details.reason, details.exitCode);
-    if (details.reason === "crashed" || details.reason === "gpu-process-crashed") {
+    log.error("Render process gone:", details.reason, details.exitCode);
+    if (
+      details.reason === "crashed" ||
+      details.reason === "gpu-process-crashed"
+    ) {
       dialog.showErrorBox(
         "Erro de Interface",
-        `A interface do app parou de responder (${details.reason}). Tente reiniciar o aplicativo.`
+        `A interface do app parou de responder (${details.reason}). Tente reiniciar o aplicativo.`,
       );
     }
   });
+
+  log.info("App Ready. Starting Window Sequence...");
 
   // Inicializa o fluxo de atualização (que depois lança o app principal)
   // dialog.showMessageBox({ message: '1. App Ready. Checking updates...' }); // Debug

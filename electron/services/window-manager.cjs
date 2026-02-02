@@ -16,7 +16,7 @@ class WindowManager {
 
   getRouteURL(route) {
     if (this.isDev) {
-      return `http://localhost:5173#${route}`;
+      return `http://127.0.0.1:5173#${route}`;
     }
     const indexPath = path.join(__dirname, "../../dist/index.html");
     return `file://${indexPath}#${route}`;
@@ -27,6 +27,11 @@ class WindowManager {
 
     // Pega as dimensões do monitor principal (agora é seguro usar 'screen')
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+    const log = require("electron-log");
+    log.info("Creating Main Window...", {
+      isDev: this.isDev,
+      preloadPath: this.preloadPath,
+    });
 
     // const { dialog } = require('electron'); // Debug
     // dialog.showMessageBox({ message: 'Creating Main Window...' });
@@ -52,7 +57,46 @@ class WindowManager {
       },
     });
 
-    this.mainWindow.loadURL(this.getRouteURL("/upload")).catch((e) => {
+    this.mainWindow.webContents.on("did-start-loading", () =>
+      log.info("Main Window: did-start-loading"),
+    );
+    this.mainWindow.webContents.on("did-finish-load", () =>
+      log.info("Main Window: did-finish-load"),
+    );
+    this.mainWindow.webContents.on("did-fail-load", (e, code, desc, url) =>
+      log.error("Main Window: did-fail-load", { code, desc, url }),
+    );
+    this.mainWindow.webContents.on("dom-ready", () =>
+      log.info("Main Window: dom-ready"),
+    );
+
+    // Redireciona console do Renderer para o log do Main
+    this.mainWindow.webContents.on(
+      "console-message",
+      (event, level, message, line, sourceId) => {
+        const levels = ["DEBUG", "INFO", "WARN", "ERROR"];
+        log.info(
+          `[Renderer Console][${levels[level] || "LOG"}] ${message} (${path.basename(sourceId)}:${line})`,
+        );
+      },
+    );
+
+    this.mainWindow.webContents.on(
+      "did-fail-load",
+      (event, errorCode, errorDescription, validatedURL) => {
+        log.error(
+          `[Renderer Load Failed] ${errorCode}: ${errorDescription} - ${validatedURL}`,
+        );
+      },
+    );
+
+    const url = this.getRouteURL("/upload");
+    log.info(`Loading URL in Main Window: ${url}`);
+    this.mainWindow.loadURL(url).catch((e) => {
+      const log = require("electron-log");
+      log.error(`Falha ao carregar URL: ${e.message}`, {
+        url: this.getRouteURL("/upload"),
+      });
       const { dialog } = require("electron");
       dialog.showErrorBox(
         "Erro ao carregar janela",
@@ -65,6 +109,7 @@ class WindowManager {
     this.mainWindow.setMenuBarVisibility(false); // Hide visually but keep shortcuts
 
     this.mainWindow.once("ready-to-show", () => {
+      log.info("Main Window event: ready-to-show");
       if (this.updateWindow) {
         this.updateWindow.close();
         this.updateWindow = null;
@@ -96,13 +141,16 @@ class WindowManager {
   createUpdateWindow() {
     if (this.updateWindow) return this.updateWindow;
 
+    const log = require("electron-log");
+    log.info("Creating Update Window...");
+
     this.updateWindow = new BrowserWindow({
       width: 300,
       height: 400,
       resizable: false,
       center: true,
       frame: false,
-      transparent: true,
+      transparent: false, // Desativado para teste
       alwaysOnTop: true,
       webPreferences: {
         preload: this.preloadPath,
@@ -112,7 +160,30 @@ class WindowManager {
       },
     });
 
-    this.updateWindow.loadURL(this.getRouteURL("/update"));
+    this.updateWindow.webContents.on("did-start-loading", () =>
+      log.info("Update Window: did-start-loading"),
+    );
+    this.updateWindow.webContents.on("did-finish-load", () =>
+      log.info("Update Window: did-finish-load"),
+    );
+    this.updateWindow.webContents.on("did-fail-load", (e, code, desc, url) =>
+      log.error("Update Window: did-fail-load", { code, desc, url }),
+    );
+
+    // Redireciona console do Renderer para o log do Main (Update Window)
+    this.updateWindow.webContents.on(
+      "console-message",
+      (event, level, message, line, sourceId) => {
+        const levels = ["DEBUG", "INFO", "WARN", "ERROR"];
+        log.info(
+          `[Update Window Console][${levels[level] || "LOG"}] ${message} (${path.basename(sourceId)}:${line})`,
+        );
+      },
+    );
+
+    const url = this.getRouteURL("/update");
+    log.info(`Loading URL in Update Window: ${url}`);
+    this.updateWindow.loadURL(url);
     return this.updateWindow;
   }
 
