@@ -225,7 +225,7 @@ const SidebarHeader = () => {
                     className="w-1/2 bg-zinc-800  rounded px-1 py-0.5 text-[0.6rem] text-zinc-300 outline-none focus:border-yellow-600/50"
                   />
                   <input
-                    type="password"
+                    type="text"
                     placeholder="Valor"
                     value={env.value}
                     onChange={(e) =>
