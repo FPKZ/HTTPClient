@@ -1,6 +1,12 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+import {
+  Group as PanelGroup,
+  Panel,
+  Separator as PanelResizeHandle,
+} from "react-resizable-panels";
+
 // Components
 import Sidebar from "../components/layout/Sidebar";
 import TabBar from "../components/layout/TabBar";
@@ -69,19 +75,25 @@ export default function Home() {
   // if (!collection.items.length) return null; // Pode exibir loading ou null se quiser force
 
   return (
-    <div className="row m-0 p-0 flex h-full bg-zinc-950">
+    <div className="flex h-full bg-zinc-950">
+      <PanelGroup>
+        {/* Sidebar Esquerda */}
+        <Panel defaultSize={"20%"} maxSize={"35%"} minSize={"15%"}>
+            <Sidebar />
+        </Panel>
+        
+        <PanelResizeHandle className="h-full position-relative">
+          <div className="h-full position-absolute right-0 w-1 display-none hover:display-block hover:bg-yellow-600/50 hover:w-1">
+          </div>
+        </PanelResizeHandle>
+
+        {/* Área Principal (Abas + Editor) */}
+        <Panel className="flex-1 flex flex-col h-full">
+          <TabBar />
+          <TabEditor />
+        </Panel>
+      </PanelGroup>
       <NovaCollectionModal />
-
-      {/* Sidebar Esquerda */}
-      <div className="col-4 col-md-4 col-lg-3 col-xl-3 col-xxl-2 m-0 p-0 h-full">
-        <Sidebar />
-      </div>
-
-      {/* Área Principal (Abas + Editor) */}
-      <div className="col flex-1 flex flex-col min-w-0 min-h-0 m-0 p-0 h-full">
-        <TabBar />
-        <TabEditor />
-      </div>
     </div>
   );
 }

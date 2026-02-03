@@ -5,10 +5,13 @@ import { useLocation } from "react-router-dom";
 import DropdownMenuComponent from "./DropdownMenu";
 import { useMenuGeral } from "../hooks/useMenuGeral";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import useTabStore from "../store/useTabStore";
 
 export default function TitleBar() {
   const { templete, devTemplete, isDev } = useMenuGeral();
   const location = useLocation();
+
+  const activeTab = useTabStore((state) => state.getActiveTab());
 
   // Registra os atalhos de teclado globais apenas quando o menu geral é visível
   const menuItems =
@@ -47,6 +50,10 @@ export default function TitleBar() {
       <div className="titlebar-left d-flex align-items-center gap-2 ms-2">
         <img src={icon} alt="Icon" style={{ width: "20px", height: "20px" }} />
         <span className="fw-bold">HTTPClient</span>
+      </div>
+
+      <div className="flex-1 mx-5 px-5 text-center text-[0.7rem] truncate">
+        {activeTab?.title || ""}
       </div>
 
       <div className="window-controls d-flex no-drag h-100">

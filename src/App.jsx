@@ -71,7 +71,11 @@ function App() {
             }
           />
           <Route path="/update" element={<UpdatePage />} />
-          <Route path="/demo" element={<ResizableDemo />} />
+          <Route path="/demo" element={
+            <Layout>
+              <ResizableDemo />
+            </Layout>
+          } />
         </Routes>
       </GlobalContextMenu>
     </div>

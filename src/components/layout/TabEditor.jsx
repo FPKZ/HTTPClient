@@ -79,11 +79,11 @@ export default function TabEditor() {
         {/* Parte Superior: URL + Navegação das Abas */}
         <div className="sticky top-0 z-20 flex-none border-b border-zinc-700 bg-[#18181b] shadow-md">
           {/* Nome */}
-          <div className="p-1 flex items-center justify-center">
+          {/* <div className="p-1 flex items-center justify-center">
             <p className="m-0 text-[0.7rem]">{activeTab.title}</p>
-          </div>
+          </div> */}
           {/* URL e Método */}
-          <div className="p-3 pb-2 pt-0 flex items-center gap-3">
+          <div className="p-2 py-2 flex items-center gap-3">
             {/* Método HTTP */}
             <select
               value={telaData.request.method || "GET"}

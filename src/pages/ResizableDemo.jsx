@@ -38,7 +38,7 @@ export default function ResizableDemo() {
   };
 
   return (
-    <div className="h-screen bg-zinc-950 flex flex-col">
+    <div className="h-full bg-zinc-950 flex flex-col">
       {/* Header */}
       <div className="bg-zinc-900 border-b border-zinc-700 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -63,7 +63,7 @@ export default function ResizableDemo() {
             defaultSize={"20%"}
             minSize={"10%"}
             maxSize={"30%"}
-            collapsible={true}
+            // collapsible={true}
             collapsedSize={0}
             onResize={(size) => setSidebarSize(size.asPercentage)}
             className="bg-zinc-900"
