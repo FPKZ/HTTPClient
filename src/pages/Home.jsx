@@ -39,6 +39,7 @@ export default function Home() {
   );
 
   const collection = useTabStore((state) => state.collection);
+  const resetTabs = useTabStore((state) => state.resetTabs);
 
   // 1. Validação de Segurança
   // Se não houver itens na coleção, volta para upload
@@ -50,7 +51,12 @@ export default function Home() {
       // Se persist falhar, volta pro upload
       // navigate("/upload");
     }
-  }, [collection.items, navigate]);
+
+    // Limpa o estado no localStorage quando "sai" da Home
+    return () => {
+      resetTabs();
+    };
+  }, [collection.items, navigate, resetTabs]);
 
 
   // 4. Auto-save ao sair (Ctrl+Q)

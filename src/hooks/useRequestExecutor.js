@@ -11,8 +11,18 @@ export function useRequestExecutor() {
   const [logsPorTela, setLogsPorTela] = useState({});
   const [executandoPorTela, setExecutandoPorTela] = useState({});
   const environments = useTabStore(
-    (state) => state.collection.environments || [],
+    (state) => state.collection.environments,
+  ) || [];
+  const activeEnvironmentId = useTabStore(
+    (state) => state.collection.activeEnvironmentId,
   );
+  const globals = useTabStore((state) => state.globals) || [];
+
+  const envVariables =
+    environments.find((env) => env.id === activeEnvironmentId)?.variables || [];
+
+  // Mescla variáveis: globais primeiro, depois ambientes (ambientes têm prioridade)
+  const activeVariables = [...globals, ...envVariables];
 
   const cancelRequest = (requestId) => {
     if (window.electronAPI?.cancelRequest) {
@@ -28,7 +38,7 @@ export function useRequestExecutor() {
     setExecutandoPorTela((prev) => ({ ...prev, [screenKey]: requestId }));
 
     // Aplica variáveis em todo o objeto de requisição
-    const requestData = applyVariables(requestDataOrigin, environments);
+    const requestData = applyVariables(requestDataOrigin, activeVariables);
 
     // Helper para converter lista [{key, value, enabled, type}] em objeto {key: value}
     const listToObj = (list) => {

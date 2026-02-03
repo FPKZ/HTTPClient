@@ -184,14 +184,20 @@ export const insertItemByPath = (items, path, item) => {
  * Substitui ocorrências de {{variable}} por seus valores correspondentes nos ambientes.
  * Suporta strings, arrays e objetos aninhados.
  */
-export const applyVariables = (data, environments = []) => {
+export const applyVariables = (data, variables = []) => {
   if (!data) return data;
-  if (!Array.isArray(environments) || environments.length === 0) return data;
+  if (!Array.isArray(variables) || variables.length === 0) return data;
 
   // Cria um mapa de variáveis ativas para busca rápida
-  const envMap = environments.reduce((acc, env) => {
-    if (env.enabled && env.name) {
-      acc[env.name] = env.value;
+  const envMap = variables.reduce((acc, v) => {
+    const key = v.key || v.name;
+    // Usa o valor atual se existir, caso contrário cai para o valor inicial
+    const value = (v.currentValue !== undefined && v.currentValue !== null && v.currentValue !== "") 
+      ? v.currentValue 
+      : (v.initialValue !== undefined ? v.initialValue : v.value);
+      
+    if (v.enabled && key) {
+      acc[key] = value;
     }
     return acc;
   }, {});

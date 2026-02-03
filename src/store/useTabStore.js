@@ -20,9 +20,11 @@ const useTabStore = create(
     {
       name: "httpclient-tabs-storage", // Nome da chave no localStorage
       partialize: (state) => ({
-        // Persiste apenas abas e o ID da aba ativa
+        // Persiste abas, o ID da aba ativa e variáveis globais
         tabs: state.tabs,
         activeTabId: state.activeTabId,
+        collection: state.collection,
+        globals: state.globals,
       }),
     },
   ),

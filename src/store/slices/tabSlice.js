@@ -123,4 +123,11 @@ export const createTabSlice = (set, get) => ({
     const { tabs, activeTabId } = get();
     return tabs.find((tab) => tab.id === activeTabId) || null;
   },
+
+  resetTabs: () => {
+    set({
+      tabs: [],
+      activeTabId: null,
+    });
+  },
 });

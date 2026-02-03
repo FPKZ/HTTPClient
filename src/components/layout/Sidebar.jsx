@@ -21,6 +21,7 @@ import ContextMenu from "../ContextMenu";
 import DropdownMenuComponent from "../DropdownMenu";
 import EditCollectionModal from "../modals/EditCollectionModal";
 import EnvInfoModal from "../modals/EnvInfoModal";
+import EnvManagerModal from "../modals/EnvManagerModal";
 
 //hooks
 import useTabStore from "../../store/useTabStore";
@@ -37,7 +38,6 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import {
-  // arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
@@ -47,8 +47,6 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
 /**
  * SidebarHeader
- * Gerencia apenas a parte superior (navegação, nome e descrição).
- * Isola o estado de edição para evitar re-render da árvore de arquivos ao digitar.
  */
 const SidebarHeader = () => {
   const collectionName = useTabStore((state) => state.collection.name);
@@ -63,16 +61,16 @@ const SidebarHeader = () => {
   const [tempName, setTempName] = useState(collectionName);
   const [tempDesc, setTempDesc] = useState(collectionDesc);
 
-  // Ambientes
   const environments = useTabStore(
     (state) => state.collection.environments || [],
   );
-  const addEnvironment = useTabStore((state) => state.addEnvironment);
-  const updateEnvironments = useTabStore((state) => state.updateEnvironments);
+  const activeEnvironmentId = useTabStore(
+    (state) => state.collection.activeEnvironmentId,
+  );
+  const activeEnv = environments.find((e) => e.id === activeEnvironmentId);
 
-  const setEnvInfoOpen = useModalStore((state) => state.setEnvInfoOpen);
+  const [isEnvManagerOpen, setIsEnvManagerOpen] = useState(false);
 
-  // Sincroniza estado local quando a coleção muda (ex: carregamento do histórico)
   React.useEffect(() => {
     if (!isEditingName) setTempName(collectionName || "");
     if (!isEditingName) setTempDesc(collectionDesc || "");
@@ -83,33 +81,17 @@ const SidebarHeader = () => {
     setIsEditingName(false);
   };
 
-  const handleUpdateEnv = (index, field, value) => {
-    const newEnvs = [...environments];
-    newEnvs[index] = { ...newEnvs[index], [field]: value };
-    updateEnvironments(newEnvs);
-  };
-
-  const handleDeleteEnv = (index) => {
-    const newEnvs = environments.filter((_, i) => i !== index);
-    updateEnvironments(newEnvs);
-  };
-
-  const [isEnvOpen, setIsEnvOpen] = useState(false);
-
   return (
     <div>
       <div className="p-2 justify-between items-center flex">
         <button
           className="flex items-center gap-2 p-2 rounded hover:bg-zinc-700 text-zinc-300 text-[0.75rem]! font-semibold transition-colors"
           onClick={async () => {
-            // Salva antes de voltar
             await handleSaveCollection();
             navigate("/upload");
           }}
         >
-          <div>
-            <ArrowLeft size={20} />
-          </div>
+          <ArrowLeft size={20} />
           Voltar
         </button>
 
@@ -125,15 +107,11 @@ const SidebarHeader = () => {
               icon: <Download size={14} />,
               label: "Exportar Coleção",
               onClick: () => {
-                const collectionData = useTabStore
-                  .getState()
-                  .getCollectionForExport();
+                const collectionData = useTabStore.getState().getCollectionForExport();
                 window.electronAPI.saveFile({ content: collectionData });
               },
             },
-            {
-              separator: true,
-            },
+            { separator: true },
             {
               icon: <Trash2 size={14} />,
               label: "Fechar Coleção",
@@ -145,128 +123,38 @@ const SidebarHeader = () => {
         />
       </div>
 
-      {/* Header da Coleção */}
       <div className="p-3 pt-0 border-b border-zinc-700">
-        <div className="flex items-center justify-between gap-2">
-          {/* Nome da Coleção */}
-          <h2
-            className="text-lg! font-bold text-white flex-1 mb-0 cursor-pointer hover:text-yellow-500 transition-colors"
-            onClick={() => setIsEditingName(true)}
-          >
-            {collectionName || "Collection"}
-          </h2>
-        </div>
-
-        {/* Descrição Simplificada (Somente leitura se não estiver editando nome) */}
+        <h2
+          className="text-lg! font-bold text-white flex-1 mb-0 cursor-pointer hover:text-yellow-500 transition-colors"
+          onClick={() => setIsEditingName(true)}
+        >
+          {collectionName || "Collection"}
+        </h2>
         <p className="text-[0.7rem]! text-gray-500 mt-1 mb-0 truncate opacity-80">
           {collectionDesc || "Nenhuma descrição"}
         </p>
       </div>
 
-      {/* Variaveis ambientes */}
-      <div className="px-0 pt-2 border-b border-zinc-700">
-        <details
-          className="group"
-          onToggle={(e) => setIsEnvOpen(e.currentTarget.open)}
-        >
-          <summary className="flex! items-center pb-1.5 px-2 justify-between! cursor-pointer list-none text-zinc-400 hover:text-zinc-200 transition-colors">
-            <div className="flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-wider">
-              <Info
-                size={14}
-                className="hover:text-blue-400 transition-colors"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setEnvInfoOpen(true);
-                }}
-              />
-              Variáveis de Ambiente
-            </div>
-            <div className="flex items-center gap-2">
-              <Plus
-                // disabled={!isEnvOpen}
-                size={14}
-                className={
-                  !isEnvOpen
-                    ? "opacity-50"
-                    : "hover:text-yellow-500 transition-colors"
-                }
-                onClick={(e) => {
-                  if (isEnvOpen) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    addEnvironment();
-                  }
-                }}
-              />
-              <ChevronDown
-                size={14}
-                className="group-open:rotate-180 transition-transform"
-              />
-            </div>
-          </summary>
-          <div className="mt-2 px-0 bg-zinc-950 max-h-[30vh] overflow-y-auto">
-            {environments.length === 0 ? (
-              <span className="text-[0.65rem] text-zinc-500 italic ps-1">
-                Nenhum ambiente configurado
-              </span>
-            ) : (
-              environments.map((env, index) => (
-                <div
-                  key={index}
-                  className="flex items-center group/env border-t border-zinc-700/30!  px-0 hover:bg-zinc-800/30!"
-                >
-                  <div className="flex items-center flex-wrap gap-0 ">
-                    <div className="flex p-0 w-full border-b border-zinc-700! position-relative">
-                      <label className="text-[0.6rem] text-zinc-500 position-absolute ps-1 pt-1">Chave:</label>
-                      <input
-                        type="text"
-                        placeholder="Chave"
-                        value={env.name}
-                        onChange={(e) =>
-                          handleUpdateEnv(index, "name", e.target.value)
-                        }
-                        className="
-                          w-full px-2.5 pe-1 pb-0 pt-3
-                          text-[0.9rem]! text-zinc-300
-                          outline-none 
-                          focus:border-b focus:border-b-yellow-600/50 focus:bg-zinc-800/50
-                        "
-                      />
-                    </div>
-                    <div className="flex gap-0.5 w-full">
-                      {/* <label className="text-[0.6rem] text-zinc-500 position-absolute">Valor:</label> */}
-                      <input
-                        type="text"
-                        placeholder="Valor"
-                        value={env.value}
-                        onChange={(e) =>
-                          handleUpdateEnv(index, "value", e.target.value)
-                        }
-                        className="
-                          w-full ps-2.5 pe-1 py-1
-                          text-[0.7rem]! text-zinc-300/50 
-                          outline-none focus:border-b focus:border-b-yellow-600/50 focus:bg-zinc-800/50
-                        "
-                      />
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteEnv(index)}
-                    className="
-                      hidden group-hover/env:block!
-                      text-zinc-500 hover:text-red-500
-                      transition-all
-                      mx-2
-                    "
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))
-            )}
+      <div className="px-2 py-2 border-b border-zinc-700 flex items-center justify-between group/env">
+        <div className="flex items-center gap-2 overflow-hidden">
+          <Settings 
+            size={14} 
+            className="text-zinc-500 group-hover/env:text-yellow-500 transition-colors cursor-pointer" 
+          />
+          <div className="flex flex-col overflow-hidden">
+            <span className="text-[0.6rem] text-zinc-500 font-bold uppercase tracking-wider">Ambiente</span>
+            <span className="text-[0.75rem] text-zinc-300 font-medium truncate">
+              {activeEnv?.name || "Nenhum"}
+            </span>
           </div>
-        </details>
+        </div>
+        
+        <button
+          onClick={() => setIsEnvManagerOpen(true)}
+          className="px-2 py-1 rounded hover:bg-zinc-800 text-[0.65rem]! font-bold text-yellow-500 transition-colors opacity-0 group-hover/env:opacity-100! uppercase"
+        >
+          Gerenciar
+        </button>
       </div>
 
       <EditCollectionModal
@@ -276,7 +164,10 @@ const SidebarHeader = () => {
         externalName={tempName}
         externalDesc={tempDesc}
       />
-      <EnvInfoModal />
+      <EnvManagerModal 
+        open={isEnvManagerOpen} 
+        onOpenChange={setIsEnvManagerOpen} 
+      />
     </div>
   );
 };

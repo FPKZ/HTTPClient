@@ -10,8 +10,16 @@ export const createCollectionSlice = (set, get) => ({
     name: "",
     description: "",
     items: [],
-    environments: [],
+    environments: [
+      {
+        id: "env_default",
+        name: "Desenvolvimento",
+        variables: [],
+      },
+    ],
+    activeEnvironmentId: "env_default",
   },
+  globals: [],
   isDraggingDisabled: false,
 
   setDraggingDisabled: (disabled) => set({ isDraggingDisabled: disabled }),
@@ -25,13 +33,46 @@ export const createCollectionSlice = (set, get) => ({
       [];
     const cleanItems = utils.normalizeItems(rawItems);
 
+    let environments = data?.environments || [];
+    let activeEnvironmentId = data?.activeEnvironmentId || null;
+
+    // Migração: se environments for o formato antigo (array de variaveis direto)
+    if (environments.length > 0 && !environments[0].variables) {
+      environments = [
+        {
+          id: "env_migrated",
+          name: "Importado",
+          variables: environments.map((v) => ({
+            id: `var_${Math.random().toString(36).substr(2, 9)}`,
+            key: v.name || "",
+            initialValue: v.value || "",
+            currentValue: v.value || "",
+            enabled: v.enabled !== undefined ? v.enabled : true,
+          })),
+        },
+      ];
+      activeEnvironmentId = "env_migrated";
+    }
+
+    if (environments.length === 0) {
+      environments = [
+        {
+          id: "env_default",
+          name: "Desenvolvimento",
+          variables: [],
+        },
+      ];
+      activeEnvironmentId = "env_default";
+    }
+
     set({
       collection: {
         id: data?.id || null,
         name: data?.name || data?.collectionName || "Collection",
         description: data?.descricao || data?.description || "",
         items: cleanItems,
-        environments: data?.environments || [],
+        environments,
+        activeEnvironmentId,
       },
       tabs: [],
       activeTabId: null,
@@ -202,15 +243,143 @@ export const createCollectionSlice = (set, get) => ({
     }));
   },
 
-  addEnvironment: () => {
-    const { collection } = get();
-    const newEnv = { name: "", value: "", enabled: true };
-    set({
+  setActiveEnvironment: (id) => {
+    set((state) => ({
+      collection: { ...state.collection, activeEnvironmentId: id },
+    }));
+  },
+
+  addEnvironment: (name = "Novo Ambiente") => {
+    const newEnv = {
+      id: `env_${Date.now()}`,
+      name: name,
+      variables: [],
+    };
+    set((state) => ({
       collection: {
-        ...collection,
-        environments: [...(collection.environments || []), newEnv],
+        ...state.collection,
+        environments: [...state.collection.environments, newEnv],
       },
+    }));
+    return newEnv.id;
+  },
+
+  deleteEnvironment: (id) => {
+    set((state) => {
+      const newEnvs = state.collection.environments.filter((e) => e.id !== id);
+      let newActiveId = state.collection.activeEnvironmentId;
+      if (newActiveId === id) {
+        newActiveId = newEnvs.length > 0 ? newEnvs[0].id : null;
+      }
+      return {
+        collection: {
+          ...state.collection,
+          environments: newEnvs,
+          activeEnvironmentId: newActiveId,
+        },
+      };
     });
+  },
+
+  updateEnvironmentName: (id, name) => {
+    set((state) => ({
+      collection: {
+        ...state.collection,
+        environments: state.collection.environments.map((e) =>
+          e.id === id ? { ...e, name } : e,
+        ),
+      },
+    }));
+  },
+
+  addVariable: (envId) => {
+    set((state) => ({
+      collection: {
+        ...state.collection,
+        environments: state.collection.environments.map((e) => {
+          if (e.id === envId) {
+            return {
+              ...e,
+              variables: [
+                ...e.variables,
+                {
+                  id: `var_${Date.now()}`,
+                  key: "",
+                  initialValue: "",
+                  currentValue: "",
+                  enabled: true,
+                },
+              ],
+            };
+          }
+          return e;
+        }),
+      },
+    }));
+  },
+
+  updateVariable: (envId, varId, updates) => {
+    set((state) => ({
+      collection: {
+        ...state.collection,
+        environments: state.collection.environments.map((e) => {
+          if (e.id === envId) {
+            return {
+              ...e,
+              variables: e.variables.map((v) =>
+                v.id === varId ? { ...v, ...updates } : v,
+              ),
+            };
+          }
+          return e;
+        }),
+      },
+    }));
+  },
+
+  deleteVariable: (envId, varId) => {
+    set((state) => ({
+      collection: {
+        ...state.collection,
+        environments: state.collection.environments.map((e) => {
+          if (e.id === envId) {
+            return {
+              ...e,
+              variables: e.variables.filter((v) => v.id !== varId),
+            };
+          }
+          return e;
+        }),
+      },
+    }));
+  },
+
+  addGlobalVariable: () => {
+    set((state) => ({
+      globals: [
+        ...(state.globals || []),
+        {
+          id: `global_${Date.now()}`,
+          key: "",
+          value: "",
+          enabled: true,
+        },
+      ],
+    }));
+  },
+
+  updateGlobalVariable: (id, updates) => {
+    set((state) => ({
+      globals: (state.globals || []).map((v) =>
+        v.id === id ? { ...v, ...updates } : v,
+      ),
+    }));
+  },
+
+  deleteGlobalVariable: (id) => {
+    set((state) => ({
+      globals: (state.globals || []).filter((v) => v.id !== id),
+    }));
   },
 
   getCollectionForExport: () => {
