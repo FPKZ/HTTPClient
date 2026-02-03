@@ -41,7 +41,17 @@ export default function GlobalContextMenu({ children }) {
 
   const handleContextMenu = (e) => {
     const target = e.target;
-    const selection = window.getSelection()?.toString() || "";
+    // Pega a seleção de forma mais robusta
+    let selection = "";
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+      selection = target.value.substring(
+        target.selectionStart,
+        target.selectionEnd,
+      );
+    } else {
+      selection = window.getSelection()?.toString() || "";
+    }
+
     const isEditable =
       target.isContentEditable ||
       target.tagName === "INPUT" ||
@@ -55,19 +65,40 @@ export default function GlobalContextMenu({ children }) {
     const srcURL = target.src || "";
     const mediaType = target.tagName === "IMG" ? "image" : "none";
 
+    const monacoEditor = target.closest(".monaco-editor");
+    const isMonaco = !!monacoEditor;
+
+    let selectionInfo = null;
+    if (
+      isEditable &&
+      (target.tagName === "INPUT" || target.tagName === "TEXTAREA")
+    ) {
+      selectionInfo = {
+        start: target.selectionStart,
+        end: target.selectionEnd,
+        length: target.value.length,
+      };
+    }
+
     // Verifica se teremos itens (replicando lógica do render abaixo)
     const hasItems =
-      isEditable || !!selection || !!linkURL || mediaType === "image" || isDev;
+      isEditable ||
+      isMonaco ||
+      !!selection ||
+      !!linkURL ||
+      mediaType === "image" ||
+      isDev;
 
     if (!hasItems) {
       setOpen(false);
       return;
     }
 
-    lastEventRef.current = { target, e };
+    lastEventRef.current = { target, e, isMonaco, selectionInfo };
 
     setTargetDetails({
       isEditable,
+      isMonaco,
       selectionText: selection,
       linkURL,
       srcURL,
@@ -77,134 +108,146 @@ export default function GlobalContextMenu({ children }) {
     setOpen(true);
   };
 
-  const menuItems = [];
+  // Handler para ações de clipboard
+  const handleAction = React.useCallback(
+    (action) => {
+      console.log(`[GlobalContextMenu] Triggering ${action}`);
 
-  // 1. Ações de Input (Cortar/Copiar/Colar)
-  if (targetDetails.isEditable) {
-    menuItems.push(
-      {
-        label: "Recortar",
-        icon: <Scissors size={14} />,
-        onClick: () => document.execCommand("cut"), // Fallback, ou usar Clipboard API se possível
-        shortcut: "Ctrl+X",
-      },
-      {
-        label: "Copiar",
-        icon: <Copy size={14} />,
-        onClick: () => document.execCommand("copy"),
-        shortcut: "Ctrl+C",
-      },
-      // eslint-disable-next-line react-hooks/refs
-      {
-        label: "Colar",
-        icon: <ClipboardPaste size={14} />,
-        onClick: async () => {
-          try {
-            const text = await navigator.clipboard.readText();
-            // Tenta inserir no cursor
-            if (lastEventRef.current?.target) {
-              const el = lastEventRef.current.target;
-              const val = el.value;
-              const start = el.selectionStart;
-              const end = el.selectionEnd;
-              if (start !== undefined && end !== undefined) {
-                el.value = val.slice(0, start) + text + val.slice(end);
-                el.selectionStart = el.selectionEnd = start + text.length;
-                // Dispara evento de input para React/frameworks detectarem mudança
-                const event = new Event("input", { bubbles: true });
-                el.dispatchEvent(event);
-              }
+      // Pequeno delay para o menu fechar completamente e o foco estabilizar
+      setTimeout(() => {
+        const details = lastEventRef.current;
+        const target = details?.target;
+
+        if (target) {
+          console.log(
+            "[GlobalContextMenu] Focusing target and restoring selection:",
+            target.tagName,
+          );
+          target.focus();
+
+          if (details?.selectionInfo) {
+            console.log(
+              "[GlobalContextMenu] Restoring selection range:",
+              details.selectionInfo,
+            );
+            try {
+              target.setSelectionRange(
+                details.selectionInfo.start,
+                details.selectionInfo.end,
+              );
+            } catch (err) {
+              console.error(
+                "[GlobalContextMenu] Failed to set selection range",
+                err,
+              );
             }
-          } catch (err) {
-            console.error("Failed to read clipboard", err);
           }
+        }
+
+        try {
+          // Tenta execCommand primeiro pois ele costuma respeitar melhor a posição do cursor em inputs controlados
+          const result = document.execCommand(action);
+          console.log(
+            `[GlobalContextMenu] execCommand(${action}) result:`,
+            result,
+          );
+
+          if (!result) {
+            console.log(
+              `[GlobalContextMenu] Falling back to Electron IPC for ${action}`,
+            );
+            if (action === "cut") window.electronAPI.cut();
+            else if (action === "copy") window.electronAPI.copy();
+            else if (action === "paste") window.electronAPI.paste();
+          }
+        } catch (err) {
+          console.error(`[GlobalContextMenu] Error during ${action}:`, err);
+          // Fallback final
+          if (action === "cut") window.electronAPI.cut();
+          else if (action === "copy") window.electronAPI.copy();
+          else if (action === "paste") window.electronAPI.paste();
+        }
+      }, 50);
+    },
+    [], // Ref é estável
+  );
+
+  const menuItems = React.useMemo(() => {
+    const items = [];
+
+    // 1. Ações de Edição (Recortar/Copiar/Colar) - Funciona para Editável ou Monaco
+    if (targetDetails.isEditable || targetDetails.isMonaco) {
+      items.push(
+        {
+          label: "Recortar",
+          icon: <Scissors size={14} />,
+          onClick: () => handleAction("cut"),
+          shortcut: "Ctrl+X",
+          disabled: targetDetails.isEditable && !targetDetails.selectionText,
         },
-        shortcut: "Ctrl+V",
-      },
-      // { separator: true },
-    );
-  } else if (targetDetails.selectionText) {
-    // 2. Ações de Seleção de Texto
-    menuItems.push(
-      {
+        {
+          label: "Copiar",
+          icon: <Copy size={14} />,
+          onClick: () => handleAction("copy"),
+          shortcut: "Ctrl+C",
+          disabled: !targetDetails.selectionText && !targetDetails.isMonaco,
+        },
+        {
+          label: "Colar",
+          icon: <ClipboardPaste size={14} />,
+          onClick: () => handleAction("paste"),
+          shortcut: "Ctrl+V",
+        },
+      );
+    } else if (targetDetails.selectionText) {
+      // 2. Ações de Seleção de Texto
+      items.push({
         label: "Copiar",
         icon: <Copy size={14} />,
         onClick: () =>
           navigator.clipboard.writeText(targetDetails.selectionText),
         shortcut: "Ctrl+C",
-      },
-      // {
-      //   label: `Pesquisar "${targetDetails.selectionText.slice(0, 15)}${targetDetails.selectionText.length > 15 ? "..." : ""}"`,
-      //   icon: <Search size={14} />,
-      //   onClick: () =>
-      //     window.open(
-      //       `https://www.google.com/search?q=${encodeURIComponent(targetDetails.selectionText)}`,
-      //       "_blank",
-      //     ),
-      // },
-      // { separator: true },
-    );
-  }
+      });
+    }
 
-  // 3. Ações de Link
-  // if (targetDetails.linkURL) {
-  //   menuItems.push(
-  //     {
-  //       label: "Abrir Link",
-  //       icon: <ExternalLink size={14} />,
-  //       onClick: () => window.open(targetDetails.linkURL, "_blank"),
-  //     },
-  //     {
-  //       label: "Copiar Endereço do Link",
-  //       icon: <Copy size={14} />,
-  //       onClick: () => navigator.clipboard.writeText(targetDetails.linkURL),
-  //     },
-  //     {
-  //       label: "Adicionar aos Favoritos",
-  //       icon: <Star size={14} />,
-  //       onClick: () =>
-  //         console.log("Favoritar (implementar lógica):", targetDetails.linkURL),
-  //     },
-  //     // { separator: true },
-  //   );
-  // }
-
-  // 4. Ações de Imagem
-  if (targetDetails.mediaType === "image") {
-    menuItems.push(
-      {
-        label: "Salvar Imagem Como...",
-        icon: <Download size={14} />,
-        onClick: () => {
-          const a = document.createElement("a");
-          a.href = targetDetails.srcURL;
-          a.download = targetDetails.srcURL.split("/").pop() || "image";
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
+    // 4. Ações de Imagem
+    if (targetDetails.mediaType === "image") {
+      items.push(
+        {
+          label: "Salvar Imagem Como...",
+          icon: <Download size={14} />,
+          onClick: () => {
+            const a = document.createElement("a");
+            a.href = targetDetails.srcURL;
+            a.download = targetDetails.srcURL.split("/").pop() || "image";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          },
         },
-      },
-      {
-        label: "Copiar Endereço da Imagem",
-        icon: <Copy size={14} />,
-        onClick: () => navigator.clipboard.writeText(targetDetails.srcURL),
-      },
-      // { separator: true },
-    );
-  }
+        {
+          label: "Copiar Endereço da Imagem",
+          icon: <Copy size={14} />,
+          onClick: () => navigator.clipboard.writeText(targetDetails.srcURL),
+        },
+      );
+    }
 
-  // 5. Ações Gerais / Dev
-  if (isDev) {
-    if (menuItems.length > 0) menuItems.push({ separator: true });
-    menuItems.push({
-      label: "Inspecionar Elemento",
-      icon: <Code size={14} />,
-      onClick: () => {
-        // IPC para abrir devtools
-        window.electronAPI.toggleDevTools();
-      },
-    });
-  }
+    // 5. Ações Gerais / Dev
+    if (isDev) {
+      if (items.length > 0) items.push({ separator: true });
+      items.push({
+        label: "Inspecionar Elemento",
+        icon: <Code size={14} />,
+        onClick: () => {
+          // IPC para abrir devtools
+          window.electronAPI.toggleDevTools();
+        },
+      });
+    }
+
+    return items;
+  }, [targetDetails, handleAction, isDev]);
 
   return (
     <ContextMenuPrimitive.Root open={open} onOpenChange={handleOpenChange}>
@@ -220,6 +263,12 @@ export default function GlobalContextMenu({ children }) {
           <ContextMenuPrimitive.Content
             className="min-w-[180px] bg-zinc-900 border border-zinc-700! p-1 rounded-sm shadow-2xl z-50!"
             alignOffset={5}
+            onCloseAutoFocus={(e) => {
+              // Impede o Radix de tentar restaurar o foco automaticamente,
+              // o que as vezes causa o "selecionar tudo" no input.
+              // Nós faremos isso manualmente no handleAction.
+              e.preventDefault();
+            }}
           >
             {menuItems.map((item, index) => {
               if (item.separator) {

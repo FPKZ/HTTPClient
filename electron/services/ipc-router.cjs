@@ -159,6 +159,27 @@ class IpcRouter {
       const log = require("electron-log");
       log.error("[Renderer Error]", errorData);
     });
+
+    // Clipboard Actions (Native)
+    ipcMain.on("clipboard:copy", (event) => {
+      console.log("[IpcRouter] Executing native copy...");
+      event.sender.copy();
+    });
+
+    ipcMain.on("clipboard:cut", (event) => {
+      console.log("[IpcRouter] Executing native cut...");
+      event.sender.cut();
+    });
+
+    ipcMain.on("clipboard:paste", (event) => {
+      console.log("[IpcRouter] Executing native paste...");
+      event.sender.paste();
+    });
+
+    ipcMain.on("clipboard:selectAll", (event) => {
+      console.log("[IpcRouter] Executing native selectAll...");
+      event.sender.selectAll();
+    });
   }
 
   async _handleConversion(sender, inputPath, isFile) {

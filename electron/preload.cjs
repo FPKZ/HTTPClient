@@ -87,4 +87,22 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.removeListener("request-save-session", subscription);
   },
   saveAndQuit: (data) => ipcRenderer.send("save-and-quit", data),
+
+  // --- Clipboard (Native) ---
+  copy: () => {
+    console.log("[Preload] Sending clipboard:copy");
+    ipcRenderer.send("clipboard:copy");
+  },
+  cut: () => {
+    console.log("[Preload] Sending clipboard:cut");
+    ipcRenderer.send("clipboard:cut");
+  },
+  paste: () => {
+    console.log("[Preload] Sending clipboard:paste");
+    ipcRenderer.send("clipboard:paste");
+  },
+  selectAll: () => {
+    console.log("[Preload] Sending clipboard:selectAll");
+    ipcRenderer.send("clipboard:selectAll");
+  },
 });
