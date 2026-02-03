@@ -205,7 +205,7 @@ const SidebarHeader = () => {
               />
             </div>
           </summary>
-          <div className="mt-2 px-0  max-h-[30vh] overflow-y-auto">
+          <div className="mt-2 px-0 bg-zinc-950 max-h-[30vh] overflow-y-auto">
             {environments.length === 0 ? (
               <span className="text-[0.65rem] text-zinc-500 italic ps-1">
                 Nenhum ambiente configurado
@@ -257,7 +257,7 @@ const SidebarHeader = () => {
                       hidden group-hover/env:block!
                       text-zinc-500 hover:text-red-500
                       transition-all
-                      ms-1
+                      mx-2
                     "
                   >
                     <Trash2 size={14} />

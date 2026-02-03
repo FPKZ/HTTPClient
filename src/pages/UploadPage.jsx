@@ -113,7 +113,10 @@ function UploadPage() {
       </Container>
 
       <div className="position-absolute bottom-0 end-0 px-2">
-        <span className="text-xs text-[#cecece]">
+        <span
+          className="text-xs text-[#cecece]"
+          onClick={() => navigate("/demo")}
+        >
           {import.meta.env.VITE_APP_VERSION}
         </span>
       </div>

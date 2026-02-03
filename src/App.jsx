@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import UploadPage from "./pages/UploadPage";
 import Home from "./pages/Home";
 import UpdatePage from "./pages/UpdatePage";
+import ResizableDemo from "./pages/ResizableDemo";
 import Layout from "./pages/layout";
 
 // Components
@@ -70,6 +71,7 @@ function App() {
             }
           />
           <Route path="/update" element={<UpdatePage />} />
+          <Route path="/demo" element={<ResizableDemo />} />
         </Routes>
       </GlobalContextMenu>
     </div>
