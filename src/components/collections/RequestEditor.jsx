@@ -2,6 +2,7 @@ import React from "react";
 import { Plus, Trash2, CheckSquare, Square } from "lucide-react";
 import AutoResizeTextarea from "../AutoResizeTextarea";
 import Editor from "@monaco-editor/react";
+import { monacoRegistry } from "../../lib/monacoRegistry";
 
 /**
  * RequestEditor
@@ -543,6 +544,10 @@ function JsonBodyEditor({ value, onChange, onRun, requestId, subKey }) {
   const [editorHeight, setEditorHeight] = React.useState("100px");
 
   const handleEditorDidMount = (editor, monaco) => {
+    // Registra o editor no registro global para mapeamento de DOM
+    monacoRegistry.register(editor);
+    monacoRegistry.setActive(editor);
+
     const updateHeight = () => {
       const contentHeight = editor.getContentHeight();
       const maxHeight = 300;
@@ -552,11 +557,22 @@ function JsonBodyEditor({ value, onChange, onRun, requestId, subKey }) {
     };
 
     editor.onDidContentSizeChange(updateHeight);
+
+    // Atualiza o editor ativo quando ele ganha foco
+    editor.onDidFocusEditorWidget(() => {
+      monacoRegistry.setActive(editor);
+    });
+
     updateHeight();
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       if (onRun) onRun();
     });
+
+    // Unregister ao destruir
+    return () => {
+      monacoRegistry.unregister(editor);
+    };
   };
 
   return (
@@ -573,6 +589,7 @@ function JsonBodyEditor({ value, onChange, onRun, requestId, subKey }) {
         scrollBeyondLastLine: false,
         wordWrap: "on",
         automaticLayout: true,
+        contextmenu: false, // Desativa o menu nativo para usar o GlobalContextMenu
         scrollbar: {
           alwaysConsumeMouseWheel: false,
         },

@@ -4,14 +4,12 @@ import {
   Copy,
   Scissors,
   ClipboardPaste,
-  Search,
-  ExternalLink,
-  Star,
-  Image as ImageIcon,
   Download,
-  Info,
   Code,
+  Zap,
+  Terminal,
 } from "lucide-react";
+import { monacoRegistry } from "../lib/monacoRegistry";
 import { cn } from "../lib/utils";
 
 /**
@@ -41,15 +39,30 @@ export default function GlobalContextMenu({ children }) {
 
   const handleContextMenu = (e) => {
     const target = e.target;
+    const monacoEditor = target.closest(".monaco-editor");
+    const isMonaco = !!monacoEditor;
+
     // Pega a seleção de forma mais robusta
     let selection = "";
-    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
-      selection = target.value.substring(
-        target.selectionStart,
-        target.selectionEnd,
-      );
-    } else {
-      selection = window.getSelection()?.toString() || "";
+    if (isMonaco) {
+      const editor = monacoRegistry.getForElement(monacoEditor);
+      if (editor) {
+        const monacoSelection = editor.getSelection();
+        if (monacoSelection) {
+          selection = editor.getModel().getValueInRange(monacoSelection);
+        }
+      }
+    }
+
+    if (!selection) {
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+        selection = target.value.substring(
+          target.selectionStart,
+          target.selectionEnd,
+        );
+      } else {
+        selection = window.getSelection()?.toString() || "";
+      }
     }
 
     const isEditable =
@@ -64,9 +77,6 @@ export default function GlobalContextMenu({ children }) {
     // Mídia
     const srcURL = target.src || "";
     const mediaType = target.tagName === "IMG" ? "image" : "none";
-
-    const monacoEditor = target.closest(".monaco-editor");
-    const isMonaco = !!monacoEditor;
 
     let selectionInfo = null;
     if (
@@ -94,7 +104,13 @@ export default function GlobalContextMenu({ children }) {
       return;
     }
 
-    lastEventRef.current = { target, e, isMonaco, selectionInfo };
+    lastEventRef.current = {
+      target,
+      e,
+      isMonaco,
+      selectionInfo,
+      monacoContainer: monacoEditor,
+    };
 
     setTargetDetails({
       isEditable,
@@ -111,58 +127,91 @@ export default function GlobalContextMenu({ children }) {
   // Handler para ações de clipboard
   const handleAction = React.useCallback(
     (action) => {
-      console.log(`[GlobalContextMenu] Triggering ${action}`);
-
       // Pequeno delay para o menu fechar completamente e o foco estabilizar
       setTimeout(() => {
         const details = lastEventRef.current;
         const target = details?.target;
 
         if (target) {
-          console.log(
-            "[GlobalContextMenu] Focusing target and restoring selection:",
-            target.tagName,
-          );
-          target.focus();
+          if (details.isMonaco) {
+            // Tenta obter o editor para o container original ou o target
+            const container =
+              details.monacoContainer || target.closest(".monaco-editor");
+            const editorInstance = monacoRegistry.getForElement(container);
 
-          if (details?.selectionInfo) {
-            console.log(
-              "[GlobalContextMenu] Restoring selection range:",
-              details.selectionInfo,
-            );
-            try {
-              target.setSelectionRange(
-                details.selectionInfo.start,
-                details.selectionInfo.end,
-              );
-            } catch (err) {
-              console.error(
-                "[GlobalContextMenu] Failed to set selection range",
-                err,
-              );
+            if (editorInstance) {
+              editorInstance.focus();
+            } else {
+              // Fallback robusto via DOM
+              const inputArea = container?.querySelector(".inputarea");
+              if (inputArea) {
+                inputArea.focus();
+              } else {
+                target.focus();
+              }
+            }
+          } else {
+            target.focus();
+
+            if (details?.selectionInfo) {
+              try {
+                target.setSelectionRange(
+                  details.selectionInfo.start,
+                  details.selectionInfo.end,
+                );
+              } catch (err) {
+                console.error(
+                  "[GlobalContextMenu] Failed to set selection range",
+                  err,
+                );
+              }
             }
           }
         }
 
         try {
-          // Tenta execCommand primeiro pois ele costuma respeitar melhor a posição do cursor em inputs controlados
+          if (details.isMonaco) {
+            const editor = monacoRegistry.getForElement(
+              details.monacoContainer || target,
+            );
+            if (editor) {
+              editor.focus();
+
+              if (action === "paste") {
+                const inputArea =
+                  details.monacoContainer?.querySelector(".inputarea");
+                if (inputArea) inputArea.focus();
+                else editor.focus();
+
+                window.electronAPI.paste();
+                return;
+              }
+
+              try {
+                const cmd =
+                  action === "cut"
+                    ? "editor.action.clipboardCutAction"
+                    : "editor.action.clipboardCopyAction";
+                editor.trigger("contextmenu", cmd);
+                return;
+              } catch (monacoErr) {
+                console.warn(
+                  "[GlobalContextMenu] Monaco API failed, falling back to Electron",
+                  monacoErr,
+                );
+              }
+            }
+          }
+
           const result = document.execCommand(action);
-          console.log(
-            `[GlobalContextMenu] execCommand(${action}) result:`,
-            result,
-          );
 
           if (!result) {
-            console.log(
-              `[GlobalContextMenu] Falling back to Electron IPC for ${action}`,
-            );
             if (action === "cut") window.electronAPI.cut();
             else if (action === "copy") window.electronAPI.copy();
             else if (action === "paste") window.electronAPI.paste();
           }
         } catch (err) {
           console.error(`[GlobalContextMenu] Error during ${action}:`, err);
-          // Fallback final
           if (action === "cut") window.electronAPI.cut();
           else if (action === "copy") window.electronAPI.copy();
           else if (action === "paste") window.electronAPI.paste();
@@ -178,6 +227,7 @@ export default function GlobalContextMenu({ children }) {
     // 1. Ações de Edição (Recortar/Copiar/Colar) - Funciona para Editável ou Monaco
     if (targetDetails.isEditable || targetDetails.isMonaco) {
       items.push(
+        // eslint-disable-next-line react-hooks/refs
         {
           label: "Recortar",
           icon: <Scissors size={14} />,
@@ -185,6 +235,7 @@ export default function GlobalContextMenu({ children }) {
           shortcut: "Ctrl+X",
           disabled: targetDetails.isEditable && !targetDetails.selectionText,
         },
+        // eslint-disable-next-line react-hooks/refs
         {
           label: "Copiar",
           icon: <Copy size={14} />,
@@ -192,6 +243,7 @@ export default function GlobalContextMenu({ children }) {
           shortcut: "Ctrl+C",
           disabled: !targetDetails.selectionText && !targetDetails.isMonaco,
         },
+        // eslint-disable-next-line react-hooks/refs
         {
           label: "Colar",
           icon: <ClipboardPaste size={14} />,
@@ -199,6 +251,35 @@ export default function GlobalContextMenu({ children }) {
           shortcut: "Ctrl+V",
         },
       );
+
+      // Adiciona ações extras se for Monaco
+      if (targetDetails.isMonaco) {
+        items.push(
+          { separator: true },
+          {
+            label: "Formatar Documento",
+            icon: <Zap size={14} />,
+            onClick: () => {
+              const editor = monacoRegistry.getActive();
+              if (editor) {
+                editor.getAction("editor.action.formatDocument").run();
+              }
+            },
+            shortcut: "Alt+Shift+F",
+          },
+          {
+            label: "Paleta de Comandos",
+            icon: <Terminal size={14} />,
+            onClick: () => {
+              const editor = monacoRegistry.getActive();
+              if (editor) {
+                editor.trigger("any", "editor.action.quickCommand");
+              }
+            },
+            shortcut: "F1",
+          },
+        );
+      }
     } else if (targetDetails.selectionText) {
       // 2. Ações de Seleção de Texto
       items.push({

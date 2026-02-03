@@ -162,22 +162,22 @@ class IpcRouter {
 
     // Clipboard Actions (Native)
     ipcMain.on("clipboard:copy", (event) => {
-      console.log("[IpcRouter] Executing native copy...");
+      // console.log("[IpcRouter] Executing native copy...");
       event.sender.copy();
     });
 
     ipcMain.on("clipboard:cut", (event) => {
-      console.log("[IpcRouter] Executing native cut...");
+      // console.log("[IpcRouter] Executing native cut...");
       event.sender.cut();
     });
 
     ipcMain.on("clipboard:paste", (event) => {
-      console.log("[IpcRouter] Executing native paste...");
+      // console.log("[IpcRouter] Executing native paste...");
       event.sender.paste();
     });
 
     ipcMain.on("clipboard:selectAll", (event) => {
-      console.log("[IpcRouter] Executing native selectAll...");
+      // console.log("[IpcRouter] Executing native selectAll...");
       event.sender.selectAll();
     });
   }
