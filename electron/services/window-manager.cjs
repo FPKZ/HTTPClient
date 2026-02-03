@@ -49,6 +49,7 @@ class WindowManager {
       resizable: true,
       frame: false,
       darkTheme: true,
+      backgroundColor: "#1e1e1e",
       webPreferences: {
         preload: this.preloadPath,
         nodeIntegration: false,
@@ -152,6 +153,7 @@ class WindowManager {
       frame: false,
       transparent: false, // Desativado para teste
       alwaysOnTop: true,
+      backgroundColor: "#1e1e1e",
       webPreferences: {
         preload: this.preloadPath,
         nodeIntegration: false,
