@@ -50,7 +50,7 @@ function LogEntry({ log, activeView }) {
 
       case "headers":
         return (
-          <div className="text-zinc-400 font-mono text-[11px] p-3">
+          <div className="text-zinc-400 font-mono text-[0.7rem] p-3">
             {Object.entries(headers).map(([key, value]) => (
               <div key={key} className="flex gap-2 mb-1">
                 <span className="text-zinc-500 font-bold min-w-[150px] shrink-0 uppercase tracking-tighter text-[9px]">
@@ -65,18 +65,18 @@ function LogEntry({ log, activeView }) {
       case "preview":
         if (isImage) {
           return (
-            <div className="bg-zinc-900/50 p-4 rounded flex flex-col items-center gap-3 border border-zinc-800/20">
+            <div className="flex flex-col p-3 items-center justify-center">
               <img
                 src={`data:${mimeType};base64,${data}`}
                 alt="Response"
                 style={{
                   maxWidth: "100%",
-                  maxHeight: "600px",
+                  maxHeight: "20rem",
                   objectFit: "contain",
                 }}
-                className="rounded shadow-lg"
+                className="shadow-lg"
               />
-              <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">
+              <span className="text-[0.7rem]! text-zinc-500 uppercase font-bold tracking-widest">
                 {mimeType} • {formatSize(responseSize)}
               </span>
             </div>
@@ -84,7 +84,7 @@ function LogEntry({ log, activeView }) {
         }
         if (isPDF) {
           return (
-            <div className="bg-zinc-900 rounded overflow-hidden border border-zinc-800/20">
+            <div className="h-full overflow-hidden">
               <iframe
                 title="PDF Viewer"
                 src={
@@ -101,7 +101,7 @@ function LogEntry({ log, activeView }) {
                     ),
                   ) + "#navpanes=0"
                 }
-                style={{ width: "100%", height: "700px", border: "none" }}
+                style={{ width: "100%", height: "100%", border: "none" }}
                 onLoad={(e) => URL.revokeObjectURL(e.target.src)}
               />
             </div>
@@ -110,7 +110,7 @@ function LogEntry({ log, activeView }) {
         if (isAudio || isVideo) {
           const Tag = isAudio ? "audio" : "video";
           return (
-            <div className="bg-zinc-900/50 p-6 rounded flex flex-col items-center gap-4 border border-zinc-800/20">
+            <div className="bg-zinc-900/50 p-6 flex flex-col items-center gap-4">
               <Tag
                 controls
                 className="w-full max-h-[500px]"
@@ -136,13 +136,13 @@ function LogEntry({ log, activeView }) {
         }
         if (mimeType.includes("text/html")) {
           return (
-            <div className="bg-white rounded overflow-hidden border border-zinc-800/20 shadow-inner">
+            <div className="h-full overflow-hidden shadow-inner">
               <iframe
                 title="HTML Preview"
                 src={URL.createObjectURL(
                   new Blob([data], { type: "text/html" }),
                 )}
-                style={{ width: "100%", height: "600px", border: "none" }}
+                style={{ width: "100%", height: "100%", border: "none" }}
                 sandbox="allow-scripts"
                 onLoad={(e) => URL.revokeObjectURL(e.target.src)}
               />
@@ -161,7 +161,7 @@ function LogEntry({ log, activeView }) {
   };
 
   return (
-    <div className="mb-4 animate-in fade-in zoom-in-95 duration-200">
+    <div className="flex-1 h-full animate-in fade-in zoom-in-95 duration-200">
       {renderTabContent()}
     </div>
   );
@@ -176,7 +176,7 @@ export default function ResultRequestLog({ logs, activeView }) {
 
   return (
     <div
-      className="flex-1 w-100 h-full p-0 overflow-y-auto"
+      className="flex-1 w-100 h-full p-0 m-0 overflow-y-auto"
       style={{
         fontFamily: "'Fira Code', monospace",
       }}
@@ -195,7 +195,7 @@ export default function ResultRequestLog({ logs, activeView }) {
           </span>
         </div>
       )}
-      <div ref={bottomRef} className="h-4" />
+      {/* <div ref={bottomRef} className="h-4" /> */}
     </div>
   );
 }

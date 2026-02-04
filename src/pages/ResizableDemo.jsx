@@ -60,9 +60,9 @@ export default function ResizableDemo() {
           {/* Sidebar Esquerda */}
           <Panel
             ref={sidebarRef}
-            defaultSize={"20%"}
-            minSize={"10%"}
-            maxSize={"30%"}
+            defaultSize="20%"
+            minSize="10%"
+            maxSize="30%"
             // collapsible={true}
             collapsedSize={0}
             onResize={(size) => setSidebarSize(size.asPercentage)}

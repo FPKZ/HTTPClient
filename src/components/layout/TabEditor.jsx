@@ -258,7 +258,7 @@ export default function TabEditor() {
           <div className="w-full position-absolute bottom-0 h-[0.2rem]! display-none group-hover/resize:display-block group-hover/resize:bg-yellow-600/50 group-hover/resize:h-1"></div>
         </PanelResizeHandle>
 
-        <Panel defaultSize={"60%"} maxSize={"60%"} minSize={"5%"}>
+        <Panel defaultSize="60%" maxSize="70%" minSize="5%">
           {/* Parte Inferior: Console de Logs (Resultado) */}
           <div className="flex-1 h-full border-t border-zinc-700! bg-zinc-950 flex flex-col overflow-hidden">
             {/* Cabeçalho Fixo com Metadados e Abas */}
