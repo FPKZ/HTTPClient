@@ -10,14 +10,8 @@ export const createCollectionSlice = (set, get) => ({
     name: "",
     description: "",
     items: [],
-    environments: [
-      {
-        id: "env_default",
-        name: "Desenvolvimento",
-        variables: [],
-      },
-    ],
-    activeEnvironmentId: "env_default",
+    environments: [],
+    activeEnvironmentId: null,
   },
   globals: [],
   isDraggingDisabled: false,
@@ -55,14 +49,8 @@ export const createCollectionSlice = (set, get) => ({
     }
 
     if (environments.length === 0) {
-      environments = [
-        {
-          id: "env_default",
-          name: "Desenvolvimento",
-          variables: [],
-        },
-      ];
-      activeEnvironmentId = "env_default";
+      environments = [];
+      activeEnvironmentId = null;
     }
 
     set({
@@ -232,7 +220,9 @@ export const createCollectionSlice = (set, get) => ({
         ...state.collection,
         name: name !== undefined ? name : state.collection.name,
         description:
-          description !== undefined ? description : state.collection.description,
+          description !== undefined
+            ? description
+            : state.collection.description,
       },
     }));
   },
@@ -384,13 +374,13 @@ export const createCollectionSlice = (set, get) => ({
 
   importEnvironment: (envData) => {
     if (!envData || !envData.variables) return;
-    
+
     const newEnv = {
       id: `env_${Date.now()}`,
       name: `${envData.name || "Importado"} (Cópia)`,
-      variables: envData.variables.map(v => ({
+      variables: envData.variables.map((v) => ({
         ...v,
-        id: `var_${Math.random().toString(36).substr(2, 9)}`
+        id: `var_${Math.random().toString(36).substr(2, 9)}`,
       })),
     };
 
@@ -406,9 +396,9 @@ export const createCollectionSlice = (set, get) => ({
   importGlobals: (globalsData) => {
     if (!Array.isArray(globalsData)) return;
 
-    const newGlobals = globalsData.map(v => ({
+    const newGlobals = globalsData.map((v) => ({
       ...v,
-      id: `global_${Math.random().toString(36).substr(2, 9)}`
+      id: `global_${Math.random().toString(36).substr(2, 9)}`,
     }));
 
     set((state) => ({

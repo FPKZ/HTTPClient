@@ -86,6 +86,7 @@ class NetworkService {
     }
 
     try {
+      const startTime = Date.now();
       const response = await axios({
         method,
         url,
@@ -108,6 +109,9 @@ class NetworkService {
           }
         },
       });
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+      const responseSize = response.data?.byteLength || 0;
 
       // Proteção contra OOM (Out of Memory)
       if (bodyMode !== "stream") {
@@ -136,13 +140,19 @@ class NetworkService {
                 path: finalStreamPath,
               },
               contentType: response.headers["content-type"],
+              responseTime,
+              responseSize,
             }),
           );
           writer.on("error", reject);
         });
       }
 
-      const processed = await this._processSuccessResponse(response);
+      const processed = await this._processSuccessResponse(
+        response,
+        responseTime,
+        responseSize,
+      );
       if (logCallback) logCallback(processed);
       return processed;
     } catch (error) {
@@ -156,7 +166,10 @@ class NetworkService {
           isCancelled: true,
         };
       }
-      const errorData = await this._processErrorResponse(error);
+      const errorData = await this._processErrorResponse(
+        error,
+        Date.now() - startTime,
+      );
       if (logCallback) logCallback(errorData);
       return errorData;
     }
@@ -187,7 +200,7 @@ class NetworkService {
     );
   }
 
-  async _processSuccessResponse(response) {
+  async _processSuccessResponse(response, responseTime, responseSize) {
     const { body, isImage, contentType } = await this._processResponseData(
       response.data,
       response.headers,
@@ -204,14 +217,17 @@ class NetworkService {
       isVideo: contentType.includes("video/"),
       contentType,
       url: response.config?.url,
+      responseTime,
+      responseSize,
     };
   }
 
-  async _processErrorResponse(error) {
+  async _processErrorResponse(error, responseTime) {
     let status = error.response?.status || 500;
     let statusText = error.response?.statusText || "Internal Server Error";
     let headers = error.response?.headers || {};
     let data = error.message;
+    let responseSize = error.response?.data?.byteLength || 0;
 
     let isImage = false;
     let contentType = headers["content-type"] || "text/plain";
@@ -237,6 +253,8 @@ class NetworkService {
       isVideo: contentType.includes("video/"),
       isError: true,
       contentType,
+      responseTime,
+      responseSize,
     };
   }
 

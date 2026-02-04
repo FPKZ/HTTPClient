@@ -227,45 +227,54 @@ export default function RequestEditor({
 
   // Handler para trocar modo do body
   const handleModeChange = (newMode) => {
-    let newContent = subValue.content;
+    const currentMode = subValue.mode;
+    const currentContent = subValue.content;
 
-    // Conversões de JSON para Lista (Inputs, FormData ou URL-Encoded)
-    if (
-      mode === "json" &&
-      (newMode === "inputs" ||
-        newMode === "formdata" ||
-        newMode === "urlencoded")
-    ) {
-      newContent = jsonToList(subValue.content);
-    }
-    // Conversões de Lista para JSON
-    else if (
-      (mode === "inputs" || mode === "formdata" || mode === "urlencoded") &&
-      newMode === "json"
-    ) {
-      newContent = listToJson(subValue.content);
-    }
-    // Mudança para None
-    else if (newMode === "none") {
-      newContent = "";
-    }
-    // Mudança para Binary ou Stream (Limpa ou mantém string se for arquivo)
-    else if (newMode === "binary" || newMode === "stream") {
-      newContent = typeof newContent === "string" ? newContent : "";
-    }
-    // Inicialização se vazio para tabelas
-    else if (
-      newMode === "inputs" ||
-      newMode === "formdata" ||
-      newMode === "urlencoded"
-    ) {
-      if (!Array.isArray(newContent)) newContent = [];
-    }
-
-    onInputChange(0, "body", null, {
+    // 1. Criamos uma cópia do objeto body atual e salvamos o estado do modo que estamos saindo
+    const newBody = {
+      ...subValue,
+      [currentMode]: currentContent, // Salva o estado atual (ex: body.json = "...")
       mode: newMode,
-      content: newContent,
-    });
+    };
+
+    // 2. Verificamos se já temos algo salvo para o novo modo
+    let nextContent = newBody[newMode];
+
+    // 3. Se não temos nada salvo no novo modo, tentamos converter ou inicializar
+    if (nextContent === undefined || nextContent === null) {
+      if (
+        currentMode === "json" &&
+        (newMode === "inputs" ||
+          newMode === "formdata" ||
+          newMode === "urlencoded")
+      ) {
+        nextContent = jsonToList(currentContent);
+      } else if (
+        (currentMode === "inputs" ||
+          currentMode === "formdata" ||
+          currentMode === "urlencoded") &&
+        newMode === "json"
+      ) {
+        nextContent = listToJson(currentContent);
+      } else if (newMode === "none") {
+        nextContent = "";
+      } else if (newMode === "binary" || newMode === "stream") {
+        nextContent = typeof currentContent === "string" ? currentContent : "";
+      } else if (
+        newMode === "inputs" ||
+        newMode === "formdata" ||
+        newMode === "urlencoded"
+      ) {
+        nextContent = [];
+      } else {
+        nextContent = "";
+      }
+    }
+
+    // 4. Atualizamos o content com o que recuperamos ou convertemos
+    newBody.content = nextContent;
+
+    onInputChange(0, "body", null, newBody);
   };
 
   // Renderização do seletor de modo (apenas para Body)
@@ -421,21 +430,23 @@ export default function RequestEditor({
   // Renderização de JSON
   if (mode === "json") {
     return (
-      <div className="flex flex-col gap-2">
-        {renderModeSelector()}
-        <JsonBodyEditor
-          value={items}
-          requestId={requestId}
-          subKey={subKey}
-          onChange={(value) =>
-            onInputChange(0, "body", null, {
-              ...subValue,
-              content: value,
-            })
-          }
-          onRun={onRun}
-        />
-        <p className="text-[0.6rem] text-zinc-600 mb-0">
+      <div className="flex flex-col gap-2 flex-1 min-h-0 h-full">
+        <div className="shrink-0">{renderModeSelector()}</div>
+        <div className="flex-1 min-h-0 flex flex-col">
+          <JsonBodyEditor
+            value={items}
+            requestId={requestId}
+            subKey={subKey}
+            onChange={(value) =>
+              onInputChange(0, "body", null, {
+                ...subValue,
+                content: value,
+              })
+            }
+            onRun={onRun}
+          />
+        </div>
+        <p className="text-[0.6rem] text-zinc-600 mb-0 shrink-0">
           DICA: Use o modo JSON para requisições complexas.
         </p>
       </div>
@@ -541,29 +552,15 @@ export default function RequestEditor({
 }
 
 function JsonBodyEditor({ value, onChange, onRun, requestId, subKey }) {
-  const [editorHeight, setEditorHeight] = React.useState("100px");
-
   const handleEditorDidMount = (editor, monaco) => {
     // Registra o editor no registro global para mapeamento de DOM
     monacoRegistry.register(editor);
     monacoRegistry.setActive(editor);
 
-    const updateHeight = () => {
-      const contentHeight = editor.getContentHeight();
-      const maxHeight = 300;
-      const minHeight = 10;
-      const newHeight = Math.min(Math.max(contentHeight, minHeight), maxHeight);
-      setEditorHeight(`${newHeight}px`);
-    };
-
-    editor.onDidContentSizeChange(updateHeight);
-
     // Atualiza o editor ativo quando ele ganha foco
     editor.onDidFocusEditorWidget(() => {
       monacoRegistry.setActive(editor);
     });
-
-    updateHeight();
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       if (onRun) onRun();
@@ -576,25 +573,27 @@ function JsonBodyEditor({ value, onChange, onRun, requestId, subKey }) {
   };
 
   return (
-    <Editor
-      height={editorHeight}
-      defaultLanguage="json"
-      path={`${subKey}_${requestId}.json`}
-      value={value}
-      theme="vs-dark"
-      onChange={onChange}
-      options={{
-        minimap: { enabled: false },
-        fontSize: 12,
-        scrollBeyondLastLine: false,
-        wordWrap: "on",
-        automaticLayout: true,
-        contextmenu: false, // Desativa o menu nativo para usar o GlobalContextMenu
-        scrollbar: {
-          alwaysConsumeMouseWheel: false,
-        },
-      }}
-      onMount={handleEditorDidMount}
-    />
+    <div className="flex-1 min-h-0 border border-zinc-800! rounded overflow-hidden">
+      <Editor
+        height="100%"
+        defaultLanguage="json"
+        path={`${subKey}_${requestId}.json`}
+        value={value}
+        theme="vs-dark"
+        onChange={onChange}
+        options={{
+          minimap: { enabled: false },
+          fontSize: 12,
+          scrollBeyondLastLine: false,
+          wordWrap: "on",
+          automaticLayout: true,
+          contextmenu: false, // Desativa o menu nativo para usar o GlobalContextMenu
+          scrollbar: {
+            alwaysConsumeMouseWheel: false,
+          },
+        }}
+        onMount={handleEditorDidMount}
+      />
+    </div>
   );
 }

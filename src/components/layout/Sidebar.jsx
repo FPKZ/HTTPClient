@@ -27,7 +27,7 @@ import EnvManagerModal from "../modals/EnvManagerModal";
 import useTabStore from "../../store/useTabStore";
 import useMenuContext from "../../hooks/useMenuContext";
 import useModalConfig from "../../hooks/useModalConfig";
-import useModalStore from "../../store/useModalStore";
+// import useModalStore from "../../store/useModalStore";
 
 import {
   DndContext,

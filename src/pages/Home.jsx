@@ -89,9 +89,9 @@ export default function Home() {
             <Sidebar />
         </Panel>
         
-        <PanelResizeHandle className="h-full position-relative">
-          <div className="h-full position-absolute right-0 w-1 display-none hover:display-block hover:bg-yellow-600/50 hover:w-1">
-          </div>
+        <PanelResizeHandle className="h-full position-relative group/resize">
+          <div className="h-full position-absolute left-0 w-[0.1rem]! display-none group-hover/resize:display-block group-hover/resize:bg-yellow-600/50 group-hover/resize:w-1"></div>
+          <div className="h-full position-absolute right-0 w-[0.2rem]! display-none group-hover/resize:display-block group-hover/resize:bg-yellow-600/50 group-hover/resize:w-1"></div>
         </PanelResizeHandle>
 
         {/* Área Principal (Abas + Editor) */}
