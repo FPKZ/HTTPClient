@@ -111,7 +111,7 @@ class WindowManager {
 
     this.mainWindow.once("ready-to-show", () => {
       log.info("Main Window event: ready-to-show");
-      if (this.updateWindow) {
+      if (this.updateWindow && !this.updateWindow.isDestroyed()) {
         this.updateWindow.close();
         this.updateWindow = null;
       }

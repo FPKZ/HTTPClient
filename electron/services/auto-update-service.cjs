@@ -27,7 +27,10 @@ class AutoUpdateService {
     }
 
     autoUpdater.on("update-available", (info) => {
-      updateWindow.webContents.send("update-available");
+      const updateWindow = windowManager.getUpdateWindow();
+      if (updateWindow && !updateWindow.isDestroyed()) {
+        updateWindow.webContents.send("update-available");
+      }
       log.info("⬇️ Atualização disponível:", info);
     });
 
@@ -37,11 +40,17 @@ class AutoUpdateService {
     });
 
     autoUpdater.on("download-progress", (progress) => {
-      updateWindow.webContents.send("download-progress", progress.percent);
+      const updateWindow = windowManager.getUpdateWindow();
+      if (updateWindow && !updateWindow.isDestroyed()) {
+        updateWindow.webContents.send("download-progress", progress.percent);
+      }
     });
 
     autoUpdater.on("update-downloaded", (info) => {
-      updateWindow.webContents.send("update-downloaded");
+      const updateWindow = windowManager.getUpdateWindow();
+      if (updateWindow && !updateWindow.isDestroyed()) {
+        updateWindow.webContents.send("update-downloaded");
+      }
       log.info("🔁 Atualização baixada:", info);
       // Parâmetros: (isSilent, isForceRunAfter)
       // setTimeout(() => , 2000);
