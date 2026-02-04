@@ -20,7 +20,12 @@ export default function useMenuContext({ modalConfig, setModalConfig, deleteItem
           setModalConfig({ open: true, type: "file", targetId });
           break;
         case "rename":
-          setModalConfig({ open: true, type: "rename", targetId });
+          setModalConfig({ 
+            open: true, 
+            type: "rename", 
+            targetId, 
+            currentName: data.name // Passa o nome vindo do contexto
+          });
           break;
         case "delete":
           (async () => {

@@ -7,6 +7,7 @@ export default function useModalConfig({ addFolder, addRoute, renameItem }) {
       open: false,
       type: null,
       targetId: null,
+      currentName: "", // Adicionado para carregar o nome atual
     });
 
     const handleModalAdd = (name) => {
@@ -18,7 +19,7 @@ export default function useModalConfig({ addFolder, addRoute, renameItem }) {
       } else if (type === "rename") {
         renameItem(targetId, name);
       }
-      setModalConfig({ ...modalConfig, open: false });
+      setModalConfig({ ...modalConfig, open: false, currentName: "" });
     };
   
     const getModalProps = () => {
@@ -39,6 +40,7 @@ export default function useModalConfig({ addFolder, addRoute, renameItem }) {
           return {
             title: "Renomear Item",
             description: "Insira o novo nome do item",
+            defaultValue: modalConfig.currentName, // Passa o nome atual para o input
             trigger: <button className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white">Renomear</button>,
           };
         default:

@@ -144,7 +144,12 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
         label: "Renomear",
         icon: <Edit size={14} />,
         onClick: () =>
-          setModalConfig({ open: true, type: "rename", targetId: item.id }),
+          setModalConfig({ 
+            open: true, 
+            type: "rename", 
+            targetId: item.id,
+            currentName: item.name 
+          }),
       },
       {
         label: "Excluir",
@@ -254,6 +259,7 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
                   open: true,
                   type: "rename",
                   targetId: item.id,
+                  currentName: item.name
                 });
               }}
             >
