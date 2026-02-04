@@ -10,11 +10,16 @@ export interface KeyValuePair {
 }
 
 export interface AuthConfig {
-  name: string; // O nome do campo (ex: Authorization ou token, use "none" para desativar)
+  mode: "token" | "a1"; // Modo de autenticação
+  name: string; // O nome do campo para token (ex: Authorization ou token, use "none" para desativar)
   config: {
     key: string; // O token em si
     type: string; // O tipo/prefixo (ex: Bearer)
     value: "header" | "body"; // O local de inserção
+  };
+  a1?: {
+    pfxPath: string;
+    pfxPassword: string;
   };
 }
 
@@ -97,11 +102,16 @@ export class CollectionTemplate {
           content: {},
         },
         auth: {
+          mode: "token",
           name: "Authorization",
           config: {
             key: "",
             type: "Bearer",
             value: "header",
+          },
+          a1: {
+            pfxPath: "",
+            pfxPassword: "",
           },
         },
       },

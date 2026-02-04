@@ -125,6 +125,7 @@ export function useRequestExecutor() {
         headers,
         body: mode === "stream" ? null : bodyToExecute,
         bodyMode: mode,
+        auth: requestData.auth, // Inclui dados de autenticação (Token ou A1)
         requestId,
         streamPath: mode === "stream" ? requestData.body.content : null,
         timeout: requestData.timeout,

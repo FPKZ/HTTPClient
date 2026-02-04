@@ -51,9 +51,10 @@ class IpcRouter {
       return canceled ? null : filePaths[0];
     });
 
-    ipcMain.handle("dialog:openFile", async () => {
+    ipcMain.handle("dialog:openFile", async (event, filters) => {
       const { canceled, filePaths } = await dialog.showOpenDialog({
         properties: ["openFile"],
+        filters: filters || [],
       });
       return canceled ? null : filePaths[0];
     });

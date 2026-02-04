@@ -21,120 +21,226 @@ export default function RequestEditor({
   // Renderização específica para AUTH
   if (subKey === "auth") {
     const isEnabled = subValue.name && subValue.name !== "none";
+    const authMode = subValue.mode || "token";
 
     const handleToggleAuth = () => {
       onInputChange(0, "auth", "name", isEnabled ? "none" : "Authorization");
     };
 
+    const handleModeChange = (mode) => {
+      onInputChange(0, "auth", "mode", mode);
+    };
+
     return (
-      <div className="flex flex-col animate-in fade-in duration-300">
-        <div className="grid grid-cols-[30px_1fr_1fr_40px] gap-2 mb-2 px-2 items-center">
-          <div />
-          <span className="text-[0.6rem] uppercase text-zinc-600 font-bold">
-            Campo (Name) / Prefixo (Type)
-          </span>
-          <span className="text-[0.6rem] uppercase text-zinc-600 font-bold">
-            Token (Key) / Local (Value)
-          </span>
-          <div />
+      <div className="flex h-full flex-col animate-in fade-in duration-300 gap-4 overflow-y-auto">
+        {/* Seletor de Modo de Autenticação */}
+        <div className="flex gap-4 border-b border-zinc-800 pb-2 px-2">
+          {["token", "a1"].map((m) => (
+            <label
+              key={m}
+              className="flex items-center gap-2 cursor-pointer group"
+            >
+              <input
+                type="radio"
+                name="authMode"
+                checked={authMode === m}
+                onChange={() => handleModeChange(m)}
+                className="hidden"
+              />
+              <div className="flex items-center justify-center gap-2">
+                <div
+                  className={`w-3 h-3 rounded-full border ${
+                    authMode === m
+                      ? "bg-yellow-500! border-yellow-500!"
+                      : "border-zinc-600! group-hover:border-zinc-400!"
+                  }`}
+                />
+                <span
+                  className={`text-[0.65rem] uppercase font-bold mt-0.5 ${
+                    authMode === m
+                      ? "text-yellow-500!"
+                      : "text-zinc-500! group-hover:text-zinc-300!"
+                  }`}
+                >
+                  {m === "token" ? "Token / API Key" : "Certificado A1"}
+                </span>
+              </div>
+            </label>
+          ))}
         </div>
 
-        <div
-          className={`grid grid-cols-[30px_1fr_1fr_40px] gap-2 items-start bg-zinc-900/50 p-2 rounded hover:bg-zinc-800/50 group border border-zinc-800/50! transition-all ${
-            !isEnabled && "opacity-60"
-          }`}
-        >
-          {/* Enabled Checkbox */}
-          <button
-            onClick={handleToggleAuth}
-            className="mt-1.5 flex justify-center text-zinc-600 hover:text-yellow-500"
-          >
-            {isEnabled ? (
-              <CheckSquare size={14} className="text-yellow-600" />
-            ) : (
-              <Square size={14} />
-            )}
-          </button>
+        {authMode === "token" ? (
+          <div className="flex flex-col">
+            <div className="grid grid-cols-[30px_1fr_1fr_40px] gap-2 mb-2 px-2 items-center">
+              <div />
+              <span className="text-[0.6rem] uppercase text-zinc-600 font-bold">
+                Campo (Name) / Prefixo (Type)
+              </span>
+              <span className="text-[0.6rem] uppercase text-zinc-600 font-bold">
+                Token (Key) / Local (Value)
+              </span>
+              <div />
+            </div>
 
-          {/* Key Column: Field Name + Prefix */}
-          <div className="flex flex-col gap-2">
-            <input
-              type="text"
-              placeholder="Ex: Authorization"
-              value={subValue.name === "none" ? "" : subValue.name}
-              onChange={(e) => onInputChange(0, "auth", "name", e.target.value)}
-              disabled={!isEnabled}
-              className="bg-transparent text-white text-[0.75rem] py-1 border-b border-zinc-800 focus:border-yellow-600 outline-none w-full font-medium"
-            />
-            <div className="flex items-center gap-1">
-              <span className="text-[0.55rem] text-zinc-600 font-bold uppercase">
-                Tipo:
+            <div
+              className={`grid grid-cols-[30px_1fr_1fr_40px] gap-2 items-start bg-zinc-900/50 p-2 rounded hover:bg-zinc-800/50 group border border-zinc-800/50! transition-all ${
+                !isEnabled && "opacity-60"
+              }`}
+            >
+              {/* Enabled Checkbox */}
+              <button
+                onClick={handleToggleAuth}
+                className="mt-1.5 flex justify-center text-zinc-600 hover:text-yellow-500"
+              >
+                {isEnabled ? (
+                  <CheckSquare size={14} className="text-yellow-600" />
+                ) : (
+                  <Square size={14} />
+                )}
+              </button>
+
+              {/* Key Column: Field Name + Prefix */}
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  placeholder="Ex: Authorization"
+                  value={subValue.name === "none" ? "" : subValue.name}
+                  onChange={(e) =>
+                    onInputChange(0, "auth", "name", e.target.value)
+                  }
+                  disabled={!isEnabled}
+                  className="bg-transparent text-white text-[0.75rem] py-1 border-b border-zinc-800 focus:border-yellow-600 outline-none w-full font-medium"
+                />
+                <div className="flex items-center gap-1">
+                  <span className="text-[0.55rem] text-zinc-600 font-bold uppercase">
+                    Tipo:
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Ex: Bearer"
+                    value={subValue.config?.type || ""}
+                    onChange={(e) =>
+                      onInputChange(0, "auth", "config", {
+                        ...subValue.config,
+                        type: e.target.value,
+                      })
+                    }
+                    disabled={!isEnabled}
+                    className="bg-transparent text-zinc-400 text-[0.65rem] outline-none w-full"
+                  />
+                </div>
+              </div>
+
+              {/* Value Column: Token + Location */}
+              <div className="flex flex-col gap-2">
+                <AutoResizeTextarea
+                  placeholder="Inserir token (Key)..."
+                  value={subValue.config?.key || ""}
+                  onChange={(e) =>
+                    onInputChange(0, "auth", "config", {
+                      ...subValue.config,
+                      key: e.target.value,
+                    })
+                  }
+                  disabled={!isEnabled}
+                  className="bg-transparent text-yellow-500 text-[0.75rem] py-1 border-b border-zinc-800 focus:border-yellow-600 outline-none w-full font-mono resize-none min-h-[24px]"
+                />
+                <div className="flex items-center gap-1">
+                  <span className="text-[0.55rem] text-zinc-600 font-bold uppercase">
+                    Injetar em:
+                  </span>
+                  <select
+                    value={subValue.config?.value || "header"}
+                    onChange={(e) =>
+                      onInputChange(0, "auth", "config", {
+                        ...subValue.config,
+                        value: e.target.value,
+                      })
+                    }
+                    disabled={!isEnabled}
+                    className="bg-transparent text-zinc-400 text-[0.65rem] outline-none cursor-pointer hover:text-zinc-200 transition-colors capitalize"
+                  >
+                    <option value="header" className="bg-zinc-900">
+                      Header
+                    </option>
+                    <option value="body" className="bg-zinc-900">
+                      Body
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Clear Action */}
+              <button
+                onClick={() => onInputChange(0, "auth", "name", "none")}
+                className="mt-1.5 opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-500 transition-opacity"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 px-2">
+            <div className="flex flex-col gap-2">
+              <span className="text-[0.6rem] text-zinc-500 font-bold uppercase">
+                Caminho do Arquivo PFX (.pfx, .p12)
+              </span>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={subValue.a1?.pfxPath || ""}
+                  placeholder="Clique em 'Selecionar' para escolher o certificado..."
+                  className="flex-1 bg-zinc-800 text-zinc-300 text-[0.7rem] px-3 py-2 rounded focus:outline-none"
+                />
+                <button
+                  onClick={async () => {
+                    if (!window.electronAPI) return;
+                    const path = await window.electronAPI.selectFile([
+                      {
+                        name: "Certificado Digital (A1)",
+                        extensions: ["pfx", "p12"],
+                      },
+                    ]);
+                    if (path) {
+                      onInputChange(0, "auth", "a1", {
+                        ...subValue.a1,
+                        pfxPath: path,
+                      });
+                    }
+                  }}
+                  className="bg-yellow-600 hover:bg-yellow-700 text-black font-bold px-4 py-2 rounded text-[0.7rem] transition-colors"
+                >
+                  SELECIONAR
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="text-[0.6rem] text-zinc-500 font-bold uppercase">
+                Senha do Certificado
               </span>
               <input
-                type="text"
-                placeholder="Ex: Bearer"
-                value={subValue.config?.type || ""}
+                type="password"
+                value={subValue.a1?.pfxPassword || ""}
                 onChange={(e) =>
-                  onInputChange(0, "auth", "config", {
-                    ...subValue.config,
-                    type: e.target.value,
+                  onInputChange(0, "auth", "a1", {
+                    ...subValue.a1,
+                    pfxPassword: e.target.value,
                   })
                 }
-                disabled={!isEnabled}
-                className="bg-transparent text-zinc-400 text-[0.65rem] outline-none w-full"
+                placeholder="Digite a senha do certificado..."
+                className="bg-zinc-800 text-zinc-300 text-[0.7rem] px-3 py-2 rounded focus:outline-none w-full"
               />
             </div>
+
+            <p className="text-[0.6rem] text-zinc-600 italic">
+              O certificado A1 será usado para autenticação TLS mútua (MTLS).
+            </p>
           </div>
+        )}
 
-          {/* Value Column: Token + Location */}
-          <div className="flex flex-col gap-2">
-            <AutoResizeTextarea
-              placeholder="Inserir token (Key)..."
-              value={subValue.config?.key || ""}
-              onChange={(e) =>
-                onInputChange(0, "auth", "config", {
-                  ...subValue.config,
-                  key: e.target.value,
-                })
-              }
-              disabled={!isEnabled}
-              className="bg-transparent text-yellow-500 text-[0.75rem] py-1 border-b border-zinc-800 focus:border-yellow-600 outline-none w-full font-mono resize-none min-h-[24px]"
-            />
-            <div className="flex items-center gap-1">
-              <span className="text-[0.55rem] text-zinc-600 font-bold uppercase">
-                Injetar em:
-              </span>
-              <select
-                value={subValue.config?.value || "header"}
-                onChange={(e) =>
-                  onInputChange(0, "auth", "config", {
-                    ...subValue.config,
-                    value: e.target.value,
-                  })
-                }
-                disabled={!isEnabled}
-                className="bg-transparent text-zinc-400 text-[0.65rem] outline-none cursor-pointer hover:text-zinc-200 transition-colors capitalize"
-              >
-                <option value="header" className="bg-zinc-900">
-                  Header
-                </option>
-                <option value="body" className="bg-zinc-900">
-                  Body
-                </option>
-              </select>
-            </div>
-          </div>
-
-          {/* Clear Action */}
-          <button
-            onClick={() => onInputChange(0, "auth", "name", "none")}
-            className="mt-1.5 opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-500 transition-opacity"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
-
-        {!isEnabled && (
+        {authMode === "token" && !isEnabled && (
           <p className="px-10 py-4 text-[0.65rem] text-zinc-600 text-center italic">
             Ative a caixa de seleção acima para configurar a autenticação desta
             rota.
@@ -325,7 +431,7 @@ export default function RequestEditor({
     mode === "urlencoded"
   ) {
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex h-full pb-2 flex-col gap-1 overflow-y-auto">
         {isBody && renderModeSelector()}
 
         {Array.isArray(items) && items.length > 0 && (
@@ -578,7 +684,7 @@ function JsonBodyEditor({ value, onChange, onRun, requestId, subKey }) {
         height="100%"
         defaultLanguage="json"
         path={`${subKey}_${requestId}.json`}
-        value={value}
+        value={typeof value === "string" ? value : JSON.stringify(value, null, 2)}
         theme="vs-dark"
         onChange={onChange}
         options={{

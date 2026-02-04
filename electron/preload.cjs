@@ -42,7 +42,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // --- Diálogos e Sistema de Arquivos ---
   selectFolder: () => ipcRenderer.invoke("dialog:openDirectory"),
-  selectFile: () => ipcRenderer.invoke("dialog:openFile"),
+  selectFile: (filters) => ipcRenderer.invoke("dialog:openFile", filters),
   selectSaveLocation: () => ipcRenderer.invoke("dialog:saveLocation"),
   saveFile: (data) => ipcRenderer.invoke("save-file", data),
   readJsonFile: (path) => ipcRenderer.invoke("read-json-file", path),

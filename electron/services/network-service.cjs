@@ -2,6 +2,7 @@ const axios = require("axios");
 const FormData = require("form-data");
 const fs = require("fs");
 const path = require("path");
+const https = require("https");
 const { Worker } = require("worker_threads");
 
 /**
@@ -23,11 +24,28 @@ class NetworkService {
    * @returns {Promise<Object>} - Resposta processada.
    */
   async execute(
-    { url, method, headers, body, bodyMode, timeout, streamPath, signal },
+    { url, method, headers, body, bodyMode, timeout, streamPath, signal, auth },
     logCallback,
   ) {
     let requestData = body;
     let requestHeaders = { ...headers };
+    let httpsAgent = null;
+
+    // 0. Autenticação A1 (Certificado Cliente)
+    if (auth?.mode === "a1" && auth.a1?.pfxPath) {
+      try {
+        if (fs.existsSync(auth.a1.pfxPath)) {
+          const pfx = fs.readFileSync(auth.a1.pfxPath);
+          httpsAgent = new https.Agent({
+            pfx,
+            passphrase: auth.a1.pfxPassword || "",
+            rejectUnauthorized: false, // Opcional: permite certificados auto-assinados de servidores no MTLS
+          });
+        }
+      } catch (e) {
+        console.error("Erro ao carregar certificado A1:", e);
+      }
+    }
 
     // 1. FormData (modo explícito ou presença de arquivos em objeto genérico)
     const isFormData = bodyMode === "formdata";
@@ -93,6 +111,7 @@ class NetworkService {
         headers: requestHeaders,
         data: requestData,
         timeout: timeout || this.DEFAULT_TIMEOUT,
+        httpsAgent, // Injeção do certificado client se existir
         signal: signal, // Suporte a cancelamento
         responseType: bodyMode === "stream" ? "stream" : "arraybuffer",
         onDownloadProgress: (progressEvent) => {
