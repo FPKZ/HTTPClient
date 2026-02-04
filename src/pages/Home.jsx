@@ -21,6 +21,7 @@ import useDialogStore from "../store/useDialogStore";
 
 // Modals
 import NovaCollectionModal from "../components/modals/NovaCollectionModal";
+import ExportModal from "../components/modals/ExportModal";
 
 /**
  * Home Page (Refatorada com Sistema de Abas)
@@ -100,6 +101,8 @@ export default function Home() {
         </Panel>
       </PanelGroup>
       <NovaCollectionModal />
+      <ExportModal />
     </div>
   );
 }
+

@@ -1,6 +1,7 @@
 import React from "react";
 import { useNewCollection } from "./useNewCollection";
 import useTabStore from "../store/useTabStore"; // Ajustado o caminho e import default
+import useModalStore from "../store/useModalStore";
 import { Plus, FileDown, LogOut, SquareTerminal } from "lucide-react";
 
 /**
@@ -9,20 +10,17 @@ import { Plus, FileDown, LogOut, SquareTerminal } from "lucide-react";
  */
 export function useMenuGeral() {
   const { triggerNewCollection } = useNewCollection();
-  const getCollectionForExport = useTabStore(
-    (state) => state.getCollectionForExport,
-  );
+  const setExportModalOpen = useModalStore((state) => state.setExportModalOpen);
   const isDev = window.electronAPI?.isDev;
 
   const handleExportCollection = () => {
-    const collection = getCollectionForExport();
-    window.electronAPI.saveFile({ content: collection });
+    setExportModalOpen(true, "json");
   };
 
   const handleExportHttp = () => {
-    const collection = getCollectionForExport();
-    window.electronAPI.exportHttp({ content: collection });
+    setExportModalOpen(true, "http");
   };
+
 
   const iconJSON = (
     <svg
