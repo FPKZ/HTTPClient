@@ -103,14 +103,14 @@ const SidebarHeader = () => {
               label: "Editar Coleção",
               onClick: () => setIsEditingName(true),
             },
-            {
-              icon: <Download size={14} />,
-              label: "Exportar Coleção",
-              onClick: () => {
-                const collectionData = useTabStore.getState().getCollectionForExport();
-                window.electronAPI.saveFile({ content: collectionData });
-              },
-            },
+            // {
+            //   icon: <Download size={14} />,
+            //   label: "Exportar Coleção",
+            //   onClick: () => {
+            //     const collectionData = useTabStore.getState().getCollectionForExport();
+            //     window.electronAPI.saveFile({ content: collectionData });
+            //   },
+            // },
             { separator: true },
             {
               icon: <Trash2 size={14} />,

@@ -66,7 +66,7 @@ export default function Home() {
       title: "Salvar coleção",
       description: "Deseja salvar a coleção antes de sair?",
       options: [
-        { label: "Cancelar", value: false, variant: "secondary" },
+        { label: "Não salvar", value: false, variant: "secondary" },
         { label: "Salvar", value: true, variant: "primary" },
       ],
     });
