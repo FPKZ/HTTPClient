@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Tab, Nav, Button } from "react-bootstrap";
 import { Save, Play } from "lucide-react";
 import useTabStore from "../../store/useTabStore";
@@ -21,6 +21,7 @@ export default function TabEditor() {
   const activeTab = useTabStore((state) => state.getActiveTab());
   const updateTabRequest = useTabStore((state) => state.updateTabRequest);
   const saveTabToCollection = useTabStore((state) => state.saveTabToCollection);
+  const updateTabUiState = useTabStore((state) => state.updateTabUiState);
 
   const {
     logsPorTela,
@@ -28,8 +29,10 @@ export default function TabEditor() {
     handleExecuteRequest,
     cancelRequest,
   } = useRequestExecutor();
-  const [activeSection, setActiveSection] = useState("headers");
-  const [activeResponseView, setActiveResponseView] = useState("json");
+
+  // Estados de UI agora vêm da aba ativa (persistentes)
+  const activeSection = activeTab?.uiState?.activeSection || "headers";
+  const activeResponseView = activeTab?.uiState?.activeResponseView || "json";
 
   /**
    * Helper para formatar o tamanho da resposta
@@ -93,7 +96,9 @@ export default function TabEditor() {
         <Panel className="flex-1 flex flex-col h-full overflow-hidden">
           <Tab.Container
             activeKey={activeSection}
-            onSelect={(k) => setActiveSection(k)}
+            onSelect={(k) =>
+              updateTabUiState(activeTab.id, { activeSection: k })
+            }
           >
             {/* Parte Superior: URL + Navegação das Abas */}
             <div className="sticky top-0 z-20 flex-none border-b border-zinc-700 bg-[#18181b] shadow-md">
@@ -303,7 +308,11 @@ export default function TabEditor() {
                 {["json", "preview", "headers"].map((tab) => (
                   <button
                     key={tab}
-                    onClick={() => setActiveResponseView(tab)}
+                    onClick={() =>
+                      updateTabUiState(activeTab.id, {
+                        activeResponseView: tab,
+                      })
+                    }
                     className={`px-2.5 py-1 rounded-md! text-[0.6rem]! font-bold uppercase transition-all! ${
                       activeResponseView === tab
                         ? "bg-zinc-800 text-yellow-500 shadow-sm"

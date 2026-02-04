@@ -23,6 +23,10 @@ export const createTabSlice = (set, get) => ({
       url: routeData.request?.url || "",
       data: JSON.parse(JSON.stringify(routeData)),
       isDirty: false,
+      uiState: {
+        activeSection: "headers",
+        activeResponseView: "json",
+      },
     };
 
     set({
@@ -58,6 +62,10 @@ export const createTabSlice = (set, get) => ({
         },
       },
       isDirty: true,
+      uiState: {
+        activeSection: "headers",
+        activeResponseView: "json",
+      },
     };
 
     set((state) => ({
@@ -116,6 +124,16 @@ export const createTabSlice = (set, get) => ({
           isDirty: true,
         };
       }),
+    }));
+  },
+
+  updateTabUiState: (id, partialUiState) => {
+    set((state) => ({
+      tabs: state.tabs.map((tab) =>
+        tab.id === id
+          ? { ...tab, uiState: { ...tab.uiState, ...partialUiState } }
+          : tab,
+      ),
     }));
   },
 

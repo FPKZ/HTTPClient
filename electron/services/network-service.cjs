@@ -85,8 +85,8 @@ class NetworkService {
       }
     }
 
+    const startTime = Date.now();
     try {
-      const startTime = Date.now();
       const response = await axios({
         method,
         url,
@@ -164,6 +164,8 @@ class NetworkService {
           headers: {},
           data: "Requisição cancelada pelo usuário",
           isCancelled: true,
+          responseTime: Date.now() - startTime,
+          responseSize: 0,
         };
       }
       const errorData = await this._processErrorResponse(
