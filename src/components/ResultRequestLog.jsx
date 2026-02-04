@@ -39,7 +39,7 @@ function LogEntry({ log, activeView }) {
       case "json":
         return (
           <pre
-            className="permitirSelect text-gray-300 p-3 overflow-x-auto"
+            className="permitirSelect text-gray-300 p-3 overflow-x-auto text-[0.7rem]!"
             style={{ whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
           >
             {typeof data === "object"
