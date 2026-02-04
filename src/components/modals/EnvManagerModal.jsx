@@ -35,6 +35,9 @@ export default function EnvManagerModal({ open, onOpenChange }) {
   const updateGlobalVariable = useTabStore((state) => state.updateGlobalVariable);
   const deleteGlobalVariable = useTabStore((state) => state.deleteGlobalVariable);
 
+  const importEnvironment = useTabStore((state) => state.importEnvironment);
+  const importGlobals = useTabStore((state) => state.importGlobals);
+
   const [viewMode, setViewMode] = useState("envs"); // "envs" ou "globals"
   const [selectedEnvId, setSelectedEnvId] = useState(activeEnvironmentId || (environments.length > 0 ? environments[0].id : null));
   const [envToDelete, setEnvToDelete] = useState(null);
@@ -55,6 +58,54 @@ export default function EnvManagerModal({ open, onOpenChange }) {
     }
   };
 
+  const handleExport = async () => {
+    if (!window.electronAPI) return;
+
+    let content, defaultPath;
+    if (viewMode === "envs") {
+      if (!selectedEnv) return;
+      content = {
+        type: "environment",
+        name: selectedEnv.name,
+        variables: selectedEnv.variables
+      };
+      defaultPath = `${selectedEnv.name.replace(/\s+/g, '_').toLowerCase()}_env.json`;
+    } else {
+      content = {
+        type: "globals",
+        variables: globals
+      };
+      defaultPath = "global_variables.json";
+    }
+
+    await window.electronAPI.saveFile({ content, defaultPath });
+  };
+
+  const handleImport = async () => {
+    if (!window.electronAPI) return;
+
+    const path = await window.electronAPI.selectFile();
+    if (!path) return;
+
+    try {
+      const data = await window.electronAPI.readJsonFile(path);
+      
+      if (viewMode === "envs") {
+        if (data.type === "environment" || data.variables) {
+          const newId = importEnvironment(data);
+          if (newId) setSelectedEnvId(newId);
+        }
+      } else {
+        if (data.type === "globals" || Array.isArray(data)) {
+          const globalsList = Array.isArray(data) ? data : data.variables;
+          importGlobals(globalsList);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao importar arquivo:", error);
+    }
+  };
+
   return (
     <>
       <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -72,12 +123,18 @@ export default function EnvManagerModal({ open, onOpenChange }) {
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center border border-zinc-800! rounded-lg overflow-hidden h-9 mr-2 p-0">
-                  <button className="flex items-center h-full gap-2 px-3 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-400 hover:text-white">
+                  <button 
+                    onClick={handleImport}
+                    className="flex items-center h-full gap-2 px-3 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-400 hover:text-white"
+                  >
                     <Upload size={16} />
                     <span>Importar</span>
                   </button>
                   <div className="w-px h-5 bg-zinc-800"></div>
-                  <button className="flex items-center h-full gap-2 px-3 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-400 hover:text-white">
+                  <button 
+                    onClick={handleExport}
+                    className="flex items-center h-full gap-2 px-3 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-400 hover:text-white"
+                  >
                     <Download size={16} />
                     <span>Exportar</span>
                   </button>

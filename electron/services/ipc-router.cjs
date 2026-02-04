@@ -138,6 +138,16 @@ class IpcRouter {
       return this._handleFileSave(content, defaultPath);
     });
 
+    ipcMain.handle("read-json-file", async (event, filePath) => {
+      try {
+        const content = await fs.promises.readFile(filePath, "utf8");
+        return JSON.parse(content);
+      } catch (error) {
+        console.error("[IpcRouter] Erro ao ler JSON:", error);
+        throw error;
+      }
+    });
+
     ipcMain.handle(
       "export-http",
       async (event, { content: collectionData, defaultPath }) => {

@@ -382,6 +382,40 @@ export const createCollectionSlice = (set, get) => ({
     }));
   },
 
+  importEnvironment: (envData) => {
+    if (!envData || !envData.variables) return;
+    
+    const newEnv = {
+      id: `env_${Date.now()}`,
+      name: `${envData.name || "Importado"} (Cópia)`,
+      variables: envData.variables.map(v => ({
+        ...v,
+        id: `var_${Math.random().toString(36).substr(2, 9)}`
+      })),
+    };
+
+    set((state) => ({
+      collection: {
+        ...state.collection,
+        environments: [...state.collection.environments, newEnv],
+      },
+    }));
+    return newEnv.id;
+  },
+
+  importGlobals: (globalsData) => {
+    if (!Array.isArray(globalsData)) return;
+
+    const newGlobals = globalsData.map(v => ({
+      ...v,
+      id: `global_${Math.random().toString(36).substr(2, 9)}`
+    }));
+
+    set((state) => ({
+      globals: [...(state.globals || []), ...newGlobals],
+    }));
+  },
+
   getCollectionForExport: () => {
     const { collection } = get();
     return { ...collection };

@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   selectFile: () => ipcRenderer.invoke("dialog:openFile"),
   selectSaveLocation: () => ipcRenderer.invoke("dialog:saveLocation"),
   saveFile: (data) => ipcRenderer.invoke("save-file", data),
+  readJsonFile: (path) => ipcRenderer.invoke("read-json-file", path),
   exportHttp: (data) => ipcRenderer.invoke("export-http", data),
   confirm: (message) => ipcRenderer.invoke("dialog:confirm", message),
   newFile: () => ipcRenderer.send("new-file"),
