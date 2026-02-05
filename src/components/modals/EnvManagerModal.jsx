@@ -301,8 +301,16 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                           </table>
                         </div>
 
+                        <div className="bg-blue-500/10 border border-blue-500/20! mt-4 py-3 px-4 rounded-lg flex items-center gap-2">
+                          <Info size={18} className="text-blue-400 shrink-0 m-0" />
+                          <p className="text-[0.65rem]! text-blue-300/60 m-0">
+                            <span className="text-blue-300 font-bold">Valores Iniciais:</span> Compartilhados na exportação da coleção. <br />
+                            <span className="text-blue-300 font-bold">Valores Atuais:</span> Locais e privados (ideais para segredos).
+                          </p>
+                        </div>
+
                         {/* Help Section */}
-                        <div className="mt-8 border-t border-zinc-800! pt-6 mb-4">
+                        <div className="mt-6 border-t border-zinc-800! pt-3 mb-2">
                           <button 
                             onClick={() => setIsHelpOpen(!isHelpOpen)}
                             className="flex items-center justify-between w-full p-0 bg-transparent border-none outline-none group/help cursor-pointer"
@@ -367,17 +375,11 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                                 </div>
                               </section>
 
-                              <div className="bg-blue-500/10 border border-blue-500/20! p-4 rounded-lg flex gap-3">
-                                <Info size={16} className="text-blue-400 shrink-0 mt-0.5" />
-                                <div className="space-y-1">
-                                  <p className="text-[0.72rem] leading-relaxed text-blue-200 m-0">
-                                    <strong>Dica:</strong> Se o valor atual estiver vazio, o sistema utilizará o valor inicial. Se a variável não for encontrada, o texto original <code className="text-blue-100">{"{{variavel}}"}</code> será enviado.
-                                  </p>
-                                  <p className="text-[0.65rem] text-blue-300/60 m-0 mt-1">
-                                    <span className="text-blue-300 font-bold">Valores Iniciais:</span> Compartilhados na exportação da coleção.
-                                    <span className="text-blue-300 font-bold ml-2">Valores Atuais:</span> Locais e privados (ideais para segredos).
-                                  </p>
-                                </div>
+                              <div className="bg-blue-500/10 border border-blue-500/20! p-4 rounded-lg flex items-center gap-3">
+                                <Info size={16} className="text-blue-400 shrink-0 m-0" />
+                                <p className="text-[0.72rem] leading-relaxed text-blue-200 m-0">
+                                  <strong>Dica:</strong> Se o valor atual estiver vazio, o sistema utilizará o valor inicial. Se a variável não for encontrada, o texto original <code className="text-blue-100">{"{{variavel}}"}</code> será enviado.
+                                </p>
                               </div>
                             </div>
                           )}
