@@ -301,11 +301,11 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                           </table>
                         </div>
 
-                        <div className="bg-blue-500/10 border border-blue-500/20! mt-4 py-3 px-4 rounded-lg flex items-center gap-2">
-                          <Info size={18} className="text-blue-400 shrink-0 m-0" />
-                          <p className="text-[0.65rem]! text-blue-300/60 m-0">
-                            <span className="text-blue-300 font-bold">Valores Iniciais:</span> Compartilhados na exportação da coleção. <br />
-                            <span className="text-blue-300 font-bold">Valores Atuais:</span> Locais e privados (ideais para segredos).
+                        <div className="bg-zinc-500/10 border border-zinc-500/20! mt-4 py-3 px-4 rounded-lg flex items-center gap-2">
+                          <Info size={18} className="text-amber-400 shrink-0 m-0" />
+                          <p className="text-[0.65rem]! text-zinc-400 m-0">
+                            <span className="text-amber-300/80 font-bold">Valores Iniciais:</span> Compartilhados na exportação da coleção. <br />
+                            <span className="text-amber-300/80 font-bold">Valores Atuais:</span> Locais e privados (ideais para segredos).
                           </p>
                         </div>
 
