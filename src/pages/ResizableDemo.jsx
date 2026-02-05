@@ -80,7 +80,7 @@ export default function ResizableDemo() {
             className="w-4 h-4 rounded-full bg-yellow-500 hover:bg-yellow-600 border border-yellow-600/40! hover:border-yellow-500! cursor-pointer transition-colors ease-in-out"
           ></span>
           <span 
-            onClick={() => {window.electronAPI.stopActionLogger(), window.electronAPI.close()}} 
+            onClick={() => {window.electronAPI.stopActionLogger(), setLogs([]), window.electronAPI.close()}} 
             title="Pausar Logs"
             className="w-4 h-4 rounded-full bg-red-500/70 hover:bg-red-600 border border-red-600/40! hover:border-red-500! cursor-pointer transition-colors ease-in-out"
           ></span>
