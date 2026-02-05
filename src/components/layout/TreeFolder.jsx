@@ -107,6 +107,7 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
     return colors[method?.toUpperCase()] || "text-gray-400";
   };
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const contextMenuItems = useMemo(() => {
     const items = [];
     if (isFolder) {
@@ -159,7 +160,7 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
       },
     );
     return items;
-  }, [isFolder, item.id, setModalConfig, setIsOpen, handleDelete]);
+  }, [isFolder, setModalConfig, item.id, item.name, handleDelete]);
 
   return (
     <div className="select-none">

@@ -6,28 +6,10 @@ import "./index.css";
 import { HashRouter } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 
-// Global error handling for Renderer
-window.onerror = (message, source, lineno, colno, error) => {
-  console.error("Global Error:", { message, source, lineno, colno, error });
-  if (window.electronAPI?.ipcRenderer) {
-    window.electronAPI.ipcRenderer.send("log-error", {
-      type: "window.onerror",
-      message,
-      stack: error?.stack,
-    });
-  }
-};
+import { setupGlobalErrorHandlers } from "./utils/error-handler";
 
-window.onunhandledrejection = (event) => {
-  console.error("Unhandled Rejection:", event.reason);
-  if (window.electronAPI?.ipcRenderer) {
-    window.electronAPI.ipcRenderer.send("log-error", {
-      type: "unhandledrejection",
-      message: event.reason?.message || String(event.reason),
-      stack: event.reason?.stack,
-    });
-  }
-};
+// Inicializa o tratamento global de erros e filtros de ResizeObserver
+setupGlobalErrorHandlers();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
