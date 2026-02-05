@@ -120,9 +120,9 @@ app.whenReady().then(() => {
     }, 10000); // 10s se o auto-update travar
   
     // Action Logger Window (apenas em dev ou quando solicitado, mas aqui vamos deixar fixo para teste)
-    if (isDev) {
-        windowManager.createActionLoggerWindow();
-    }
+    // if (isDev) {
+    //     windowManager.createActionLoggerWindow();
+    // }
   
     autoUpdateService.init(windowManager, () => {
       clearTimeout(launchTimer);

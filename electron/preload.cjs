@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   startActionLogger: () => ipcRenderer.send("start-action-logger"),
   stopActionLogger: () => ipcRenderer.send("stop-action-logger"),
   resizeWindow: (bounds) => ipcRenderer.send("resize-window", bounds),
+  openActionLogger: () => ipcRenderer.send("open-action-logger"),
 
   // --- Controles de Janela ---
   minimize: () => ipcRenderer.send("minimize"),

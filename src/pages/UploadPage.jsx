@@ -116,7 +116,7 @@ function UploadPage() {
       <div className="position-absolute bottom-0 end-0 px-2">
         <span
           className="text-xs text-[#cecece]"
-          onClick={() => navigate("/demo")}
+          onClick={() => window.electronAPI?.openActionLogger()}
         >
           {import.meta.env.VITE_APP_VERSION}
         </span>

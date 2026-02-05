@@ -42,6 +42,10 @@ class IpcRouter {
         if (win) win.setBounds(bounds);
     });
 
+    ipcMain.on("open-action-logger", () => {
+        this.win.createActionLoggerWindow();
+    });
+
     // Window Controls
     ipcMain.on("minimize", () => this.win.minimize());
     ipcMain.on("maximize", () => this.win.maximize());
