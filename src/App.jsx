@@ -76,6 +76,7 @@ function App() {
               <ResizableDemo />
             </Layout>
           } />
+          <Route path="/action-logger" element={<ResizableDemo />} />
         </Routes>
       </GlobalContextMenu>
     </div>

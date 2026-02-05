@@ -191,6 +191,56 @@ class WindowManager {
     return this.updateWindow;
   }
 
+  createActionLoggerWindow() {
+    const log = require("electron-log");
+    log.info("Creating Action Logger Window...");
+
+    this.actionLoggerWindow = new BrowserWindow({
+      minWidth: 300,
+      minHeight: 400,
+      width: 300,
+      height: 400,
+      resizable: true,
+      center: true,
+      frame: false,
+      transparent: true,
+      alwaysOnTop: true,
+      // backgroundColor: "#1e1e1e", // Removido para suportar transparência
+      webPreferences: {
+        preload: this.preloadPath,
+        nodeIntegration: false,
+        contextIsolation: true,
+        additionalArguments: [`--is-dev=${this.isDev}`],
+      },
+    });
+
+    this.actionLoggerWindow.webContents.on("did-start-loading", () =>
+      log.info("Action Logger Window: did-start-loading"),
+    );
+    this.actionLoggerWindow.webContents.on("did-finish-load", () =>
+      log.info("Action Logger Window: did-finish-load"),
+    );
+    this.actionLoggerWindow.webContents.on("did-fail-load", (e, code, desc, url) =>
+      log.error("Action Logger Window: did-fail-load", { code, desc, url }),
+    );
+
+    // Redireciona console do Renderer para o log do Main (Action Logger Window)
+    this.actionLoggerWindow.webContents.on(
+      "console-message",
+      (event, level, message, line, sourceId) => {
+        const levels = ["DEBUG", "INFO", "WARN", "ERROR"];
+        log.info(
+          `[Action Logger Window Console][${levels[level] || "LOG"}] ${message} (${path.basename(sourceId)}:${line})`,
+        );
+      },
+    );
+
+    const url = this.getRouteURL("/action-logger");
+    log.info(`Loading URL in Action Logger Window: ${url}`);
+    this.actionLoggerWindow.loadURL(url);
+    return this.actionLoggerWindow;
+  }
+
   minimize() {
     const win = BrowserWindow.getFocusedWindow();
     if (win) win.minimize();
@@ -230,6 +280,17 @@ class WindowManager {
 
   getUpdateWindow() {
     return this.updateWindow;
+  }
+
+  getActionLoggerWindow() {
+    return this.actionLoggerWindow;
+  }
+
+  toggleDevTools() {
+    const win = BrowserWindow.getFocusedWindow();
+    if (win) {
+      win.webContents.toggleDevTools();
+    }
   }
 }
 

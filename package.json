@@ -98,6 +98,7 @@
     "react-dom": "^19.2.0",
     "react-resizable-panels": "^4.5.9",
     "react-router-dom": "^7.11.0",
+    "tail": "^2.2.6",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",

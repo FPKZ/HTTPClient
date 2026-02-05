@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
         "check-for-updates",
         "show-dialog",
         "log-error",
+        "new-action-log",
       ];
       if (validChannels.includes(channel)) {
         const subscription = (event, ...args) => func(...args);
@@ -38,6 +39,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // --- Função de Log de Ações ---
   logAction: (action, user) => ipcRenderer.invoke("log-action", action, user),
+  startActionLogger: () => ipcRenderer.send("start-action-logger"),
+  stopActionLogger: () => ipcRenderer.send("stop-action-logger"),
+  resizeWindow: (bounds) => ipcRenderer.send("resize-window", bounds),
 
   // --- Controles de Janela ---
   minimize: () => ipcRenderer.send("minimize"),

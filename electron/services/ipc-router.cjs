@@ -33,6 +33,14 @@ class IpcRouter {
     ipcMain.handle("log-action", (event, action, user) => {
       return this.actionLogger.log(action, user);
     });
+    ipcMain.on("start-action-logger", () => this.actionLogger.logRead(this.win.getActionLoggerWindow()));
+    ipcMain.on("stop-action-logger", () => this.actionLogger.logStop());
+
+    ipcMain.on("resize-window", (event, bounds) => {
+        const { BrowserWindow } = require("electron");
+        const win = BrowserWindow.fromWebContents(event.sender);
+        if (win) win.setBounds(bounds);
+    });
 
     // Window Controls
     ipcMain.on("minimize", () => this.win.minimize());
@@ -169,8 +177,7 @@ class IpcRouter {
     );
 
     ipcMain.on("toggle-dev-tools", (event) => {
-      const mainWindow = this.win.getMainWindow();
-      if (mainWindow) mainWindow.webContents.toggleDevTools();
+      this.win.toggleDevTools();
     });
 
     ipcMain.on("log-error", (event, errorData) => {

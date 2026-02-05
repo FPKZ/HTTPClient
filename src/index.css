@@ -52,7 +52,7 @@
 }
 
 body {
-  background-color: var(--bg-color);
+  background-color: transparent;
   color: var(--text-color);
   font-family: "Inter", sans-serif;
   overflow: hidden; /* Prevent scroll on body, handle in containers */

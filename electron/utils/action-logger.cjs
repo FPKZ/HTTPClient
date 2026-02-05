@@ -2,17 +2,19 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const { app } = require("electron");
+const { Tail } = require("tail");
 
 class ActionLogger {
   constructor() {
     const userDataPath = app.getPath("userData");
     const logsDir = path.join(userDataPath, "logs");
+    this.tail = null;
 
     if (!fs.existsSync(logsDir)) {
       fs.mkdirSync(logsDir, { recursive: true });
     }
 
-    this.logPath = path.join(logsDir, "ActonLog");
+    this.logPath = path.join(logsDir, "ActionLog");
   }
 
   getIpAddress() {
@@ -48,6 +50,57 @@ class ActionLogger {
     } catch (error) {
       console.error("Failed to clear ActionLog:", error);
       return false;
+    }
+  }
+
+  ensureLogFileExists() {
+    const dir = path.dirname(this.logPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    if (!fs.existsSync(this.logPath)) fs.writeFileSync(this.logPath, '');
+  }
+
+  logRead(window) {
+    this.ensureLogFileExists();
+
+    this.logStop();
+    
+    try {
+      this.tail = new Tail(this.logPath, {
+        fromBeginning: true,
+        fsWatchOptions: {
+          interval: 1000,
+        },
+        follow: true,
+      });
+
+      this.tail.on("line", (line) => {
+        if(window && !window.isDestroyed()){
+          console.log("Enviando log para a janela", line);
+          window.webContents.send("new-action-log", line);
+        } else {
+          this.logStop();
+        }
+      });
+
+      this.tail.on("error", (error) => {
+        console.error("Failed to read ActionLog:", error);
+        this.logStop();
+      });
+
+    } catch (error) {
+      console.error("Failed to read ActionLog:", error);
+      return null;
+    }
+  }
+
+  logStop() {
+    if(this.tail){
+      try{
+        this.tail.unwatch();
+      } catch (error) {
+        console.error("Failed to stop ActionLog:", error);
+      }
+      this.tail = null;
     }
   }
 }

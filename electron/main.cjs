@@ -61,6 +61,7 @@ const exportService = new ExportService(storage);
 const historyService = new HistoryService(storage);
 const networkService = new NetworkService();
 const windowManager = new WindowManager(isDev, preloadPath, actionLogger);
+
 const autoUpdateService = new AutoUpdateService(isDev);
 const menuBuilder = new MenuBuilder(windowManager, isDev);
 const dialogReact = new DialogReact(windowManager);
@@ -117,6 +118,11 @@ app.whenReady().then(() => {
     const launchTimer = setTimeout(() => {
       windowManager.createMainWindow();
     }, 10000); // 10s se o auto-update travar
+  
+    // Action Logger Window (apenas em dev ou quando solicitado, mas aqui vamos deixar fixo para teste)
+    if (isDev) {
+        windowManager.createActionLoggerWindow();
+    }
   
     autoUpdateService.init(windowManager, () => {
       clearTimeout(launchTimer);
