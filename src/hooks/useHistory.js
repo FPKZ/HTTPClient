@@ -26,12 +26,13 @@ export function useHistory(fetchOnMount = true) {
     const content = await window.electronAPI.loadCollection(item.file);
     if (content) {
       // Carrega diretamente no store para evitar passar objeto gigante pelo state do router
+      window.electronAPI.logAction("Carregando coleção salva no historico: " + item.name);
       useTabStore.getState().loadCollection(content);
       navigate("/");
     }
   };
 
-  const handleDeleteHistoryItem = async (e, id) => {
+  const handleDeleteHistoryItem = async (name, id) => {
     const confirmed = await showDialog({
       title: "Deletar item do histórico",
       description: "Tem certeza que deseja remover este item do histórico?",
@@ -41,6 +42,7 @@ export function useHistory(fetchOnMount = true) {
       ],
     });
     if (confirmed) {
+      window.electronAPI.logAction("Deletando item do historico: " + name);
       await window.electronAPI.deleteHistoryItem(id);
       const updatedHistory = await window.electronAPI.getHistory();
       setHistory(updatedHistory || []);
@@ -59,6 +61,7 @@ export function useHistory(fetchOnMount = true) {
     });
     if (confirmed) {
       const collection = useTabStore.getState().getCollectionForExport();
+      window.electronAPI.logAction("Salvando coleção no historico: " + collection.name);
       await window.electronAPI.saveHistory(collection);
     }
   };
@@ -73,6 +76,7 @@ export function useHistory(fetchOnMount = true) {
       ],
     });
     if (confirmed) {
+      window.electronAPI.logAction("Deletando todo o historico");
       await window.electronAPI.deleteAllHistory();
       setHistory([]);
     }

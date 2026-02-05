@@ -1,3 +1,6 @@
+import { translate } from "./translate";
+export { translate };
+
 /**
  * collectionUtils.js
  * Utilitários para manipulação de árvores de coleções (rotas e pastas).
@@ -73,11 +76,23 @@ export const findItemPath = (items, id, path = []) => {
 /**
  * Adiciona um item a uma pasta específica na árvore.
  */
-export const addItemToTree = (items, targetId, newItem) => {
-  if (!targetId) return [...items, newItem];
+export const addItemToTree = (items, targetId, newItem, shouldLog = true) => {
+  if (!targetId) {
+    if (shouldLog) {
+      window.electronAPI.logAction(
+        `Adicionando ${translate(newItem.type)} na raiz, com nome: ${newItem.name}`,
+      );
+    }
+    return [...items, newItem];
+  }
 
   return items.map((item) => {
     if (item.id === targetId && item.type === "folder") {
+      if (shouldLog) {
+        window.electronAPI.logAction(
+          `Adicionando ${translate(newItem.type)} a ${translate(item.type)}: ${item.name}, com nome: ${newItem.name}`,
+        );
+      }
       return {
         ...item,
         items: [...(item.items || []), newItem],
@@ -86,7 +101,7 @@ export const addItemToTree = (items, targetId, newItem) => {
     if (item.type === "folder" && item.items) {
       return {
         ...item,
-        items: addItemToTree(item.items, targetId, newItem),
+        items: addItemToTree(item.items, targetId, newItem, shouldLog),
       };
     }
     return item;
@@ -96,14 +111,22 @@ export const addItemToTree = (items, targetId, newItem) => {
 /**
  * Remove recursivamente um item da árvore.
  */
-export const removeItemFromTree = (items, targetId) => {
+export const removeItemFromTree = (items, targetId, parentName = "Raiz") => {
   return items
-    .filter((item) => item.id !== targetId)
+    .filter((item) => {
+      if (item.id === targetId) {
+        window.electronAPI.logAction(
+          `Removendo ${translate(item.type)}: ${item.name}, da ${translate(parentName)}: ${parentName}`,
+        );
+        return false;
+      }
+      return true;
+    })
     .map((item) => {
       if (item.type === "folder" && item.items) {
         return {
           ...item,
-          items: removeItemFromTree(item.items, targetId),
+          items: removeItemFromTree(item.items, targetId, item.name),
         };
       }
       return item;
@@ -116,6 +139,9 @@ export const removeItemFromTree = (items, targetId) => {
 export const updateItemInTree = (items, id, updates) => {
   return items.map((item) => {
     if (item.id === id) {
+      window.electronAPI.logAction(
+        `Alterando o nome da ${translate(item.type)}: ${item.name}, para: ${updates.name}`,
+      );
       return { ...item, ...updates };
     }
     if (item.type === "folder" && item.items) {
@@ -192,10 +218,15 @@ export const applyVariables = (data, variables = []) => {
   const envMap = variables.reduce((acc, v) => {
     const key = v.key || v.name;
     // Usa o valor atual se existir, caso contrário cai para o valor inicial
-    const value = (v.currentValue !== undefined && v.currentValue !== null && v.currentValue !== "") 
-      ? v.currentValue 
-      : (v.initialValue !== undefined ? v.initialValue : v.value);
-      
+    const value =
+      v.currentValue !== undefined &&
+      v.currentValue !== null &&
+      v.currentValue !== ""
+        ? v.currentValue
+        : v.initialValue !== undefined
+          ? v.initialValue
+          : v.value;
+
     if (v.enabled && key) {
       acc[key] = value;
     }

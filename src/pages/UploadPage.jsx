@@ -34,6 +34,7 @@ function UploadPage() {
         if (result.success && result.results?.length > 0) {
           const data = result.results[0];
           // Carrega diretamente no store
+          window.electronAPI.logAction("Carregando coleção", data.name);
           useTabStore.getState().loadCollection(data.raw);
           navigate("/");
         }

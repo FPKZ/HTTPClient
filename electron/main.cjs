@@ -41,11 +41,14 @@ const AutoUpdateService = require("./services/auto-update-service.cjs");
 const IpcRouter = require("./services/ipc-router.cjs");
 const ExportService = require("./services/export-service.cjs");
 const DialogReact = require("./utils/dialog-react.cjs");
+const actionLogger = require("./utils/action-logger.cjs");
 
 // Setup Global Constants
 const isDev = !app.isPackaged;
 const preloadPath = path.join(__dirname, "preload.cjs");
 const userDataPath = app.getPath("userData");
+
+isDev ? actionLogger.logClear() : null;
 
 // 1. Instanciar Provedores e Conversores (Infra e Core)
 const storage = new StorageProvider(userDataPath);
@@ -57,7 +60,7 @@ const exportService = new ExportService(storage);
 // 2. Instanciar Serviços de Negócio
 const historyService = new HistoryService(storage);
 const networkService = new NetworkService();
-const windowManager = new WindowManager(isDev, preloadPath);
+const windowManager = new WindowManager(isDev, preloadPath, actionLogger);
 const autoUpdateService = new AutoUpdateService(isDev);
 const menuBuilder = new MenuBuilder(windowManager, isDev);
 const dialogReact = new DialogReact(windowManager);
@@ -73,6 +76,7 @@ const ipcRouter = new IpcRouter(
   networkService,
   exportService,
   dialogReact,
+  actionLogger,
 );
 
 // --- Lifecycle do App ---
@@ -102,21 +106,33 @@ app.whenReady().then(() => {
   });
 
   log.info("App Ready. Starting Window Sequence...");
-
+  actionLogger.log("Iniciando App...");
   // Inicializa o fluxo de atualização (que depois lança o app principal)
   // dialog.showMessageBox({ message: '1. App Ready. Checking updates...' }); // Debug
-  windowManager.createUpdateWindow();
-
-  // Timeout de segurança global para garantir que o app abra
-  const launchTimer = setTimeout(() => {
-    windowManager.createMainWindow();
-  }, 10000); // 10s se o auto-update travar
-
-  autoUpdateService.init(windowManager, () => {
-    clearTimeout(launchTimer);
-    // dialog.showMessageBox({ message: '2. Launching Main Window...' }); // Debug
-    windowManager.createMainWindow();
-  });
+  try{
+    // actionLogger.log("Inicia o fluxo de atualização");
+    windowManager.createUpdateWindow();
+  
+    // Timeout de segurança global para garantir que o app abra
+    const launchTimer = setTimeout(() => {
+      windowManager.createMainWindow();
+    }, 10000); // 10s se o auto-update travar
+  
+    autoUpdateService.init(windowManager, () => {
+      clearTimeout(launchTimer);
+      // dialog.showMessageBox({ message: '2. Launching Main Window...' }); // Debug
+      actionLogger.log("Iniciando Sistema");
+      windowManager.createMainWindow();
+    });
+  } catch (error) {
+    log.error("Erro ao iniciar o fluxo de atualização:", error);
+    dialog.showErrorBox(
+      "Erro ao iniciar o fluxo de atualização",
+      error.message,
+    );
+    actionLogger.log("Erro ao iniciar o App: " + error.message);
+    app.quit();
+  }
 });
 
 app.on("window-all-closed", () => {

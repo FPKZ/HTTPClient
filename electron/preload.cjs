@@ -31,7 +31,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
     send(channel, ...args) {
       ipcRenderer.send(channel, ...args);
     },
+    invoke(channel, ...args) {
+      return ipcRenderer.invoke(channel, ...args);
+    },
   },
+
+  // --- Função de Log de Ações ---
+  logAction: (action, user) => ipcRenderer.invoke("log-action", action, user),
 
   // --- Controles de Janela ---
   minimize: () => ipcRenderer.send("minimize"),

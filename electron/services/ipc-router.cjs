@@ -16,6 +16,7 @@ class IpcRouter {
     networkService,
     exportService,
     dialogReact,
+    actionLogger,
   ) {
     this.win = windowManager;
     this.history = historyService;
@@ -24,9 +25,15 @@ class IpcRouter {
     this.network = networkService;
     this.export = exportService;
     this.dialogReact = dialogReact;
+    this.actionLogger = actionLogger;
   }
 
   register() {
+    // Logging
+    ipcMain.handle("log-action", (event, action, user) => {
+      return this.actionLogger.log(action, user);
+    });
+
     // Window Controls
     ipcMain.on("minimize", () => this.win.minimize());
     ipcMain.on("maximize", () => this.win.maximize());

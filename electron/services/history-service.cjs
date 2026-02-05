@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require("path");
 
 /**
  * HistoryService
@@ -55,12 +55,28 @@ class HistoryService {
         history.unshift(existingItem);
       } else {
         fileName = `${collectionId}.json`;
-        history.unshift(this._createNewHistoryItem(collectionId, name, collectionData.description || collectionData.descricao || "", "native", fileName));
+        history.unshift(
+          this._createNewHistoryItem(
+            collectionId,
+            name,
+            collectionData.description || collectionData.descricao || "",
+            "native",
+            fileName,
+          ),
+        );
       }
     } else {
       collectionId = Date.now().toString();
       fileName = `${collectionId}.json`;
-      history.unshift(this._createNewHistoryItem(collectionId, name, collectionData.description || collectionData.descricao || "", "native", fileName));
+      history.unshift(
+        this._createNewHistoryItem(
+          collectionId,
+          name,
+          collectionData.description || collectionData.descricao || "",
+          "native",
+          fileName,
+        ),
+      );
     }
 
     // Salva o JSON da coleção
@@ -81,7 +97,7 @@ class HistoryService {
     if (index !== -1) {
       const item = history[index];
       const collectionPath = path.join(this.storage.getCollectionsPath(), item.file);
-      
+
       await this.storage.deleteFile(collectionPath, true);
       history.splice(index, 1);
       await this.storage.writeJson(this.historyFile, history);
@@ -91,8 +107,8 @@ class HistoryService {
   }
 
   async deleteAllHistory() {
-    await this.storage.deleteAll(this.storage.getDataDir());
-    // await this.storage.writeJson(this.historyFile, []);
+    await this.storage.deleteAll(this.storage.getCollectionsPath());
+    await this.storage.writeJson(this.historyFile, []);
   }
 
   _createNewHistoryItem(id, name, description, type, file) {

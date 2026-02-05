@@ -7,9 +7,10 @@ const path = require("path");
  * Isola a lógica de rotas, webPreferences e eventos de janela (minimize/maximize/close).
  */
 class WindowManager {
-  constructor(isDev, preloadPath) {
+  constructor(isDev, preloadPath, actionLogger) {
     this.isDev = isDev;
     this.preloadPath = preloadPath;
+    this.actionLogger = actionLogger;
     this.mainWindow = null;
     this.updateWindow = null;
   }
@@ -135,6 +136,7 @@ class WindowManager {
   forceCloseApp() {
     this.forceClose = true;
     if (this.mainWindow) {
+      this.actionLogger.log("Fechando App");
       this.mainWindow.close();
     }
   }
@@ -203,7 +205,17 @@ class WindowManager {
 
   close() {
     const win = BrowserWindow.getFocusedWindow();
-    if (win) win.close();
+    if (win) {
+      try{
+        console.log("fechando janela", win.getTitle());
+        this.actionLogger.log("Janela fechada");
+      } catch (error) {
+        console.log("Erro ao fechar janela", error);
+        this.actionLogger.log("Erro ao fechar janela: " + error.message);
+      }finally{
+        win.close();
+      }
+    }
   }
 
   setMenu(template) {

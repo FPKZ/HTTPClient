@@ -78,12 +78,14 @@ export function useCollections(
 
   const handleExportCollection = () => {
     if (window.electronAPI) {
+      window.electronAPI.logAction("Exportando coleção: " + collectionName);
       window.electronAPI.saveFile({ content: rota });
     }
   };
 
   // Auto-save logic
   useQuickExit(() => {
+    window.electronAPI.logAction("Salvando coleção no historico: " + collectionName);
     window.electronAPI.saveAndQuit({
       id: sessionId,
       collectionName: collectionName || "Collection",

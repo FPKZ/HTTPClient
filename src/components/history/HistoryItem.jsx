@@ -26,7 +26,7 @@ export default function HistoryItem({ item, onLoad, onDelete }) {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onDelete(e, item.id);
+            onDelete(item.name, item.id);
           }}
           className="p-1.5 rounded-full hover:bg-red-500/20 text-zinc-600 hover:text-red-500 transition-colors border-none bg-transparent"
           title="Excluir do histórico"
