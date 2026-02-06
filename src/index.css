@@ -46,9 +46,12 @@
   user-select: none; /* Padrão */
 }
 
-.permitirSelect {
-  -webkit-user-select: text; /* Para compatibilidade com o Chromium */
-  user-select: text; /* Padrão */
+.permitirSelect,
+.permitirSelect * {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-app-region: no-drag !important;
+  cursor: text;
 }
 
 body {
