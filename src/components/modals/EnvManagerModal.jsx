@@ -78,6 +78,10 @@ export default function EnvManagerModal({ open, onOpenChange }) {
       defaultPath = "global_variables.json";
     }
 
+    window.electronAPI.logAction(
+      `Exportando ${viewMode === "envs" ? "ambiente" : "variáveis globais"}: ${viewMode === "envs" ? selectedEnv.name : "global"}`,
+    );
+
     await window.electronAPI.saveFile({ content, defaultPath });
   };
 
@@ -127,7 +131,7 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                     onClick={handleImport}
                     className="flex items-center h-full gap-2 px-3 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-400 hover:text-white"
                   >
-                    <Upload size={16} />
+                    <Download size={16} />
                     <span>Importar</span>
                   </button>
                   <div className="w-px h-5 bg-zinc-800"></div>
@@ -135,7 +139,7 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                     onClick={handleExport}
                     className="flex items-center h-full gap-2 px-3 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-400 hover:text-white"
                   >
-                    <Download size={16} />
+                    <Upload size={16} />
                     <span>Exportar</span>
                   </button>
                 </div>

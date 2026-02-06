@@ -1,5 +1,5 @@
 import EstruturaModal from "./EstruturaModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * 
@@ -21,6 +21,14 @@ export default function EditCollectionModal({
     const [desc, setDesc] = useState(externalDesc);
 
     const open = openExternal || internalOpen;
+
+    useEffect(() => {
+      if(open){
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setName(externalName);
+        setDesc(externalDesc);
+      }
+    }, [open]);
 
     const setOpen = (val) => {
         if (setExternalOpen !== undefined) {

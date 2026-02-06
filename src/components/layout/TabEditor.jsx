@@ -80,6 +80,7 @@ export default function TabEditor() {
     handleExecuteRequest(
       activeTab.screenKey || activeTab.id,
       activeTab.data.request,
+      activeTab.title,
     );
   };
 

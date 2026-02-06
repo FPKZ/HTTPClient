@@ -117,6 +117,7 @@ export const createCollectionSlice = (set, get) => {
         activeEnvironmentId = null;
       }
 
+      window.electronAPI.logAction("Coleção carregada: " + data?.name);
       set({
         collection: {
           id: data?.id || null,
@@ -165,7 +166,7 @@ export const createCollectionSlice = (set, get) => {
           name: tab.title,
         },
       );
-
+      window.electronAPI.logAction("Salvando alterações na rota: " + tab.title);
       set({
         collection: { ...collection, items: updatedItems },
         tabs: tabs.map((t) => (t.id === id ? { ...t, isDirty: false } : t)),
@@ -212,12 +213,7 @@ export const createCollectionSlice = (set, get) => {
       };
 
       // window.electronAPI.logAction("Adicionando pasta: " + newFolder.name + " - Com o nome: " + newFolder.name);
-      console.log(
-        "Adicionando pasta: " +
-          newFolder.name +
-          " - Com o nome: " +
-          newFolder.name,
-      );
+      
       const updatedItems = utils.addItemToTree(
         collection.items,
         parentId,
@@ -342,6 +338,9 @@ export const createCollectionSlice = (set, get) => {
     },
 
     updateCollectionMeta: (name, description) => {
+      window.electronAPI.logAction(
+        `Atualizando coleção: ${get().collection.name}, ${description ? `descrição: ${get().collection.description},` : ""} para: ${name}, ${description ? `descrição: ${description}` : ""}`,
+      );
       set((state) => ({
         collection: {
           ...state.collection,
@@ -361,6 +360,8 @@ export const createCollectionSlice = (set, get) => {
     },
 
     setActiveEnvironment: (id) => {
+      const env = get().collection.environments.find((e) => e.id === id);
+      window.electronAPI.logAction(`Ativando ambiente: ${env.name}`);
       set((state) => ({
         collection: { ...state.collection, activeEnvironmentId: id },
       }));
@@ -563,14 +564,14 @@ export const createCollectionSlice = (set, get) => {
 
       const newEnv = {
         id: `env_${Date.now()}`,
-        name: `${envData.name || "Importado"} (Cópia)`,
+        name: `${envData.name || "Importado"}`,
         variables: envData.variables.map((v) => ({
           ...v,
           id: `var_${Math.random().toString(36).substr(2, 9)}`,
         })),
       };
 
-      window.electronAPI.logAction("Importando ambiente");
+      window.electronAPI.logAction(`Importando ambiente: ${envData.name}`);
 
       set((state) => ({
         collection: {
@@ -589,7 +590,7 @@ export const createCollectionSlice = (set, get) => {
         id: `global_${Math.random().toString(36).substr(2, 9)}`,
       }));
 
-      window.electronAPI.logAction("Importando variáveis globais");
+      window.electronAPI.logAction(`Importando variáveis globais: ${globalsData.length}`);
 
       set((state) => ({
         globals: [...(state.globals || []), ...newGlobals],

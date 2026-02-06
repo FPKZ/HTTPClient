@@ -1,51 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useTabStore from "../../store/useTabStore";
 import useModalStore from "../../store/useModalStore";
+import { useNewCollection } from "../../hooks/useNewCollection";
 
 export default function NovaCollectionModal({ children }) {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
+  const [routes, setRoutes] = useState(["GET", "POST", "PUT", "DELETE", "PATCH"]);
   const navigate = useNavigate();
   const loadCollection = useTabStore((state) => state.loadCollection);
-
-  const createTestRoute = (method) => ({
-    id: `route_${Date.now()}_${Math.random()
-      .toString(36)
-      .substr(2, 5)}_${method.toLowerCase()}`,
-    type: "route",
-    name: `Test Route`,
-    request: {
-      method: method,
-      url: "https://jsonplaceholder.typicode.com/posts/1",
-      headers: [
-        { key: "Content-Type", value: "application/json", enabled: true },
-      ],
-      params: [],
-      body: {
-        mode: method === "GET" || method === "DELETE" ? "none" : "json",
-        content:
-          method === "GET" || method === "DELETE"
-            ? ""
-            : JSON.stringify({ title: "foo", body: "bar", userId: 1 }, null, 2),
-      },
-      auth: {
-        name: "none",
-        config: { key: "", type: "Bearer", value: "header" },
-      },
-    },
-    response: {
-      status: null,
-      statusText: "",
-      body: "",
-      headers: [],
-      time: 0,
-      size: 0,
-      logs: [],
-    },
-  });
+  const { newCollection, createTestRoute } = useNewCollection();
 
   const isNovaCollectionOpen = useModalStore(
     (state) => state.isNovaCollectionOpen,
@@ -54,20 +21,36 @@ export default function NovaCollectionModal({ children }) {
     (state) => state.setNovaCollectionOpen,
   );
 
-  const handleCreate = () => {
-    const methods = ["GET", "POST", "PUT", "DELETE", "PATCH"];
-    const testRoutes = methods.map(createTestRoute);
+  useEffect(() => {
+    if(isNovaCollectionOpen){
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setName("");
+      setDesc("");
+      setRoutes(["GET", "POST", "PUT", "DELETE", "PATCH"]);
+    }
+  }, [isNovaCollectionOpen]);
 
-    const newCollection = {
-      id: `coll_${Date.now()}`,
-      collectionName: name || "Nova Coleção",
-      description: desc,
-      items: testRoutes, // Adiciona as 5 rotas teste
-      environments: [],
-    };
+  const handleCheckboxChange = (method) => {
+    setRoutes((prevRoutes) => {
+      // Se o método já estiver no array, removemos ele (uncheck)
+      if (prevRoutes.includes(method)) {
+        return prevRoutes.filter((r) => r !== method);
+      } 
+      // Se não estiver, adicionamos ao array (check)
+      else {
+        return [...prevRoutes, method];
+      }
+    });
+  };
+
+  const handleCreate = () => {
+    let testRoutes = [];
+    routes.length > 0 ? testRoutes = routes : testRoutes = createTestRoute();
+    // const methods = ["GET", "POST", "PUT", "DELETE", "PATCH"];
+    // const testRoutes = methods.map(createTestRoute);
 
     // Atualiza diretamente o store, forçando a re-renderização da Home
-    loadCollection(newCollection);
+    loadCollection(newCollection(name, desc, testRoutes));
     setNovaCollectionOpen(false);
     navigate("/");
   };
@@ -127,6 +110,28 @@ export default function NovaCollectionModal({ children }) {
                 className="w-full p-2 bg-zinc-950 border border-zinc-800! rounded text-sm text-white focus:border-yellow-600 outline-none h-20 resize-none transition-colors"
               />
             </div>
+            <div>
+              <label className="text-[0.65rem] font-bold text-zinc-500 mb-2 block uppercase tracking-wider">
+                Rotas Iniciais
+              </label>
+              <div className="flex flex-wrap gap-4">
+                {["GET", "POST", "PUT", "DELETE", "PATCH"].map((method) => (
+                  <label key={method} className="flex items-center gap-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      defaultChecked
+                      checked={routes.includes(method)}
+                      onChange={() => handleCheckboxChange(method)}
+                      className="w-4 h-4 rounded! border-zinc-800! bg-zinc-950 text-yellow-600 focus:ring-yellow-600 focus:ring-offset-zinc-900 transition-colors"
+                    />
+                    <span className="text-[0.7rem] font-bold text-zinc-400 group-hover:text-zinc-200 transition-colors">
+                      {method}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            
             <div className="bg-blue-500/10 border border-blue-500/20! p-3 rounded">
               <p className="text-[0.7rem] text-blue-400">
                 💡 Esta coleção será criada com 5 rotas de teste (GET, POST,

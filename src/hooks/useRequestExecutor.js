@@ -26,11 +26,12 @@ export function useRequestExecutor() {
 
   const cancelRequest = (requestId) => {
     if (window.electronAPI?.cancelRequest) {
+      window.electronAPI.logAction("Cancelando requisição");
       window.electronAPI.cancelRequest(requestId);
     }
   };
 
-  const handleExecuteRequest = async (screenKey, requestDataOrigin) => {
+  const handleExecuteRequest = async (screenKey, requestDataOrigin, tabTitle) => {
     if (!window.electronAPI) return;
 
     // Gera um ID único para esta execução de requisição
@@ -39,6 +40,7 @@ export function useRequestExecutor() {
 
     // Aplica variáveis em todo o objeto de requisição
     const requestData = applyVariables(requestDataOrigin, activeVariables);
+    
 
     // Helper para converter lista [{key, value, enabled, type}] em objeto {key: value}
     const listToObj = (list) => {
@@ -118,6 +120,7 @@ export function useRequestExecutor() {
       } else if (Object.keys(authBodyInjection).length > 0) {
         bodyToExecute = authBodyInjection;
       }
+      window.electronAPI.logAction("Executando requisição: " + tabTitle);
 
       const response = await window.electronAPI.request({
         url: finalUrl,
@@ -136,6 +139,7 @@ export function useRequestExecutor() {
         [screenKey]: [response],
       }));
     } catch (error) {
+      window.electronAPI.logAction("Erro na requisição: " + tabTitle + " - " + error.message);
       setLogsPorTela((prev) => ({
         ...prev,
         [screenKey]: [

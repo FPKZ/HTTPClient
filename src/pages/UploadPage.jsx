@@ -34,7 +34,7 @@ function UploadPage() {
         if (result.success && result.results?.length > 0) {
           const data = result.results[0];
           // Carrega diretamente no store
-          window.electronAPI.logAction("Carregando coleção", data.name);
+          window.electronAPI.logAction("Carregando coleção: " + data.raw.name);
           useTabStore.getState().loadCollection(data.raw);
           navigate("/");
         }
@@ -52,6 +52,7 @@ function UploadPage() {
 
   const handleFolderSelect = async () => {
     const path = await window.electronAPI?.selectFile();
+    window.electronAPI.logAction("Importando coleção: " + path);
     if (path) startConversion(path, true);
   };
 
