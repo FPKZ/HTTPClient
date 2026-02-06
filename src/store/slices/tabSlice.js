@@ -142,6 +142,17 @@ export const createTabSlice = (set, get) => ({
     return tabs.find((tab) => tab.id === activeTabId) || null;
   },
 
+  isTabDirty: (id) => {
+    const { tabs } = get();
+    const tab = tabs.find((t) => t.id === id);
+    return tab ? tab.isDirty : false;
+  },
+
+  isRouteDirty: (screenKey) => {
+    const { tabs } = get();
+    return tabs.some((tab) => tab.screenKey === screenKey && tab.isDirty);
+  },
+
   resetTabs: () => {
     set({
       tabs: [],

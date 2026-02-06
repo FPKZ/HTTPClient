@@ -14,6 +14,7 @@ export default function TabBar() {
   const setActiveTab = useTabStore((state) => state.setActiveTab);
   const closeTab = useTabStore((state) => state.closeTab);
   const addBlankTab = useTabStore((state) => state.addBlankTab);
+  const isTabDirty = useTabStore((state) => state.isTabDirty);
 
   const {
     navRef,
@@ -127,7 +128,7 @@ export default function TabBar() {
               data-tab-id={tab.id}
               onAuxClick={(e) => {
                 e.stopPropagation();
-                handleCloseTab(e, tab.id)
+                handleCloseTab(e, tab.id);
               }}
               onClick={() => {
                 setActiveTab(tab.id);
@@ -141,6 +142,14 @@ export default function TabBar() {
                 }
               `}
             >
+              {/* Indicador de Modificação */}
+              {isTabDirty(tab.id) && (
+                <div
+                  className="w-2 h-2 me-1 bg-orange-500 rounded-full"
+                  title="Modificado"
+                />
+              )}
+
               {/* Método HTTP */}
               <span
                 className={`text-[0.6rem]! font-bold ${getMethodColor(
@@ -155,18 +164,10 @@ export default function TabBar() {
                 {tab.title}
               </span>
 
-              {/* Indicador de Modificação */}
-              {tab.isDirty && (
-                <div
-                  className="w-2 h-2 bg-orange-500 rounded-full"
-                  title="Modificado"
-                />
-              )}
-
               {/* Botão Fechar */}
               <button
                 onClick={(e) => handleCloseTab(e, tab.id)}
-                className="opacity-0 group-hover:opacity-100! p-0.5 hover:bg-zinc-600 rounded transition-all"
+                className="opacity-0  group-hover:opacity-100! p-0.5 hover:bg-zinc-600 rounded transition-all"
                 title="Fechar aba"
               >
                 <X size={14} />

@@ -29,6 +29,14 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
   const deleteItem = useTabStore((state) => state.deleteItem);
   const showDialog = useDialogStore((state) => state.showDialog);
 
+  // Selector reativo para verificar se o item está modificado
+  // Isso garante que o componente renderize novamente quando 'tabs' mudar no store
+  const isDirty = useTabStore(
+    (state) =>
+      !item.type === "folder" ||
+      state.tabs.some((tab) => tab.screenKey === item.id && tab.isDirty),
+  );
+
   const {
     attributes,
     listeners,
@@ -145,11 +153,11 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
         label: "Renomear",
         icon: <Edit size={14} />,
         onClick: () =>
-          setModalConfig({ 
-            open: true, 
-            type: "rename", 
+          setModalConfig({
+            open: true,
+            type: "rename",
             targetId: item.id,
-            currentName: item.name 
+            currentName: item.name,
           }),
       },
       {
@@ -213,6 +221,13 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
             >
               {item.name}
             </span>
+            {/* Indicador de Modificação */}
+            {!isFolder && isDirty && (
+              <div
+                className="w-1.5 h-1.5 bg-orange-500 rounded-full ml-auto mr-1 shrink-0"
+                title="Não salvo"
+              />
+            )}
           </div>
 
           {/* Ações (Hover) */}
@@ -260,7 +275,7 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
                   open: true,
                   type: "rename",
                   targetId: item.id,
-                  currentName: item.name
+                  currentName: item.name,
                 });
               }}
             >
