@@ -1,48 +1,60 @@
 # 🚀 HTTPClient
 
-[![Versão](https://img.shields.io/badge/versão-1.0.34-blue.svg)](https://github.com/FPKZ/HTTPClient)
-[![Plataforma](https://img.shields.io/badge/plataforma-Windows%20%7C%20Linux%20%7C%20Mac-lightgrey.svg)](https://github.com/FPKZ/HTTPClient)
-[![Status](https://img.shields.io/badge/status-em%20desenvolvimento-orange.svg)](https://github.com/FPKZ/HTTPClient)
+[![Versão](https://img.shields.io/badge/versão-1.0.41-blue.svg)](https://github.com/FPKZ/HTTPClient)
+[![Plataforma](https://img.shields.io/badge/plataforma-Windows%20%7C%20Linux%20-lightgrey.svg)](https://github.com/FPKZ/HTTPClient)
+[![Status](https://img.shields.io/badge/status-active%20development-success.svg)](https://github.com/FPKZ/HTTPClient)
 
-O **HTTPClient** é uma solução desktop de alta performance desenhada para simplificar o workflow de requisições em ambientes corporativos. Originalmente concebido para otimizar processos internos governamentais, o projeto evolui para se tornar uma ferramenta robusta de automação e testes de API.
+O **HTTPClient** é uma solução desktop de alta performance desenhada para simplificar o workflow de requisições em ambientes corporativos. Originalmente concebido para otimizar processos governamentais, o projeto evoluiu para uma ferramenta robusta de automação, testes de API e colaboração.
 
 > [!IMPORTANT]
-> **Nota de Desenvolvimento:** Este projeto é um laboratório prático de um desenvolvedor em constante aprendizado. Embora focado em resolver problemas específicos do meu ambiente de trabalho atual, o código e a arquitetura estão sendo lapidados para futuros padrões comerciais.
+> **Nota de Desenvolvimento:** Este projeto é um laboratório prático em constante evolução. Embora focado em resolver problemas reais de produtividade e integração, o código e a arquitetura seguem rigorosos padrões para viabilizar scalabilidade comercial futura.
 
 ---
 
-## 💎 Diferenciais Estratégicos
+## 💎 Diferenciais e Funcionalidades
 
-O HTTPClient foi construído para preencher a lacuna entre ferramentas genéricas e a necessidade de uma interface ágil e integrada ao sistema operacional.
+O HTTPClient combina a flexibilidade de ferramentas web com a robustez de aplicações nativas:
 
-- **🚀 Interface Ultra-Responsiva:** Desenvolvido com React 19 e Vite para garantir latência mínima.
-- **📑 Gerenciamento Dinâmico de Sessões:** Sistema de abas inteligente para múltiplos contextos de requisição.
-- **🛠️ Editor de Código Profissional:** Integração com o Monaco Editor (o motor do VS Code) para manipulação de JSON e scripts.
-- **📂 Gestão de Collections:** Organização hierárquica completa para fluxos de trabalho complexos.
-- **🔐 Segurança e Logs:** Monitoramento em tempo real de payloads e cabeçalhos com tratamento robusto de erros.
+- **🚀 Interface Ultra-Responsiva:** Construído com React 19, Vite e Electron para latência zero. Painéis totalmente redimensionáveis e menus de contexto nativos.
+- **📑 Gerenciamento Avançado de Sessões:** Sistema de abas inteligente e isolado para múltiplos contextos de trabalho.
+- **🛠️ Editor Profissional:** Integração profunda com Monaco Editor para JSON, scripts e visualização de respostas (HTML/Text/JSON).
+- **📊 Action Logs Detalhados:** Rastreamento granular de alterações em variáveis e ambiente, com debounce inteligente para evitar poluição visual.
+- **📂 Gestão de Collections:** Organização hierárquica completa.
+- **� Segurança e Conformidade:** Monitoramento em tempo real de payloads e cabeçalhos.
 
 ---
 
 ## 🛠️ Stack Tecnológica
 
-Utilizamos tecnologias de ponta para garantir estabilidade e escalabilidade:
+Utilizamos tecnologias modernas para garantir manutenibilidade e performance:
 
-- **Core:** [Electron](https://www.electronjs.org/) (Desktop Runtime) & [React 19](https://react.dev/)
+- **Core:** [Electron](https://www.electronjs.org/) & [React 19](https://react.dev/)
 - **Estilização:** [Tailwind CSS 4.0](https://tailwindcss.com/) & [React Bootstrap](https://react-bootstrap.github.io/)
-- **Estado:** [Zustand](https://github.com/pmndrs/zustand) (Gerenciamento de estado leve e rápido)
-- **Requisições:** [Axios](https://axios-http.com/) com suporte a Interceptors.
-- **UX/UI:** [Lucide React](https://lucide.dev/) (Ícones) & [Radix UI](https://www.radix-ui.com/) (Componentes acessíveis)
+- **Estado:** [Zustand](https://github.com/pmndrs/zustand)
+- **Networking:** [Axios](https://axios-http.com/) com Interceptors avançados.
+- **UI Components:** [Lucide React](https://lucide.dev/) & [Radix UI](https://www.radix-ui.com/)
 
 ---
 
-## 🗺️ Roadmap e Visão Comercial
+## 🗺️ Roadmap e Visão de Futuro
 
-O projeto está sendo preparado para uma distribuição comercial em larga escala. Nossos próximos marcos incluem:
+O projeto está em transição para se tornar uma plataforma de colaboração classe "Enterprise". As próximas grandes implementações incluem:
 
-- [ ] **Sincronização em Nuvem:** Salvamento de collections e variáveis de ambiente.
-- [ ] **Módulo de Automação:** Runner para testes sequenciais de API.
-- [ ] **Suporte a Plugins:** Extensibilidade através de scripts personalizados.
-- [ ] **Versão Enterprise:** Autenticação SSO e compartilhamento de workspace entre equipes.
+### 👤 Gestão de Identidade e Colaboração
+
+- **Controle de Usuário e Workspaces:** Separação lógica de coleções por usuário e ambientes de trabalho compartilhados (Teams).
+- **Sincronização em Nuvem:** Histórico de requisições, collections e preferências salvos na nuvem e vinculados à conta do usuário.
+
+### 🏢 Funcionalidades Corporativas
+
+- **Auditoria e Logs Empresariais:** Registro centralizado e compartilhamento de `actionLogs` para controle de conformidade e revisão de segurança.
+- **Controle de Acesso (RBAC):** Permissões granulares para visualização e edição de collections em workspaces compartilhados.
+
+### ⚡ Produtividade e Automação
+
+- **Gerador de Código (Code Snippets):** Exportação automática de requisições para diversas linguagens (cURL, Python, Node.js, Go, etc.).
+- **Suíte de Testes Automatizados:** Ferramentas integradas para execução de testes de regressão, validação de fluxo e asserções em respostas.
+- **Runner de Coleções:** Execução sequencial ou paralela de pastas inteiras com relatórios de execução.
 
 ---
 
