@@ -58,19 +58,59 @@ export default function TitleBar() {
 
       <div className="window-controls d-flex no-drag h-100">
         {location.pathname === "/" && (
-          <DropdownMenuComponent
-            buttonContent={<Menu size={16} />}
-            items={menuItems}
-          />
+          <div className="btn-control">
+            <DropdownMenuComponent
+              buttonContent={
+                <Menu
+                  size={16}
+                  title="Menu"
+                  strokeWidth={2}
+                  className="text-zinc-100"
+                />
+              }
+              items={menuItems}
+            />
+          </div>
         )}
-        <button onClick={handleMinimize} className="btn-control h-100">
-          —
+        <button
+          onClick={handleMinimize}
+          className="btn-control h-100"
+          title="Minimizar"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12">
+            <rect fill="currentColor" width="10" height="1" x="1" y="6"></rect>
+          </svg>
         </button>
-        <button onClick={handleMaximize} className="btn-control h-100">
-          ⬜
+        <button
+          onClick={handleMaximize}
+          className="btn-control h-100"
+          title="Maximizar"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12">
+            <rect
+              width="9"
+              height="9"
+              x="1.5"
+              y="1.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1"
+            ></rect>
+          </svg>
         </button>
-        <button onClick={handleClose} className="btn-control hover-red h-100">
-          ✕
+        <button
+          onClick={handleClose}
+          className="btn-control hover-red h-100"
+          title="Fechar"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12">
+            <path
+              d="M2 2l8 8M10 2l-8 8"
+              stroke="currentColor"
+              strokeWidth="1"
+              fill="none"
+            ></path>
+          </svg>
         </button>
       </div>
       <style>{`
