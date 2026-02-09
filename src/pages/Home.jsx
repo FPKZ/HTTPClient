@@ -13,6 +13,7 @@ import TabEditor from "../components/layout/TabEditor";
 
 // Store
 import useTabStore from "../store/useTabStore";
+import useInterfaceStore from "../store/useInterfaceStore";
 
 // Hooks
 import { useQuickExit } from "../hooks/useQuickExit";
@@ -67,13 +68,19 @@ export default function Home() {
 
   // if (!collection.items.length) return null; // Pode exibir loading ou null se quiser force
 
+  const sideBarIsOpen = useInterfaceStore((state) => state.sideBarIsOpen);
+  const setResponseIsOpen = useInterfaceStore((state) => state.setResponseIsOpen);
+  const setCodeSnipersIsOpen = useInterfaceStore((state) => state.setCodeSnipersIsOpen);
+
   return (
-    <div className="flex h-full bg-zinc-950">
+    <div className="flex flex-col h-full bg-zinc-950">
       <PanelGroup orientation="horizontal">
         {/* Sidebar Esquerda */}
-        <Panel defaultSize="20%" maxSize="35%" minSize="15%">
-          <Sidebar />
-        </Panel>
+        {sideBarIsOpen && (
+          <Panel defaultSize="20%" maxSize="35%" minSize="15%">
+            <Sidebar />
+          </Panel>
+        )}
 
         <PanelResizeHandle className="h-full position-relative group/resize">
           <div className="h-full position-absolute left-0 w-[0.1rem]! display-none group-hover/resize:display-block group-hover/resize:bg-yellow-600/50 group-hover/resize:w-1"></div>
@@ -86,6 +93,14 @@ export default function Home() {
           <TabEditor />
         </Panel>
       </PanelGroup>
+      <div className="w-full flex justify-between text-[0.5rem] font-semibold text-zinc-400 bg-zinc-800/20 p-1 px-3">
+        <div>online</div>
+        <div className="flex gap-2">
+          <button onClick={() => setResponseIsOpen()} className="hover:text-zinc-200">RESPONSE</button>
+          <div className="w-[0.1rem] h-full bg-zinc-600"></div>
+          <button onClick={() => setCodeSnipersIsOpen()} className="hover:text-zinc-200">CODE SNIPPETS</button>
+        </div>
+      </div>
       <NovaCollectionModal />
       <ExportModal />
     </div>
