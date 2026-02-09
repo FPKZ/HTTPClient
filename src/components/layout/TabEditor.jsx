@@ -26,7 +26,9 @@ export default function TabEditor() {
   const saveTabToCollection = useTabStore((state) => state.saveTabToCollection);
   const updateTabUiState = useTabStore((state) => state.updateTabUiState);
   const responseIsOpen = useInterfaceStore((state) => state.responseIsOpen);
-  const codeSnipersIsOpen = useInterfaceStore((state) => state.codeSnipersIsOpen);
+  const codeSnipersIsOpen = useInterfaceStore(
+    (state) => state.codeSnipersIsOpen,
+  );
 
   const {
     logsPorTela,
@@ -279,7 +281,7 @@ export default function TabEditor() {
 
                 {codeSnipersIsOpen && (
                   <Panel defaultSize="40%" maxSize="70%" minSize="30%">
-                    <CodeSnipers />
+                    <CodeSnipers request={telaData.request} />
                   </Panel>
                 )}
               </PanelGroup>

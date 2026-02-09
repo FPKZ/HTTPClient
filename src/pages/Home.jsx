@@ -94,7 +94,12 @@ export default function Home() {
         </Panel>
       </PanelGroup>
       <div className="w-full flex justify-between text-[0.5rem] font-semibold text-zinc-400 bg-zinc-800/20 p-1 px-3">
-        <div>online</div>
+        <div className="flex items-center align-center gap-2 p-0.5">
+          <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+          <span className="text-zinc-500 font-bold uppercase tracking-wider text-center justify-center align-center items-center">
+            online
+          </span>
+        </div>
         <div className="flex gap-2">
           <button onClick={() => setResponseIsOpen()} className="hover:text-zinc-200">RESPONSE</button>
           <div className="w-[0.1rem] h-full bg-zinc-600"></div>

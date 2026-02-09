@@ -1,7 +1,19 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../ui/select";
+import {
+  generateCodeSnippet,
+  supportedLanguages,
+} from "../../../lib/codeGenerator";
 
-export default function CodeSnipers() {
-  const [activeCategory, setActiveCategory] = useState("all");
+export default function CodeSnipers({ request }) {
+  // Inicializar com 'shell' (cURL) como padrão, ou o primeiro disponível
+  const [activeCategory, setActiveCategory] = useState("shell");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSnippet, setSelectedSnippet] = useState(null);
   const [useSelectMode, setUseSelectMode] = useState(false);
@@ -10,80 +22,52 @@ export default function CodeSnipers() {
   const contentRef = useRef(null);
   const previousCategoryRef = useRef(activeCategory);
 
-  // Snippets de exemplo - pode ser substituído por dados do store
-  const snippets = useMemo(
-    () => [
-      {
-        id: 1,
-        title: "JavaScript - Fetch",
-        category: "javascript",
-        language: "javascript",
-        code: `const options = {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    amount: 2500,
-    currency: 'USD'
-  })
-};
+  // Gerar snippets dinamicamente baseados na requisição atual
+  const snippets = useMemo(() => {
+    if (!request) return [];
 
-fetch('https://api.example.io/v1/authorize', options)
-  .then(response => response.json())
-  .then(data => console.log(data))
-  .catch(error => console.error('Error:', error));`,
-      },
-      {
-        id: 2,
-        title: "Python - Requests",
-        category: "python",
-        language: "python",
-        code: `import requests
+    const allSnippets = [];
+    let idCounter = 1;
 
-url = 'https://api.example.io/v1/users'
-headers = {'Authorization': 'Bearer token123'}
-response = requests.get(url, headers=headers)
+    supportedLanguages.forEach((lang) => {
+      lang.variants.forEach((variant) => {
+        try {
+          const code = generateCodeSnippet(request, lang.id, variant.id);
+          allSnippets.push({
+            id: idCounter++,
+            title: `${lang.label} - ${variant.label}`,
+            category: lang.id, // Usando o ID da linguagem como categoria (ex: 'javascript', 'python')
+            language: variant.mode, // Modo para syntax highlighting
+            code: code,
+          });
+        } catch (error) {
+          console.error(
+            `Erro ao gerar snippet para ${lang.label} - ${variant.label}`,
+            error,
+          );
+        }
+      });
+    });
 
-if response.status_code == 200:
-    data = response.json()
-    print(data)`,
-      },
-      {
-        id: 3,
-        title: "cURL - POST Request",
-        category: "curl",
-        language: "bash",
-        code: `curl -X POST https://api.example.io/v1/data \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer token123" \\
-  -d '{"name":"John","email":"john@example.com"}'`,
-      },
-    ],
-    [],
-  );
+    return allSnippets;
+  }, [request]);
 
-  const categories = useMemo(
-    () => [
+  const categories = useMemo(() => {
+    // Criar categorias baseadas nas linguagens suportadas que geraram snippets
+    const availableCategories = supportedLanguages
+      .filter((lang) => snippets.some((s) => s.category === lang.id))
+      .map((lang) => ({
+        id: lang.id,
+        label: lang.label,
+        count: snippets.filter((s) => s.category === lang.id).length,
+      }));
+
+    // Adicionar "Todos" no início
+    return [
       { id: "all", label: "Todos", count: snippets.length },
-      {
-        id: "javascript",
-        label: "JavaScript",
-        count: snippets.filter((s) => s.category === "javascript").length,
-      },
-      {
-        id: "python",
-        label: "Python",
-        count: snippets.filter((s) => s.category === "python").length,
-      },
-      {
-        id: "curl",
-        label: "cURL",
-        count: snippets.filter((s) => s.category === "curl").length,
-      },
-    ],
-    [snippets],
-  );
+      ...availableCategories,
+    ];
+  }, [snippets]);
 
   const filteredSnippets = snippets.filter((snippet) => {
     const matchesCategory =
@@ -186,7 +170,6 @@ if response.status_code == 200:
 
   // Executar atualização
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     updateSnippetOnCategoryChange();
   }, [updateSnippetOnCategoryChange]);
 
@@ -210,23 +193,26 @@ if response.status_code == 200:
 
         {/* Seletor de Categorias */}
         {useSelectMode ? (
-          <select
-            value={activeCategory}
-            onChange={(e) => setActiveCategory(e.target.value)}
-            className="bg-zinc-900/80 border border-zinc-800! rounded-lg! px-2.5 py-1.5 m-[1px]! text-[0.6rem]! font-bold uppercase text-yellow-500 focus:border-yellow-600 outline-none transition-colors ml-4 shrink-0"
-          >
-            {categories
-              .filter((cat) => cat.id !== "all")
-              .map((cat) => (
-                <option
-                  key={cat.id}
-                  value={cat.id}
-                  className="bg-zinc-900 text-zinc-300"
-                >
-                  {cat.label} ({cat.count})
-                </option>
-              ))}
-          </select>
+          <div className="ml-4 shrink-0 w-[140px]">
+            <Select value={activeCategory} onValueChange={setActiveCategory}>
+              <SelectTrigger className="h-7 rounded bg-zinc-900/80 border-zinc-800! text-[0.6rem]! font-bold uppercase text-yellow-500">
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent className="border-zinc-800!">
+                {categories
+                  .filter((cat) => cat.id !== "all")
+                  .map((cat) => (
+                    <SelectItem
+                      key={cat.id}
+                      value={cat.id}
+                      className="text-[0.7rem]!"
+                    >
+                      {cat.label} ({cat.count})
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
         ) : (
           <div className="flex bg-zinc-900/80 rounded-lg! p-0.5 border border-zinc-800! ml-4 shrink-0">
             {categories.map((cat) => (
@@ -252,32 +238,32 @@ if response.status_code == 200:
         {/* Snippets List */}
         {!hideSnippetsList && (
           <div className="w-40 border-r border-zinc-800! bg-zinc-900/10 overflow-y-auto">
+            {/* Search Bar */}
+            <div className="px-2 py-2 border-b border-zinc-800! bg-zinc-900/20 shrink-0">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar snippets..."
+                  className="w-full px-2 py-1 bg-zinc-950 border border-zinc-800! rounded text-[0.7rem]! text-white placeholder-zinc-600 focus:border-yellow-600 outline-none transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 text-xs!"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
             {filteredSnippets.length === 0 ? (
               <div className="p-4 text-center text-zinc-600 text-[0.7rem]">
                 Nenhum snippet encontrado
               </div>
             ) : (
               <>
-                {/* Search Bar */}
-                <div className="px-2 py-2 border-b border-zinc-800! bg-zinc-900/20 shrink-0">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Buscar snippets..."
-                      className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800! rounded text-[0.7rem] text-white placeholder-zinc-600 focus:border-yellow-600 outline-none transition-colors"
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery("")}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 text-xs"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                </div>
                 {filteredSnippets.map((snippet) => (
                   <button
                     key={snippet.id}
@@ -289,13 +275,17 @@ if response.status_code == 200:
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
+                      {/* Indicador de Linguagem (Cor) */}
                       <div
                         className={`w-1.5 h-1.5 rounded-full ${
-                          snippet.category === "javascript"
+                          snippet.category === "javascript" ||
+                          snippet.category === "node"
                             ? "bg-yellow-500"
                             : snippet.category === "python"
                               ? "bg-blue-500"
-                              : "bg-green-500"
+                              : snippet.category === "shell"
+                                ? "bg-green-500"
+                                : "bg-zinc-500"
                         }`}
                       />
                       <span className="text-[0.7rem] font-bold text-zinc-300 truncate">
@@ -317,29 +307,30 @@ if response.status_code == 200:
           {/* Select de Snippets (quando lista está oculta) */}
           {hideSnippetsList && filteredSnippets.length > 0 && (
             <div className="px-2 py-2 border-b border-zinc-800! bg-zinc-900/20 shrink-0">
-              <select
-                value={selectedSnippet?.id || ""}
-                onChange={(e) => {
+              <Select
+                value={selectedSnippet?.id.toString() || ""}
+                onValueChange={(value) => {
                   const snippet = filteredSnippets.find(
-                    (s) => s.id === parseInt(e.target.value),
+                    (s) => s.id === parseInt(value),
                   );
                   setSelectedSnippet(snippet);
                 }}
-                className="w-full bg-zinc-900/80 border border-zinc-800! rounded-lg! px-2.5 py-1.5 text-[0.65rem]! font-bold text-yellow-500 focus:border-yellow-600 outline-none transition-colors"
               >
-                {/* <option value="" className="bg-zinc-900 text-zinc-500">
-                  Selecione um snippet...
-                </option> */}
-                {filteredSnippets.map((snippet) => (
-                  <option
-                    key={snippet.id}
-                    value={snippet.id}
-                    className="bg-zinc-900 text-zinc-300"
-                  >
-                    {snippet.title} ({snippet.category})
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full h-8 rounded bg-zinc-900/80 border-zinc-800! text-[0.65rem]! font-bold text-yellow-500">
+                  <SelectValue placeholder="Selecione um snippet..." />
+                </SelectTrigger>
+                <SelectContent className="border-zinc-800!">
+                  {filteredSnippets.map((snippet) => (
+                    <SelectItem
+                      key={snippet.id}
+                      value={snippet.id.toString()}
+                      className="text-[0.7rem]!"
+                    >
+                      {snippet.title} ({snippet.category})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 

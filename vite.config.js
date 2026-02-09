@@ -15,10 +15,20 @@ export default defineConfig({
   base: "./", // Important for Electron relative paths in production
   define: {
     "import.meta.env.VITE_APP_VERSION": JSON.stringify(packageJson.version),
+    global: {},
+    process: {
+      env: {},
+    },
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      stream: path.resolve(__dirname, "node_modules/stream-browserify"),
+      buffer: path.resolve(__dirname, "node_modules/buffer"),
+      process: path.resolve(__dirname, "node_modules/process/browser"),
+      url: path.resolve(__dirname, "node_modules/url"),
+      querystring: path.resolve(__dirname, "node_modules/querystring-es3"),
+      qs: path.resolve(__dirname, "node_modules/qs"),
     },
   },
   server: {
