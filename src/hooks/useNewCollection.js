@@ -21,7 +21,7 @@ export function useNewCollection() {
     name: `Test Route`,
     request: {
       method: method,
-      url: "https://jsonplaceholder.typicode.com/posts/1",
+      url: `https://jsonplaceholder.typicode.com/posts/${method === "GET" || method === "DELETE" ? "" : "1"}`,
       headers: [
         { key: "Content-Type", value: "application/json", enabled: true },
       ],
