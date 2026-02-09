@@ -10,6 +10,7 @@ import {
   generateCodeSnippet,
   supportedLanguages,
 } from "../../../lib/codeGenerator";
+import CodeViewer from "../../CodeViewer";
 
 export default function CodeSnipers({ request }) {
   // Inicializar com 'shell' (cURL) como padrão, ou o primeiro disponível
@@ -172,6 +173,27 @@ export default function CodeSnipers({ request }) {
   useEffect(() => {
     updateSnippetOnCategoryChange();
   }, [updateSnippetOnCategoryChange]);
+
+  // Sincronizar snippet selecionado quando a lista de snippets muda (ex: trocar de requisição/aba)
+  useEffect(() => {
+    if (snippets.length > 0) {
+      setSelectedSnippet((current) => {
+        if (!current) return snippets[0];
+        // Tenta encontrar o mesmo snippet (pela categoria e título) na nova lista
+        const matching = snippets.find(
+          (s) => s.category === current.category && s.title === current.title,
+        );
+        // Se não encontrar o exato, tenta um da mesma categoria ou o primeiro disponível
+        return (
+          matching ||
+          snippets.find((s) => s.category === current.category) ||
+          snippets[0]
+        );
+      });
+    } else {
+      setSelectedSnippet(null);
+    }
+  }, [snippets]);
 
   return (
     <div className="flex-1 h-full border-t border-zinc-700! bg-zinc-950 flex flex-col overflow-hidden">
@@ -355,12 +377,11 @@ export default function CodeSnipers({ request }) {
               </div>
 
               {/* Code Display */}
-              <div className="flex-1 overflow-auto p-2">
-                <pre className="text-[0.7rem]! m-0 text-zinc-300 font-mono leading-relaxed permitirSelect">
-                  <code className="language-javascript">
-                    {selectedSnippet.code}
-                  </code>
-                </pre>
+              <div className="flex-1 overflow-hidden p-0">
+                <CodeViewer
+                  value={selectedSnippet.code}
+                  language={selectedSnippet.language || "javascript"}
+                />
               </div>
             </>
           ) : (

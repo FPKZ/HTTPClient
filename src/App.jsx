@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import UpdatePage from "./pages/UpdatePage";
 import ResizableDemo from "./pages/ResizableDemo";
 import Layout from "./pages/layout";
+import { initMonacoThemes } from "./lib/monacoSetup";
 
 // Components
 import Dialog from "./components/Dialog";
@@ -16,6 +17,7 @@ function App() {
   const showDialog = useDialogStore((state) => state.showDialog);
 
   useEffect(() => {
+    initMonacoThemes();
     // Listener para navegação
     const removeNavListener = window.electronAPI.ipcRenderer.on(
       "navigate-to",

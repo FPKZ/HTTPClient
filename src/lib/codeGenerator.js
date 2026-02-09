@@ -17,7 +17,6 @@ export const generateCodeSnippet = (request, target, client) => {
       headersSize: -1,
       bodySize: -1,
     };
-    console.log(request)
 
     // Adicionar postData se houver corpo e método permitir
     if (["POST", "PUT", "PATCH"].includes(harRequest.method) && request.body) {

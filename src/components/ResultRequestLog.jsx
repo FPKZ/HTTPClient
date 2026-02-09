@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import CodeViewer from "./CodeViewer";
 
 /**
  * Helper para formatar o tamanho da resposta de forma amigável (B, KB, MB)
@@ -38,14 +39,9 @@ function LogEntry({ log, activeView }) {
     switch (activeView) {
       case "json":
         return (
-          <pre
-            className="permitirSelect text-gray-300 p-3 overflow-x-auto text-[0.7rem]!"
-            style={{ whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
-          >
-            {typeof data === "object"
-              ? JSON.stringify(data, null, 2)
-              : String(data)}
-          </pre>
+          <div className="h-full w-full">
+            <CodeViewer value={data} language="json" />
+          </div>
         );
 
       case "headers":
