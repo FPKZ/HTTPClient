@@ -2,7 +2,7 @@ import React from "react";
 import Editor from "@monaco-editor/react";
 import { monacoRegistry } from "../lib/monacoRegistry";
 
-export default function CodeViewer({ value, language = "json" }) {
+export default function CodeViewer({ value, language = "json", theme = "customized-requst" }) {
   const displayValue = React.useMemo(() => {
     if (value === null || value === undefined) return "";
     if (typeof value === "string") return value;
@@ -27,7 +27,7 @@ export default function CodeViewer({ value, language = "json" }) {
         height="100%"
         language={language === "bash" ? "shell" : language}
         value={displayValue}
-        theme="meuTemaCustomizado" // Use o nome definido acima
+        theme={theme} // Use o nome definido acima
         onMount={handleEditorDidMount}
         options={{
           readOnly: true,

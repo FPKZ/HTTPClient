@@ -381,6 +381,7 @@ export default function CodeSnipers({ request }) {
                 <CodeViewer
                   value={selectedSnippet.code}
                   language={selectedSnippet.language || "javascript"}
+                  theme="code-snippet"
                 />
               </div>
             </>
