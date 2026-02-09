@@ -14,6 +14,7 @@ import {
 import useTabStore from "../../store/useTabStore";
 import useModalStore from "../../store/useModalStore";
 import { collectRouteIds } from "../../utils/collectionUtils";
+import { getMethodColor } from "../../utils/collectionUtils";
 
 export default function ExportModal() {
   const isOpen = useModalStore((state) => state.isExportModalOpen);
@@ -199,6 +200,39 @@ export default function ExportModal() {
           className="flex items-center gap-2 px-3 py-1.5 hover:bg-zinc-800/50 rounded-md cursor-pointer group"
           style={{ paddingLeft: `${depth * 20 + 12}px` }}
         >
+          <button
+            onClick={() => toggleFolder(item.id)}
+            className="flex items-center gap-2 flex-1 text-left"
+          >
+            <div onClick={(e) => {
+                e.stopPropagation();
+                toggleRouteSelection(item.id, item);
+              }}>
+              {checkState === "checked" && (
+                <CheckSquare size={16} className="text-yellow-500" />
+              )}
+              {checkState === "unchecked" && (
+                <Square size={16} className="text-zinc-600" />
+              )}
+              {checkState === "partial" && (
+                <MinusSquare size={16} className="text-yellow-500/70" />
+              )}
+            </div>
+              
+            {item.type === "folder" ? (
+              <FolderOpen size={16} className="text-blue-400" />
+            ) : (
+              <FileText size={16} className="text-zinc-400" />
+            )}
+            {item.request?.method && <span 
+              className={`text-sm! font-bold ${getMethodColor(
+                item.request?.method,
+              )}`}>
+                {item.request?.method}
+            </span>}
+            <span className="text-sm! text-zinc-200">{item.name}</span>
+          </button>
+
           {item.type === "folder" && (
             <button
               onClick={() => toggleFolder(item.id)}
@@ -211,29 +245,6 @@ export default function ExportModal() {
               )}
             </button>
           )}
-
-          <button
-            onClick={() => toggleRouteSelection(item.id, item)}
-            className="flex items-center gap-2 flex-1 text-left"
-          >
-            {checkState === "checked" && (
-              <CheckSquare size={16} className="text-yellow-500" />
-            )}
-            {checkState === "unchecked" && (
-              <Square size={16} className="text-zinc-600" />
-            )}
-            {checkState === "partial" && (
-              <MinusSquare size={16} className="text-yellow-500/70" />
-            )}
-
-            {item.type === "folder" ? (
-              <FolderOpen size={16} className="text-blue-400" />
-            ) : (
-              <FileText size={16} className="text-zinc-400" />
-            )}
-
-            <span className="text-sm! text-zinc-200">{item.name}</span>
-          </button>
         </div>
 
         {item.type === "folder" && isExpanded && item.items && (
@@ -252,7 +263,7 @@ export default function ExportModal() {
     >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-in fade-in duration-200" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-[60%]! max-w-[97%]! max-h-[85vh] bg-zinc-950 rounded-xl border border-zinc-800! shadow-2xl overflow-hidden flex flex-col z-50 outline-none animate-in zoom-in-95 duration-200">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-[65%]! max-w-[97%]! w-[800px] max-h-[85vh] bg-zinc-950 rounded-xl border border-zinc-800! shadow-2xl overflow-hidden flex flex-col z-50 outline-none animate-in zoom-in-95 duration-200">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800! bg-zinc-900/50">
             <div className="flex items-center gap-3">
@@ -285,7 +296,7 @@ export default function ExportModal() {
                   </button>
                 </div>
                 <p className="text-xs! text-zinc-500 m-0">
-                  {selectedRouteIds.size} rota(s) selecionada(s)
+                  {selectedRouteIds.size === 0 ? "Nenhuma" : selectedRouteIds.size} {selectedRouteIds.size > 1 ? "rotas" : "rota"} selecionada{selectedRouteIds.size > 1 ? "s" : ""}
                 </p>
               </div>
 
@@ -295,9 +306,9 @@ export default function ExportModal() {
             </div>
 
             {/* Environments Section */}
-            <div className="w-80 flex flex-col">
+            <div className="w-fit flex flex-col min-w-[45%] max-w-[50%]">
               <div className="px-4 py-3 border-b border-zinc-800! bg-zinc-900/30">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2 gap-4">
                   <h3 className="text-sm! font-bold text-white m-0">
                     Ambientes
                   </h3>
@@ -311,7 +322,7 @@ export default function ExportModal() {
                   </button>
                 </div>
                 <p className="text-xs! text-zinc-500 m-0">
-                  {selectedEnvIds.size} ambiente(s) selecionado(s)
+                  {selectedEnvIds.size === 0 ? "Nenhum" : selectedEnvIds.size} {selectedEnvIds.size > 1 ? "ambientes" : "ambiente"} selecionado{selectedEnvIds.size > 1 ? "s" : ""}
                 </p>
               </div>
 

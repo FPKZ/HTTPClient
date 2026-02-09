@@ -8,6 +8,20 @@ export { translate };
  */
 
 /**
+ * Retorna a cor correspondente ao método HTTP.
+ */
+export const getMethodColor = (method) => {
+  const colors = {
+    GET: "text-green-400",
+    POST: "text-yellow-400",
+    PUT: "text-blue-400",
+    DELETE: "text-red-400",
+    PATCH: "text-purple-400",
+  };
+  return colors[method?.toUpperCase()] || "text-gray-400";
+};
+
+/**
  * Normaliza recursivamente os itens de uma coleção importada.
  * Garante que cada item tenha ID e tipo corretos.
  */
