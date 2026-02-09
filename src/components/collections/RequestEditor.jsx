@@ -679,13 +679,13 @@ function JsonBodyEditor({ value, onChange, onRun, requestId, subKey }) {
   };
 
   return (
-    <div className="flex-1 min-h-0 border border-zinc-800! rounded overflow-hidden">
+    <div className="flex-1 min-h-0 border border-zinc-800! rounded overflow-hidden bg-zinc-950 monaco-editor-transparente">
       <Editor
         height="100%"
         defaultLanguage="json"
         path={`${subKey}_${requestId}.json`}
         value={typeof value === "string" ? value : JSON.stringify(value, null, 2)}
-        theme="vs-dark"
+        theme="customized-request"
         onChange={onChange}
         options={{
           minimap: { enabled: false },

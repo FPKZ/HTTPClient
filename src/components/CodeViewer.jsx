@@ -2,7 +2,7 @@ import React from "react";
 import Editor from "@monaco-editor/react";
 import { monacoRegistry } from "../lib/monacoRegistry";
 
-export default function CodeViewer({ value, language = "json", theme = "customized-requst" }) {
+export default function CodeViewer({ value, language = "json", theme = "customized-request" }) {
   const displayValue = React.useMemo(() => {
     if (value === null || value === undefined) return "";
     if (typeof value === "string") return value;
@@ -21,7 +21,7 @@ export default function CodeViewer({ value, language = "json", theme = "customiz
   };
 
   return (
-    <div className="w-full h-full overflow-hidden bg-[#0a0a0a]">
+    <div className="w-full h-full overflow-hidden bg-transparent monaco-editor-transparente">
       <Editor
         key={`${language}-${displayValue.length}`}
         height="100%"

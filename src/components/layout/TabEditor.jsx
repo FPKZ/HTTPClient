@@ -8,7 +8,7 @@ import { useRequestExecutor } from "../../hooks/useRequestExecutor";
 import { getMethodColor } from "../../lib/utils";
 import useInterfaceStore from "../../store/useInterfaceStore";
 import Response from "./includes/Response";
-import CodeSnipers from "./includes/CodeSnipers";
+import CodeSnippets from "./includes/CodeSnippets";
 
 import {
   Group as PanelGroup,
@@ -26,8 +26,8 @@ export default function TabEditor() {
   const saveTabToCollection = useTabStore((state) => state.saveTabToCollection);
   const updateTabUiState = useTabStore((state) => state.updateTabUiState);
   const responseIsOpen = useInterfaceStore((state) => state.responseIsOpen);
-  const codeSnipersIsOpen = useInterfaceStore(
-    (state) => state.codeSnipersIsOpen,
+  const codeSnippetsIsOpen = useInterfaceStore(
+    (state) => state.codeSnippetsIsOpen,
   );
 
   const {
@@ -250,7 +250,7 @@ export default function TabEditor() {
             </div>
           </Tab.Container>
         </Panel>
-        {(responseIsOpen || codeSnipersIsOpen) && (
+        {(responseIsOpen || codeSnippetsIsOpen) && (
           <>
             <PanelResizeHandle className="position-relative group/resize">
               <div className="w-full position-absolute top-0 h-[0.1rem]! display-none group-hover/resize:display-block group-hover/resize:bg-yellow-600/50 group-hover/resize:h-1"></div>
@@ -271,17 +271,17 @@ export default function TabEditor() {
                   </Panel>
                 )}
 
-                {responseIsOpen && codeSnipersIsOpen && (
+                {responseIsOpen && codeSnippetsIsOpen && (
                   <PanelResizeHandle className="position-relative group/resize">
-                    <div className="w-[1px] h-full bg-zinc-700"></div>
+                    <div className="w-px h-full bg-zinc-700"></div>
                     <div className="h-full position-absolute top-0 w-[0.1rem]! display-none group-hover/resize:display-block group-hover/resize:bg-yellow-600/50 group-hover/resize:w-1"></div>
                     <div className="h-full position-absolute bottom-0 w-[0.2rem]! display-none group-hover/resize:display-block group-hover/resize:bg-yellow-600/50 group-hover/resize:w-1"></div>
                   </PanelResizeHandle>
                 )}
 
-                {codeSnipersIsOpen && (
+                {codeSnippetsIsOpen && (
                   <Panel defaultSize="40%" maxSize="70%" minSize="30%">
-                    <CodeSnipers request={telaData.request} />
+                    <CodeSnippets request={telaData.request} />
                   </Panel>
                 )}
               </PanelGroup>

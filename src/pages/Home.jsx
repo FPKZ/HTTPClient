@@ -70,7 +70,7 @@ export default function Home() {
 
   const sideBarIsOpen = useInterfaceStore((state) => state.sideBarIsOpen);
   const setResponseIsOpen = useInterfaceStore((state) => state.setResponseIsOpen);
-  const setCodeSnipersIsOpen = useInterfaceStore((state) => state.setCodeSnipersIsOpen);
+  const setCodeSnippetsIsOpen = useInterfaceStore((state) => state.setCodeSnippetsIsOpen);
 
   return (
     <div className="flex flex-col h-full bg-zinc-950">
@@ -103,7 +103,7 @@ export default function Home() {
         <div className="flex gap-2">
           <button onClick={() => setResponseIsOpen()} className="hover:text-zinc-200">RESPONSE</button>
           <div className="w-[0.1rem] h-full bg-zinc-600"></div>
-          <button onClick={() => setCodeSnipersIsOpen()} className="hover:text-zinc-200">CODE SNIPPETS</button>
+          <button onClick={() => setCodeSnippetsIsOpen()} className="hover:text-zinc-200">CODE SNIPPETS</button>
         </div>
       </div>
       <NovaCollectionModal />

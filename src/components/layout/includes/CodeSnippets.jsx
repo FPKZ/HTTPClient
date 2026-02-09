@@ -12,7 +12,7 @@ import {
 } from "../../../lib/codeGenerator";
 import CodeViewer from "../../CodeViewer";
 
-export default function CodeSnipers({ request }) {
+export default function CodeSnippets({ request }) {
   // Inicializar com 'shell' (cURL) como padrão, ou o primeiro disponível
   const [activeCategory, setActiveCategory] = useState("shell");
   const [searchQuery, setSearchQuery] = useState("");
@@ -377,7 +377,7 @@ export default function CodeSnipers({ request }) {
               </div>
 
               {/* Code Display */}
-              <div className="flex-1 overflow-hidden p-0">
+              <div className="flex-1 overflow-hidden p-0 bg-[#0f0f0f]">
                 <CodeViewer
                   value={selectedSnippet.code}
                   language={selectedSnippet.language || "javascript"}

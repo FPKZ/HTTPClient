@@ -9,8 +9,8 @@ const useInterfaceStore = create((set) => ({
    sideBarIsOpen: true,
    setSideBarIsOpen: () => set((state) => ({ sideBarIsOpen: !state.sideBarIsOpen })),
 
-   codeSnipersIsOpen: false,
-   setCodeSnipersIsOpen: () => set((state) => ({ codeSnipersIsOpen: !state.codeSnipersIsOpen })),
+   codeSnippetsIsOpen: false,
+   setCodeSnippetsIsOpen: () => set((state) => ({ codeSnippetsIsOpen: !state.codeSnippetsIsOpen })),
 
 
 }))

@@ -167,3 +167,10 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Forçar transparência no Monaco Editor */
+.monaco-editor-transparente .monaco-editor,
+.monaco-editor-transparente .monaco-editor .margin,
+.monaco-editor-transparente .monaco-editor-background {
+  background-color: transparent !important;
+}
