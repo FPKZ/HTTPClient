@@ -54,6 +54,7 @@ class AutoUpdateService {
       log.info("🔁 Atualização baixada:", info);
       // Parâmetros: (isSilent, isForceRunAfter)
       // setTimeout(() => , 2000);
+      actionLogger.logClear();
       setTimeout(() => autoUpdater.quitAndInstall(true, true), 2000);
     });
 

@@ -62,7 +62,7 @@ const historyService = new HistoryService(storage);
 const networkService = new NetworkService();
 const windowManager = new WindowManager(isDev, preloadPath, actionLogger);
 
-const autoUpdateService = new AutoUpdateService(isDev);
+const autoUpdateService = new AutoUpdateService(isDev, actionLogger);
 const menuBuilder = new MenuBuilder(windowManager, isDev);
 const dialogReact = new DialogReact(windowManager);
 const contextMenuBuilder = new ContextMenuBuilder(windowManager, isDev);

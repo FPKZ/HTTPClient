@@ -43,6 +43,7 @@ class ActionLogger {
       return false;
     }
   }
+  
   logClear() {
     try {
       fs.writeFileSync(this.logPath, "");
