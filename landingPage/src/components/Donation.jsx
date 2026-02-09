@@ -14,7 +14,7 @@ const Donation = () => {
       description: "Apoie com qualquer valor via Pix",
       action: "Copiar Chave Pix",
       gradient: "from-amber-500 to-orange-500",
-      key: "seu-email@exemplo.com", // Substitua pela chave Pix real
+      key: "4bd921e4-4e6e-4a12-8f27-bd89a9a67052", // Substitua pela chave Pix real
     },
     {
       icon: Heart,

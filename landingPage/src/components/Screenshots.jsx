@@ -10,17 +10,29 @@ const Screenshots = () => {
 
   const screenshots = [
     {
-      src: "/screenshots/screenshot1.png",
+      src: "src/assets/request.png",
       alt: "HTTPClient Interface Principal",
       title: "Interface Principal",
       description:
-        "Interface moderna e intuitiva para gerenciar suas requisições",
+        "Interface moderna, intuitiva e ajustavel para gerenciar suas requisições",
     },
     {
-      src: "/screenshots/screenshot2.png",
-      alt: "HTTPClient Gerenciamento de Collections",
-      title: "Gerenciamento de Collections",
-      description: "Organize suas APIs de forma hierárquica e eficiente",
+      src: "src/assets/ambientes.png",
+      alt: "HTTPClient Gerenciamento de ambientes",
+      title: "Gerenciamento de ambientes",
+      description: "Organize suas variáveis de forma eficiente",
+    },
+    {
+      src: "src/assets/variablesGlobal.png",
+      alt: "HTTPClient Gerenciamento de variáveis globais",
+      title: "Gerenciamento de variáveis globais",
+      description: "Mantenha informações importantes escondidas dos outros",
+    },
+    {
+      src: "src/assets/export.png",
+      alt: "HTTPClient Exportação de coleções",
+      title: "Exportação de coleções",
+      description: "Exporte e compartilhe suas coleções com facilidade",
     },
   ];
 
@@ -78,7 +90,7 @@ const Screenshots = () => {
               <img
                 src={screenshot.src}
                 alt={screenshot.alt}
-                className="w-full h-auto transition-transform duration-500 group-hover:scale-110"
+                className="w-full h-auto transition-transform duration-500 group-hover:scale-105"
               />
 
               {/* Overlay */}
