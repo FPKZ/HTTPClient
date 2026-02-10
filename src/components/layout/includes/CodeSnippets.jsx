@@ -14,7 +14,7 @@ import CodeViewer from "../../CodeViewer";
 
 export default function CodeSnippets({ request }) {
   // Inicializar com 'shell' (cURL) como padrão, ou o primeiro disponível
-  const [activeCategory, setActiveCategory] = useState("shell");
+  const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSnippet, setSelectedSnippet] = useState(null);
   const [useSelectMode, setUseSelectMode] = useState(false);

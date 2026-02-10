@@ -7,8 +7,9 @@ const log = require("electron-log");
  * Segue o SRP ao isolar os listeners do autoUpdater e a lógica de simulação.
  */
 class AutoUpdateService {
-  constructor(isDev) {
+  constructor(isDev, actionLogger) {
     this.isDev = isDev;
+    this.actionLogger = actionLogger;
     this.setupLogger();
   }
 
@@ -54,7 +55,7 @@ class AutoUpdateService {
       log.info("🔁 Atualização baixada:", info);
       // Parâmetros: (isSilent, isForceRunAfter)
       // setTimeout(() => , 2000);
-      actionLogger.logClear();
+      this.actionLogger.logClear();
       setTimeout(() => autoUpdater.quitAndInstall(true, true), 2000);
     });
 
