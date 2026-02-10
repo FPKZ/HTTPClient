@@ -281,7 +281,7 @@ export default function TabEditor() {
 
                 {codeSnippetsIsOpen && (
                   <Panel defaultSize="40%" maxSize="70%" minSize="30%">
-                    <CodeSnippets request={telaData.request} />
+                    <CodeSnippets request={telaData.request} theme="vs-dark" />
                   </Panel>
                 )}
               </PanelGroup>

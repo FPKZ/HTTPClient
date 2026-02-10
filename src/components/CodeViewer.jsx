@@ -1,8 +1,15 @@
 import React from "react";
 import Editor from "@monaco-editor/react";
 import { monacoRegistry } from "../lib/monacoRegistry";
+import { defaultEditorOptions } from "../lib/monacoConfig";
 
-export default function CodeViewer({ value, language = "json", theme = "customized-request" }) {
+export default function CodeViewer({
+  value,
+  language = "json",
+  theme = "customized-request",
+  lineNumbers = "on",
+  lineNumbersMinChars = 3,
+}) {
   const displayValue = React.useMemo(() => {
     if (value === null || value === undefined) return "";
     if (typeof value === "string") return value;
@@ -27,18 +34,14 @@ export default function CodeViewer({ value, language = "json", theme = "customiz
         height="100%"
         language={language === "bash" ? "shell" : language}
         value={displayValue}
-        theme={theme} // Use o nome definido acima
+        theme={theme}
         onMount={handleEditorDidMount}
         options={{
+          ...defaultEditorOptions,
           readOnly: true,
           minimap: { enabled: false },
-          fontSize: 10,
-          scrollBeyondLastLine: false,
-          wordWrap: "on",
-          automaticLayout: true,
-          contextmenu: false,
-          lineNumbers: "on",
-          renderLineHighlight: "all",
+          lineNumbers: lineNumbers,
+          lineNumbersMinChars: lineNumbersMinChars,
         }}
       />
     </div>

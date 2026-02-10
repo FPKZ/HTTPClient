@@ -3,6 +3,7 @@ import { Plus, Trash2, CheckSquare, Square } from "lucide-react";
 import AutoResizeTextarea from "../AutoResizeTextarea";
 import Editor from "@monaco-editor/react";
 import { monacoRegistry } from "../../lib/monacoRegistry";
+import { defaultEditorOptions } from "../../lib/monacoConfig";
 
 /**
  * RequestEditor
@@ -16,6 +17,8 @@ export default function RequestEditor({
   onSelectFile,
   onRun,
   requestId,
+  lineNumbers = "on",
+  lineNumbersMinChars = 3,
 }) {
   if (subKey === "url" || subKey === "method" || !subValue) return null;
   // Renderização específica para AUTH
@@ -550,6 +553,8 @@ export default function RequestEditor({
               })
             }
             onRun={onRun}
+            lineNumbers={lineNumbers}
+            lineNumbersMinChars={lineNumbersMinChars}
           />
         </div>
         <p className="text-[0.6rem] text-zinc-600 mb-0 shrink-0">
@@ -657,7 +662,15 @@ export default function RequestEditor({
   return null;
 }
 
-function JsonBodyEditor({ value, onChange, onRun, requestId, subKey }) {
+function JsonBodyEditor({
+  value,
+  onChange,
+  onRun,
+  requestId,
+  subKey,
+  lineNumbers,
+  lineNumbersMinChars,
+}) {
   const handleEditorDidMount = (editor, monaco) => {
     // Registra o editor no registro global para mapeamento de DOM
     monacoRegistry.register(editor);
@@ -679,24 +692,22 @@ function JsonBodyEditor({ value, onChange, onRun, requestId, subKey }) {
   };
 
   return (
-    <div className="flex-1 min-h-0 border border-zinc-800! rounded overflow-hidden bg-zinc-950 monaco-editor-transparente">
+    <div className="flex-1 min-h-0 border border-zinc-800! rounded overflow-hidden bg-zinc-950/30 monaco-editor-transparente">
       <Editor
         height="100%"
         defaultLanguage="json"
         path={`${subKey}_${requestId}.json`}
-        value={typeof value === "string" ? value : JSON.stringify(value, null, 2)}
+        value={
+          typeof value === "string" ? value : JSON.stringify(value, null, 2)
+        }
         theme="customized-request"
         onChange={onChange}
         options={{
+          ...defaultEditorOptions,
           minimap: { enabled: false },
-          fontSize: 12,
-          scrollBeyondLastLine: false,
-          wordWrap: "on",
-          automaticLayout: true,
           contextmenu: false, // Desativa o menu nativo para usar o GlobalContextMenu
-          scrollbar: {
-            alwaysConsumeMouseWheel: false,
-          },
+          lineNumbers: lineNumbers,
+          lineNumbersMinChars: lineNumbersMinChars,
         }}
         onMount={handleEditorDidMount}
       />

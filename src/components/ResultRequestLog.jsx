@@ -40,7 +40,7 @@ function LogEntry({ log, activeView }) {
       case "json":
         return (
           <div className="h-full w-full">
-            <CodeViewer value={data} language="json" />
+            <CodeViewer value={data} language="json" lineNumbers="off"/>
           </div>
         );
 
