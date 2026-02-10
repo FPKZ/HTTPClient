@@ -10,26 +10,26 @@ const Screenshots = () => {
 
   const screenshots = [
     {
-      src: "src/assets/request.png",
+      src: "screenshots/request.png",
       alt: "HTTPClient Interface Principal",
       title: "Interface Principal",
       description:
         "Interface moderna, intuitiva e ajustavel para gerenciar suas requisições",
     },
     {
-      src: "src/assets/ambientes.png",
+      src: "screenshots/ambientes.png",
       alt: "HTTPClient Gerenciamento de ambientes",
       title: "Gerenciamento de ambientes",
       description: "Organize suas variáveis de forma eficiente",
     },
     {
-      src: "src/assets/variablesGlobal.png",
+      src: "screenshots/variablesGlobal.png",
       alt: "HTTPClient Gerenciamento de variáveis globais",
       title: "Gerenciamento de variáveis globais",
       description: "Mantenha informações importantes escondidas dos outros",
     },
     {
-      src: "src/assets/export.png",
+      src: "screenshots/export.png",
       alt: "HTTPClient Exportação de coleções",
       title: "Exportação de coleções",
       description: "Exporte e compartilhe suas coleções com facilidade",

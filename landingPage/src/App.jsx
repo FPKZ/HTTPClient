@@ -1,7 +1,7 @@
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import Features from "./components/Features";
-import Screenshots from "./components/Screenshots";
+import Screenshots from "../public/screenshots/Screenshots";
 import Donation from "./components/Donation";
 import Footer from "./components/Footer";
 
