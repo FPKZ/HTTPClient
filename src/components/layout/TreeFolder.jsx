@@ -10,6 +10,8 @@ import {
   MoreVertical,
   Plus,
   Edit,
+  Copy,
+  ClipboardPaste,
 } from "lucide-react";
 import useTabStore from "../../store/useTabStore";
 import {
@@ -28,6 +30,10 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
   const addTab = useTabStore((state) => state.addTab);
   const deleteItem = useTabStore((state) => state.deleteItem);
   const showDialog = useDialogStore((state) => state.showDialog);
+  const copyRoute = useTabStore((state) => state.copyRoute);
+  const pasteRoute = useTabStore((state) => state.pasteRoute);
+  const duplicateRoute = useTabStore((state) => state.duplicateRoute);
+  const clipboard = useTabStore((state) => state.clipboard);
 
   // Selector reativo para verificar se o item está modificado
   // Isso garante que o componente renderize novamente quando 'tabs' mudar no store
@@ -115,7 +121,6 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
     return colors[method?.toUpperCase()] || "text-gray-400";
   };
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const contextMenuItems = useMemo(() => {
     const items = [];
     if (isFolder) {
@@ -144,11 +149,32 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
             setIsOpen(true);
           },
         },
-        { separator: true },
       );
     }
 
     items.push(
+      {
+        label: "Copiar",
+        icon: <Copy size={14} />,
+        onClick: () => {
+          copyRoute(item.id);
+        },
+      },
+      {
+        label: "Colar",
+        icon: <ClipboardPaste size={14} />,
+        onClick: () => {
+          pasteRoute(item.id);
+        },
+        disabled: !clipboard,
+      },
+      {
+        label: "Duplicar",
+        icon: <Copy size={14} />,
+        onClick: () => {
+          duplicateRoute(item.id);
+        },
+      },
       {
         label: "Renomear",
         icon: <Edit size={14} />,
@@ -160,6 +186,7 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
             currentName: item.name,
           }),
       },
+      { separator: true },
       {
         label: "Excluir",
         icon: <Trash2 size={14} />,
@@ -168,7 +195,17 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }) => {
       },
     );
     return items;
-  }, [isFolder, setModalConfig, item.id, item.name, handleDelete]);
+  }, [
+    isFolder,
+    setModalConfig,
+    item.id,
+    item.name,
+    handleDelete,
+    copyRoute,
+    pasteRoute,
+    duplicateRoute,
+    clipboard,
+  ]);
 
   return (
     <div className="select-none">

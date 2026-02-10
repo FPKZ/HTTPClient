@@ -275,3 +275,22 @@ export const applyVariables = (data, variables = []) => {
 
   return processAny(data);
 };
+
+/**
+ * Regera recursivamente os IDs de um item e seus filhos.
+ * Útil para copiar e colar pastas inteiras.
+ */
+export const regenerateIds = (item) => {
+  const newItem = { ...item };
+
+  if (newItem.type === "folder" || newItem.items) {
+    newItem.id = `folder_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    if (newItem.items) {
+      newItem.items = newItem.items.map((child) => regenerateIds(child));
+    }
+  } else {
+    newItem.id = `route_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+  }
+
+  return newItem;
+};

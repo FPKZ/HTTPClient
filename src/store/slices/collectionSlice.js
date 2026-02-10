@@ -78,6 +78,7 @@ export const createCollectionSlice = (set, get) => {
       activeEnvironmentId: null,
     },
     globals: [],
+    clipboard: null, // Estado para área de transferência
     isDraggingDisabled: false,
 
     setDraggingDisabled: (disabled) => set({ isDraggingDisabled: disabled }),
@@ -203,6 +204,99 @@ export const createCollectionSlice = (set, get) => {
       get().addTab(newRoute.id, newRoute);
     },
 
+    duplicateRoute: (id) => {
+      const { collection } = get();
+      const route = utils.findItemById(collection.items, id);
+      if (!route) return;
+
+      const newRoute = {
+        ...route,
+        name: route.name + " (Cópia)",
+        id: `route_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      };
+
+      const path = utils.findItemPath(collection.items, id);
+      if (path) {
+        const insertPath = [...path];
+        insertPath[insertPath.length - 1] += 1;
+
+        const updatedItems = utils.insertItemByPath(
+          collection.items,
+          insertPath,
+          newRoute,
+        );
+
+        window.electronAPI.logAction("Duplicada a rota: " + route.name);
+        set({ collection: { ...collection, items: updatedItems } });
+        get().addTab(newRoute.id, newRoute);
+      }
+    },
+
+    copyRoute: (id) => {
+      const { collection } = get();
+      const item = utils.findItemById(collection.items, id);
+      if (!item) return;
+
+      // Cria uma cópia profunda para o clipboard
+      const itemCopy = JSON.parse(JSON.stringify(item));
+      set({ clipboard: { ...itemCopy, name: itemCopy.name + " (Cópia)" } });
+
+      window.electronAPI.logAction(
+        `Copiado para a área de transferência: ${itemCopy.name}`,
+      );
+    },
+
+    pasteRoute: (targetId) => {
+      const { clipboard, collection } = get();
+      if (!clipboard) return;
+
+      // Regera IDs para garantir unicidade
+      const newItem = utils.regenerateIds(clipboard);
+
+      let updatedItems;
+
+      if (!targetId) {
+        // Colar na raiz (append)
+        updatedItems = utils.addItemToTree(collection.items, null, newItem);
+      } else {
+        const targetItem = utils.findItemById(collection.items, targetId);
+
+        if (targetItem && (targetItem.type === "folder" || targetItem.items)) {
+          // Colar dentro da pasta (append no final)
+          updatedItems = utils.addItemToTree(
+            collection.items,
+            targetId,
+            newItem,
+          );
+        } else {
+          // Colar como irmão LOGO ABAIXO do target
+          const targetPath = utils.findItemPath(collection.items, targetId);
+          if (targetPath) {
+            const insertPath = [...targetPath];
+            insertPath[insertPath.length - 1] += 1; // Incrementa o índice para ser o próximo
+
+            updatedItems = utils.insertItemByPath(
+              collection.items,
+              insertPath,
+              newItem,
+            );
+          } else {
+            // Fallback: Raiz
+            updatedItems = utils.addItemToTree(collection.items, null, newItem);
+          }
+        }
+      }
+
+      window.electronAPI.logAction(`Colado: ${newItem.name}`);
+      set({ collection: { ...collection, items: updatedItems } });
+
+      // Se for rota, abre aba
+      if (newItem.type === "route") {
+        get().addTab(newItem.id, newItem);
+      }
+      set({ clipboard: null });
+    },
+
     addFolder: (parentId = null, name = "Nova Pasta") => {
       const { collection } = get();
       const newFolder = {
@@ -213,7 +307,7 @@ export const createCollectionSlice = (set, get) => {
       };
 
       // window.electronAPI.logAction("Adicionando pasta: " + newFolder.name + " - Com o nome: " + newFolder.name);
-      
+
       const updatedItems = utils.addItemToTree(
         collection.items,
         parentId,
@@ -550,9 +644,7 @@ export const createCollectionSlice = (set, get) => {
       set((state) => ({
         globals: (state.globals || []).filter((v) => {
           if (v.id === id) {
-            window.electronAPI.logAction(
-              `Deletando variável global: ${v.key}`,
-            );
+            window.electronAPI.logAction(`Deletando variável global: ${v.key}`);
           }
           return v.id !== id;
         }),
@@ -590,7 +682,9 @@ export const createCollectionSlice = (set, get) => {
         id: `global_${Math.random().toString(36).substr(2, 9)}`,
       }));
 
-      window.electronAPI.logAction(`Importando variáveis globais: ${globalsData.length}`);
+      window.electronAPI.logAction(
+        `Importando variáveis globais: ${globalsData.length}`,
+      );
 
       set((state) => ({
         globals: [...(state.globals || []), ...newGlobals],

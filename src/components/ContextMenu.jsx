@@ -45,7 +45,7 @@ export default function ContextMenu({ children, items }) {
                 }}
                 className={cn(
                   "flex items-center gap-2 px-3 py-2 text-xs! font-semibold text-zinc-300 outline-none cursor-pointer hover:bg-zinc-800 rounded transition-colors",
-                  item?.disabled && "opacity-50 cursor-not-allowed",
+                  item?.disabled && "opacity-50",
                   item.className,
                 )}
               >
