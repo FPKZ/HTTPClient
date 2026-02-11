@@ -382,6 +382,9 @@ export default function CodeSnippets({ request }) {
                   value={selectedSnippet.code}
                   language={selectedSnippet.language || "javascript"}
                   theme="code-snippet"
+                  config={{
+                    renderLineHighlight: "none",
+                  }}
                 />
               </div>
             </>

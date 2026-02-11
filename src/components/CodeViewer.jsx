@@ -9,6 +9,7 @@ export default function CodeViewer({
   theme = "customized-request",
   lineNumbers = "on",
   lineNumbersMinChars = 3,
+  config = {  }
 }) {
   const displayValue = React.useMemo(() => {
     if (value === null || value === undefined) return "";
@@ -42,6 +43,7 @@ export default function CodeViewer({
           minimap: { enabled: false },
           lineNumbers: lineNumbers,
           lineNumbersMinChars: lineNumbersMinChars,
+          ...config
         }}
       />
     </div>
