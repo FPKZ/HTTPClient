@@ -1,4 +1,4 @@
-const { ipcMain, dialog } = require("electron");
+const { ipcMain, dialog, net } = require("electron");
 const fs = require("fs");
 const path = require("path");
 
@@ -29,21 +29,43 @@ class IpcRouter {
   }
 
   register() {
+    console.log("[IpcRouter] Registrando handlers IPC...");
+
+    ipcMain.handle("conect", async () => {
+      // console.log("[IpcRouter] Verificando status de conexão...");
+      return net.isOnline();
+    });
+
+    // Monitoramento de Rede em Tempo Real
+    let lastStatus = net.isOnline();
+    setInterval(() => {
+      const currentStatus = net.isOnline();
+      if (currentStatus !== lastStatus) {
+        lastStatus = currentStatus;
+        const mainWin = this.win.getMainWindow();
+        if (mainWin) {
+          mainWin.webContents.send("network-status", currentStatus);
+        }
+      }
+    }, 5000); // Verifica a cada 5 segundos
+
     // Logging
     ipcMain.handle("log-action", (event, action, user) => {
       return this.actionLogger.log(action, user);
     });
-    ipcMain.on("start-action-logger", () => this.actionLogger.logRead(this.win.getActionLoggerWindow()));
+    ipcMain.on("start-action-logger", () =>
+      this.actionLogger.logRead(this.win.getActionLoggerWindow()),
+    );
     ipcMain.on("stop-action-logger", () => this.actionLogger.logStop());
 
     ipcMain.on("resize-window", (event, bounds) => {
-        const { BrowserWindow } = require("electron");
-        const win = BrowserWindow.fromWebContents(event.sender);
-        if (win) win.setBounds(bounds);
+      const { BrowserWindow } = require("electron");
+      const win = BrowserWindow.fromWebContents(event.sender);
+      if (win) win.setBounds(bounds);
     });
 
     ipcMain.on("open-action-logger", () => {
-        this.win.createActionLoggerWindow();
+      this.win.createActionLoggerWindow();
     });
 
     // Window Controls

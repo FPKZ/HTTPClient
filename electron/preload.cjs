@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
         "show-dialog",
         "log-error",
         "new-action-log",
+        "conect",
       ];
       if (validChannels.includes(channel)) {
         const subscription = (event, ...args) => func(...args);
@@ -99,6 +100,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.removeListener("request-save-session", subscription);
   },
   saveAndQuit: (data) => ipcRenderer.send("save-and-quit", data),
+
+  // --- Rede ---
+  conect: () => ipcRenderer.invoke("conect"),
+  onNetworkStatus: (callback) => {
+    const subscription = (_event, value) => callback(value);
+    ipcRenderer.on("network-status", subscription);
+    return () => ipcRenderer.removeListener("network-status", subscription);
+  },
 
   // --- Clipboard (Native) ---
   copy: () => {

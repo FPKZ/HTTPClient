@@ -69,8 +69,42 @@ export default function Home() {
   // if (!collection.items.length) return null; // Pode exibir loading ou null se quiser force
 
   const sideBarIsOpen = useInterfaceStore((state) => state.sideBarIsOpen);
-  const setResponseIsOpen = useInterfaceStore((state) => state.setResponseIsOpen);
-  const setCodeSnippetsIsOpen = useInterfaceStore((state) => state.setCodeSnippetsIsOpen);
+  const setResponseIsOpen = useInterfaceStore(
+    (state) => state.setResponseIsOpen,
+  );
+  const setCodeSnippetsIsOpen = useInterfaceStore(
+    (state) => state.setCodeSnippetsIsOpen,
+  );
+
+  const [isOnline, setIsOnline] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkConnection = async () => {
+      if (typeof window.electronAPI?.conect === "function") {
+        try {
+          const online = await window.electronAPI.conect();
+          setIsOnline(online);
+        } catch (error) {
+          console.error("Erro ao verificar conexão:", error);
+          setIsOnline(false);
+        }
+      }
+    };
+
+    checkConnection();
+
+    // Listener para atualizações em tempo real (push do Main)
+    let removeListener;
+    if (typeof window.electronAPI?.onNetworkStatus === "function") {
+      removeListener = window.electronAPI.onNetworkStatus((status) => {
+        setIsOnline(status);
+      });
+    }
+
+    return () => {
+      if (removeListener) removeListener();
+    };
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-zinc-950">
@@ -95,15 +129,27 @@ export default function Home() {
       </PanelGroup>
       <div className="w-full flex justify-between text-[0.5rem] font-semibold text-zinc-400 bg-zinc-800/20 p-1 px-3">
         <div className="flex items-center align-center gap-2 p-0.5">
-          <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+          <span
+            className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"} `}
+          ></span>
           <span className="text-zinc-500 font-bold uppercase tracking-wider text-center justify-center align-center items-center">
-            online
+            {isOnline ? "online" : "offline"}
           </span>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setResponseIsOpen()} className="hover:text-zinc-200">RESPONSE</button>
+          <button
+            onClick={() => setResponseIsOpen()}
+            className="hover:text-zinc-200"
+          >
+            RESPONSE
+          </button>
           <div className="w-[0.1rem] h-full bg-zinc-600"></div>
-          <button onClick={() => setCodeSnippetsIsOpen()} className="hover:text-zinc-200">CODE SNIPPETS</button>
+          <button
+            onClick={() => setCodeSnippetsIsOpen()}
+            className="hover:text-zinc-200"
+          >
+            CODE SNIPPETS
+          </button>
         </div>
       </div>
       <NovaCollectionModal />
