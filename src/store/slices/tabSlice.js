@@ -142,6 +142,12 @@ export const createTabSlice = (set, get) => ({
     return tabs.find((tab) => tab.id === activeTabId) || null;
   },
 
+  deleteActiveTab: () => {
+    set({
+      activeTabId: null,
+    });
+  },
+
   isTabDirty: (id) => {
     const { tabs } = get();
     const tab = tabs.find((t) => t.id === id);

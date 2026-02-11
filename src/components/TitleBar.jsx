@@ -12,6 +12,7 @@ export default function TitleBar() {
   const location = useLocation();
 
   const activeTab = useTabStore((state) => state.getActiveTab());
+  const deleteActiveTab = useTabStore((state) => state.deleteActiveTab);
 
   // Registra os atalhos de teclado globais apenas quando o menu geral é visível
   const menuItems =
@@ -32,6 +33,9 @@ export default function TitleBar() {
   };
 
   React.useEffect(() => {
+    if (location.pathname !== "/") {
+      deleteActiveTab();
+    }
     if (window.electronAPI && window.electronAPI.onMenuAction) {
       window.electronAPI.onMenuAction((action) => {
         if (action === "open-settings") {
