@@ -9,6 +9,7 @@ import { getMethodColor } from "../../lib/utils";
 import useInterfaceStore from "../../store/useInterfaceStore";
 import Response from "./includes/Response";
 import CodeSnippets from "./includes/CodeSnippets";
+import { usePanelPersistence } from "../../hooks/usePanelPersistence";
 
 import {
   Group as PanelGroup,
@@ -40,6 +41,19 @@ export default function TabEditor() {
   // Estados de UI agora vêm da aba ativa (persistentes)
   const activeSection = activeTab?.uiState?.activeSection || "headers";
   const activeResponseView = activeTab?.uiState?.activeResponseView || "json";
+  const panelVerticalSize = activeTab?.uiState?.panelVerticalSize || "50";
+  const panelHorizontalSize = activeTab?.uiState?.panelHorizontalSize || "30";
+
+  const {
+    verticalPanelRef,
+    horizontalPanelRef,
+    onVerticalLayoutChanged,
+    onHorizontalLayoutChanged,
+  } = usePanelPersistence(
+    activeTab?.id,
+    { vertical: panelVerticalSize, horizontal: panelHorizontalSize },
+    updateTabUiState,
+  );
 
   if (!activeTab) {
     return (
@@ -89,9 +103,20 @@ export default function TabEditor() {
   const logs = logsPorTela[activeTab.screenKey || activeTab.id] || [];
 
   return (
-    <div className="flex-1 flex flex-col bg-zinc-900 overflow-hidden h-full relative">
-      <PanelGroup orientation="vertical" className="h-full">
-        <Panel className="flex-1 flex flex-col h-full overflow-hidden">
+    <div
+      key={activeTab.id}
+      className="flex-1 flex flex-col bg-zinc-900 overflow-hidden h-full relative"
+    >
+      <PanelGroup
+        id={`vertical-group-${activeTab.id}`}
+        orientation="vertical"
+        className="h-full"
+        onLayoutChanged={onVerticalLayoutChanged}
+      >
+        <Panel
+          id={`request-panel-${activeTab.id}`}
+          className="flex flex-col h-full overflow-hidden"
+        >
           <Tab.Container
             activeKey={activeSection}
             onSelect={(k) =>
@@ -257,11 +282,21 @@ export default function TabEditor() {
               <div className="w-full position-absolute bottom-0 h-[0.2rem]! display-none group-hover/resize:display-block group-hover/resize:bg-yellow-600/50 group-hover/resize:h-1"></div>
             </PanelResizeHandle>
 
-            <Panel defaultSize="60%" maxSize="70%" minSize="5%">
-              <PanelGroup direction="horizontal">
+            <Panel
+              id={`response-panel-container-${activeTab.id}`}
+              ref={verticalPanelRef}
+              defaultSize={panelVerticalSize}
+              maxSize={"90%"}
+              minSize={"10%"}
+            >
+              <PanelGroup
+                id={`horizontal-group-${activeTab.id}`}
+                direction="horizontal"
+                onLayoutChanged={onHorizontalLayoutChanged}
+              >
                 {/* Parte Inferior: Console de Logs (Resultado) */}
                 {responseIsOpen && (
-                  <Panel>
+                  <Panel id={`response-content-panel-${activeTab.id}`}>
                     <Response
                       logs={logs}
                       activeResponseView={activeResponseView}
@@ -280,7 +315,13 @@ export default function TabEditor() {
                 )}
 
                 {codeSnippetsIsOpen && (
-                  <Panel defaultSize="40%" maxSize="70%" minSize="30%">
+                  <Panel
+                    id={`snippets-panel-${activeTab.id}`}
+                    ref={horizontalPanelRef}
+                    defaultSize={panelHorizontalSize}
+                    maxSize={60}
+                    minSize={15}
+                  >
                     <CodeSnippets request={telaData.request} theme="vs-dark" />
                   </Panel>
                 )}

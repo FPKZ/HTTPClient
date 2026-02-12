@@ -106,6 +106,8 @@ export default function Home() {
     };
   }, []);
 
+  const activeTabId = useTabStore((state) => state.activeTabId);
+
   return (
     <div className="flex flex-col h-full bg-zinc-950">
       <PanelGroup orientation="horizontal">
@@ -124,7 +126,7 @@ export default function Home() {
         {/* Área Principal (Abas + Editor) */}
         <Panel className="flex-1 flex flex-col h-full">
           <TabBar />
-          <TabEditor />
+          <TabEditor key={activeTabId} />
         </Panel>
       </PanelGroup>
       <div className="w-full flex justify-between text-[0.5rem] font-semibold text-zinc-400 bg-zinc-800/20 p-1 px-3">

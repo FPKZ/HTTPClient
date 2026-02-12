@@ -80,6 +80,7 @@ const ipcRouter = new IpcRouter(
   actionLogger,
 );
 
+// app.disableHardwareAcceleration();
 // --- Lifecycle do App ---
 
 app.whenReady().then(() => {

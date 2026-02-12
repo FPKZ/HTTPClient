@@ -26,6 +26,8 @@ export const createTabSlice = (set, get) => ({
       uiState: {
         activeSection: "headers",
         activeResponseView: "json",
+        panelVerticalSize: "50",
+        panelHorizontalSize: "30",
       },
     };
 
@@ -65,6 +67,8 @@ export const createTabSlice = (set, get) => ({
       uiState: {
         activeSection: "headers",
         activeResponseView: "json",
+        panelVerticalSize: "50",
+        panelHorizontalSize: "30",
       },
     };
 
