@@ -6,9 +6,11 @@ import DropdownMenuComponent from "./DropdownMenu";
 import { useMenuGeral } from "../hooks/useMenuGeral";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import useTabStore from "../store/useTabStore";
+import icons from "../assets/icons";
 
 export default function TitleBar() {
   const { templete, devTemplete, isDev } = useMenuGeral();
+  const { fullLogo } = icons();
   const location = useLocation();
 
   const activeTab = useTabStore((state) => state.getActiveTab());
@@ -54,6 +56,7 @@ export default function TitleBar() {
       <div className="titlebar-left d-flex align-items-center gap-2 ms-2">
         <img src={icon} alt="Icon" style={{ width: "20px", height: "20px" }} />
         <span className="fw-bold">HTTPClient</span>
+        {/* {fullLogo({ width: "66", height: "40" })} */}
       </div>
 
       <div className="flex-1 mx-5 px-5 text-center text-[0.7rem] truncate">

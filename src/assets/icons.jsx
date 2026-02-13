@@ -1,19 +1,30 @@
 
-
+/**
+ * 
+ * @returns
+ */
 const icons = () => {
 
-    const fullLogo = () => {
+    const fullLogo = ({ width = "240", height = "80", className = "", ...props } = {}) => {
         return (
-            <svg width="240" height="80" viewBox="0 0 240 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg 
+                width={width} 
+                height={height} 
+                viewBox="0 0 220 80" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg" 
+                className={className} 
+                {...props}
+            >
                 <path d="M40 10L15 45H35L25 70L55 30H35L40 10Z" fill="#FFC107"/>
-                <text x="70" y="52" fill="white" font-family="Inter" font-weight="800" font-style="italic" font-size="42">VOLT</text>
+                <text x="67" y="58" fill="white" fontFamily="Inter" fontWeight="800" fontStyle="italic" fontSize="50">VOLT</text>
             </svg>
         )
     }
 
-    const squereIcon = () => {
+    const squareIcon = ({ className = "", ...props } = {}) => {
         return (
-            <div class="w-24 h-24 bg-[#1E1E1E] rounded-2xl flex items-center justify-center shadow-lg border border-gray-700">
+            <div className={`w-24 h-24 bg-[#1E1E1E] rounded-2xl flex items-center justify-center shadow-lg border border-gray-700 ${className}`} {...props}>
                 <svg width="48" height="48" viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M40 10L15 45H35L25 70L55 30H35L40 10Z" fill="#FFC107"/>
                 </svg>
@@ -21,9 +32,12 @@ const icons = () => {
         )
     }
 
-    const roundIcon = () => {
+    // Alias for backward compatibility
+    const squereIcon = squareIcon;
+
+    const roundIcon = ({ className = "", ...props } = {}) => {
         return (
-            <div class="w-24 h-24 bg-[#FFC107] rounded-full flex items-center justify-center shadow-lg">
+            <div className={`w-24 h-24 bg-[#FFC107] rounded-full flex items-center justify-center shadow-lg ${className}`} {...props}>
                 <svg width="40" height="40" viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M40 10L15 45H35L25 70L55 30H35L40 10Z" fill="#121212"/>
                 </svg>
@@ -33,27 +47,27 @@ const icons = () => {
     
     const todosIcons = () => {
         return (
-            <section class="max-w-6xl mx-auto mb-20">
-                <div class="flex items-center gap-4 mb-6">
-                    <h2 class="text-2xl font-bold text-[#FFC107]">Opção A: VOLT</h2>
-                    <span class="px-3 py-1 text-xs bg-[#FFC107] text-black font-bold rounded-full">ENERGIA & VELOCIDADE</span>
+            <section className="max-w-6xl mx-auto mb-20">
+                <div className="flex items-center gap-4 mb-6">
+                    <h2 className="text-2xl font-bold text-[#FFC107]">Opção A: VOLT</h2>
+                    <span className="px-3 py-1 text-xs bg-[#FFC107] text-black font-bold rounded-full">ENERGIA & VELOCIDADE</span>
                 </div>
-                <p class="mb-8 text-gray-400 max-w-2xl">Um visual agressivo e minimalista. O raio simboliza a velocidade da requisição. A tipografia é itálica para dar sensação de movimento.</p>
+                <p className="mb-8 text-gray-400 max-w-2xl">Um visual agressivo e minimalista. O raio simboliza a velocidade da requisição. A tipografia é itálica para dar sensação de movimento.</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* <!-- Full Logo --> */}
-                    <div class="col-span-1 md:col-span-2 bg-[#1E1E1E] p-8 rounded-xl border border-gray-800 flex flex-col items-center justify-center">
-                        <span class="text-xs text-gray-500 mb-4 uppercase tracking-widest">Logo Principal</span>
+                    <div className="col-span-1 md:col-span-2 bg-[#1E1E1E] p-8 rounded-xl border border-gray-800 flex flex-col items-center justify-center">
+                        <span className="text-xs text-gray-500 mb-4 uppercase tracking-widest">Logo Principal</span>
                         <svg width="240" height="80" viewBox="0 0 240 80" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M40 10L15 45H35L25 70L55 30H35L40 10Z" fill="#FFC107"/>
-                            <text x="70" y="52" fill="white" font-family="Inter" font-weight="800" font-style="italic" font-size="42">VOLT</text>
+                            <text x="70" y="52" fill="white" fontFamily="Inter" fontWeight="800" fontStyle="italic" fontSize="42">VOLT</text>
                         </svg>
                     </div>
 
                     {/* <!-- Square Icon --> */}
-                    <div class="bg-black p-8 rounded-xl border border-gray-800 flex flex-col items-center justify-center">
-                        <span class="text-xs text-gray-500 mb-4 uppercase tracking-widest">App Icon (Quadrado)</span>
-                        <div class="w-24 h-24 bg-[#1E1E1E] rounded-2xl flex items-center justify-center shadow-lg border border-gray-700">
+                    <div className="bg-black p-8 rounded-xl border border-gray-800 flex flex-col items-center justify-center">
+                        <span className="text-xs text-gray-500 mb-4 uppercase tracking-widest">App Icon (Quadrado)</span>
+                        <div className="w-24 h-24 bg-[#1E1E1E] rounded-2xl flex items-center justify-center shadow-lg border border-gray-700">
                             <svg width="48" height="48" viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M40 10L15 45H35L25 70L55 30H35L40 10Z" fill="#FFC107"/>
                             </svg>
@@ -61,9 +75,9 @@ const icons = () => {
                     </div>
 
                         {/* <!-- Round Icon --> */}
-                        <div class="bg-black p-8 rounded-xl border border-gray-800 flex flex-col items-center justify-center">
-                        <span class="text-xs text-gray-500 mb-4 uppercase tracking-widest">App Icon (Redondo)</span>
-                        <div class="w-24 h-24 bg-[#FFC107] rounded-full flex items-center justify-center shadow-lg">
+                        <div className="bg-black p-8 rounded-xl border border-gray-800 flex flex-col items-center justify-center">
+                        <span className="text-xs text-gray-500 mb-4 uppercase tracking-widest">App Icon (Redondo)</span>
+                        <div className="w-24 h-24 bg-[#FFC107] rounded-full flex items-center justify-center shadow-lg">
                             <svg width="40" height="40" viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M40 10L15 45H35L25 70L55 30H35L40 10Z" fill="#121212"/>
                             </svg>
@@ -78,6 +92,7 @@ const icons = () => {
         todosIcons,
         roundIcon,
         squereIcon,
+        squareIcon,
         fullLogo
     }
 }

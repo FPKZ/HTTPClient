@@ -204,7 +204,8 @@ export default function CodeSnippets({ request }) {
       >
         <div className="flex items-center gap-2 overflow-hidden">
           <span className="text-[0.65rem]! font-black tracking-widest text-zinc-500 uppercase shrink-0">
-            <span className="text-yellow-500">⚡</span> Code Snippets
+            {/* <span className="text-yellow-500">⚡</span>  */}
+            Code Snippets
           </span>
           <span className="text-zinc-700 font-bold shrink-0">•</span>
           <span className="text-zinc-600 text-[0.65rem]! font-medium shrink-0">

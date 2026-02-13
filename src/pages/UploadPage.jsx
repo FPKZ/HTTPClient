@@ -8,6 +8,7 @@ import DropZone from "../components/DropZone";
 import HistoryList from "../components/history/HistoryList";
 import ImportCollectionModal from "../components/modals/ImportCollectionModal";
 import NovaCollectionModal from "../components/modals/NovaCollectionModal";
+import icons from "../assets/icons";
 
 // Hooks
 import { useQuickExit } from "../hooks/useQuickExit";
@@ -22,6 +23,8 @@ function UploadPage() {
   const navigate = useNavigate();
 
   const { history, handleLoadHistory, handleDeleteHistoryItem, handleDeleteAllHistory } = useHistory();
+
+  const { fullLogo } = icons();
 
   // 1. Inicialização e Listeners IPC
   useQuickExit();
@@ -66,6 +69,10 @@ function UploadPage() {
         <div className="my-auto w-full flex flex-col min-h-0 max-h-full">
           <div className="flex shrink-0 flex-col justify-center gap-2">
             <h1 className="text-center mb-4">HTTPClient</h1>
+
+            {/* <div className="flex justify-center mb-4">
+              {fullLogo()}
+            </div> */}
 
             <div className="grid grid-cols-2 h-20 gap-2 mb-4">
               <NovaCollectionModal>
