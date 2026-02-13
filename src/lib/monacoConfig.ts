@@ -1,5 +1,3 @@
-import { editor } from "monaco-editor";
-
 /**
  * Interface customizada para as opções do editor, definindo explicitamente
  * os valores permitidos para facilitar a visualização no IntelliSense.
@@ -33,14 +31,22 @@ export interface IDefaultEditorOptions {
   };
   automaticLayout?: boolean;
   cursorBlinking?: "blink" | "smooth" | "phase" | "expand" | "solid";
-  cursorStyle?: "line" | "block" | "underline" | "line-thin" | "block-outline" | "underline-thin";
+  cursorStyle?:
+    | "line"
+    | "block"
+    | "underline"
+    | "line-thin"
+    | "block-outline"
+    | "underline-thin";
   cursorSmoothCaretAnimation?: "off" | "explicit" | "on";
   multiCursorModifier?: "ctrlCmd" | "alt";
-  quickSuggestions?: boolean | {
-    other?: boolean | "on" | "inline" | "off";
-    comments?: boolean | "on" | "inline" | "off";
-    strings?: boolean | "on" | "inline" | "off";
-  };
+  quickSuggestions?:
+    | boolean
+    | {
+        other?: boolean | "on" | "inline" | "off";
+        comments?: boolean | "on" | "inline" | "off";
+        strings?: boolean | "on" | "inline" | "off";
+      };
   suggestOnTriggerCharacters?: boolean;
   acceptSuggestionOnEnter?: "on" | "smart" | "off";
   contextmenu?: boolean;

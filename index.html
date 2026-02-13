@@ -7,22 +7,21 @@
     <meta
       http-equiv="Content-Security-Policy"
       content="
-        default-src 'self' https://cdn.jsdelivr.net *; 
-        frame-src 'self' data: blob: *; 
-        script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://cdn.jsdelivr.net *; 
+        default-src 'self' https://cdn.jsdelivr.net; 
+        frame-src 'self' data: blob:; 
+        script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://cdn.jsdelivr.net; 
         worker-src 'self' blob:; 
-        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net *; 
-        font-src 'self' data: https://cdn.jsdelivr.net *; 
-        connect-src 'self' http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:* *; 
-        img-src 'self' data: blob: *;"
+        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; 
+        font-src 'self' data: https://cdn.jsdelivr.net; 
+        connect-src 'self' http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*; 
+        img-src 'self' data: blob:;"
     />
     <title>httpclient-react</title>
   </head>
   <body>
     <script>
       window.global = window;
-      window.process = { env: {} };
-      window.Buffer = window.Buffer || require("buffer").Buffer;
+      window.process = window.process || { env: {} };
     </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>

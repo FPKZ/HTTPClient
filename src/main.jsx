@@ -1,3 +1,9 @@
+import { Buffer } from "buffer";
+import process from "process";
+
+window.Buffer = Buffer;
+window.process = process;
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "bootstrap/dist/css/bootstrap.min.css"; // Imported here to avoid CSS order issues
