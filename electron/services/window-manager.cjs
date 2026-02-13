@@ -1,5 +1,6 @@
 const { BrowserWindow, Menu, screen } = require("electron");
 const path = require("path");
+const icon = path.join(__dirname, "../../assets/icon1.png");
 
 /**
  * WindowManager
@@ -39,7 +40,7 @@ class WindowManager {
 
     this.mainWindow = new BrowserWindow({
       title: "HTTPClient",
-      icon: path.join(__dirname, "../../assets/volt-icon-sq.png"),
+      icon: icon,
       width: 1100,
       height: 800,
       minWidth: 730,
@@ -148,7 +149,7 @@ class WindowManager {
     log.info("Creating Update Window...");
 
     this.updateWindow = new BrowserWindow({
-      icon: path.join(__dirname, "../../assets/volt-icon-sq.png"),
+      icon: icon,
       width: 300,
       height: 400,
       resizable: false,
@@ -197,7 +198,7 @@ class WindowManager {
     log.info("Creating Action Logger Window...");
 
     this.actionLoggerWindow = new BrowserWindow({
-      icon: path.join(__dirname, "../../assets/volt-icon-sq.png"),
+      icon: icon,
       minWidth: 300,
       minHeight: 400,
       width: 300,
