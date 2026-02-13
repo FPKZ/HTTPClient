@@ -32,4 +32,10 @@ export const monacoRegistry = {
 
     return this.editors.get(container) || null;
   },
+
+  layoutAll() {
+    this.editors.forEach((editor) => {
+      editor.layout();
+    });
+  },
 };

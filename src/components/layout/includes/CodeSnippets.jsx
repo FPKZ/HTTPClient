@@ -40,70 +40,68 @@ export default function CodeSnippets({ request }) {
     return [...globals, ...envVariables];
   }, [collection, globalsFromStore]);
 
-  // Gerar snippets dinamicamente baseados na requisição atual
-  const snippets = useMemo(() => {
-    if (!request) return [];
+  const [debouncedRequest, setDebouncedRequest] = useState(request);
 
-    // Prepara a requisição com base no modo de exibição (Real vs Representação)
-    const preparedRequest = buildFinalRequest(request, activeVariables, {
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedRequest(request);
+    }, 200); // Debounce reduzido (200ms) porque agora gerar 1 snippet é instantâneo
+
+    return () => clearTimeout(handler);
+  }, [request]);
+
+  const preparedRequest = useMemo(() => {
+    if (!debouncedRequest) return null;
+    return buildFinalRequest(debouncedRequest, activeVariables, {
       useValues: useRealValues,
     });
+  }, [debouncedRequest, activeVariables, useRealValues]);
 
-    const allSnippets = [];
+  // Gerar METADADOS dos snippets (sem o código pesado)
+  const snippetsMetadata = useMemo(() => {
+    const list = [];
     let idCounter = 1;
 
     supportedLanguages.forEach((lang) => {
       lang.variants.forEach((variant) => {
-        try {
-          const code = generateCodeSnippet(
-            preparedRequest,
-            lang.id,
-            variant.id,
-          );
-          allSnippets.push({
-            id: idCounter++,
-            title: `${lang.label} - ${variant.label}`,
-            category: lang.id, // Usando o ID da linguagem como categoria
-            language: variant.mode, // Modo para syntax highlighting
-            code: code,
-          });
-        } catch (error) {
-          console.error(
-            `Erro ao gerar snippet para ${lang.label} - ${variant.label}`,
-            error,
-          );
-        }
+        list.push({
+          id: idCounter++,
+          title: `${lang.label} - ${variant.label}`,
+          category: lang.id,
+          language: variant.mode,
+          variantId: variant.id,
+        });
       });
     });
 
-    return allSnippets;
-  }, [request, activeVariables, useRealValues]);
+    return list;
+  }, []);
 
   const categories = useMemo(() => {
-    // Criar categorias baseadas nas linguagens suportadas que geraram snippets
     const availableCategories = supportedLanguages
-      .filter((lang) => snippets.some((s) => s.category === lang.id))
+      .filter((lang) => snippetsMetadata.some((s) => s.category === lang.id))
       .map((lang) => ({
         id: lang.id,
         label: lang.label,
-        count: snippets.filter((s) => s.category === lang.id).length,
+        count: snippetsMetadata.filter((s) => s.category === lang.id).length,
       }));
 
-    // Adicionar "Todos" no início
     return [
-      { id: "all", label: "Todos", count: snippets.length },
+      { id: "all", label: "Todos", count: snippetsMetadata.length },
       ...availableCategories,
     ];
-  }, [snippets]);
+  }, [snippetsMetadata]);
 
-  const filteredSnippets = snippets.filter((snippet) => {
-    const matchesCategory =
-      activeCategory === "all" || snippet.category === activeCategory;
-    const matchesSearch =
-      snippet.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      snippet.code.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredSnippets = useMemo(() => {
+    return snippetsMetadata.filter((snippet) => {
+      const matchesCategory =
+        activeCategory === "all" || snippet.category === activeCategory;
+      const matchesSearch = snippet.title
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [snippetsMetadata, activeCategory, searchQuery]);
 
   const copyToClipboard = (code) => {
     navigator.clipboard.writeText(code);
@@ -203,24 +201,36 @@ export default function CodeSnippets({ request }) {
 
   // Sincronizar snippet selecionado quando a lista de snippets muda (ex: trocar de requisição/aba)
   useEffect(() => {
-    if (snippets.length > 0) {
+    if (snippetsMetadata.length > 0) {
       setSelectedSnippet((current) => {
-        if (!current) return snippets[0];
-        // Tenta encontrar o mesmo snippet (pela categoria e título) na nova lista
-        const matching = snippets.find(
+        if (!current) return snippetsMetadata[0];
+        const matching = snippetsMetadata.find(
           (s) => s.category === current.category && s.title === current.title,
         );
-        // Se não encontrar o exato, tenta um da mesma categoria ou o primeiro disponível
         return (
           matching ||
-          snippets.find((s) => s.category === current.category) ||
-          snippets[0]
+          snippetsMetadata.find((s) => s.category === current.category) ||
+          snippetsMetadata[0]
         );
       });
     } else {
       setSelectedSnippet(null);
     }
-  }, [snippets]);
+  }, [snippetsMetadata]);
+
+  // GERAR O CÓDIGO APENAS PARA O SNIPPET ATUAL (O segredo da performance)
+  const activeCode = useMemo(() => {
+    if (!preparedRequest || !selectedSnippet) return "";
+    try {
+      return generateCodeSnippet(
+        preparedRequest,
+        selectedSnippet.category,
+        selectedSnippet.variantId,
+      );
+    } catch (error) {
+      return `// Erro ao gerar code: ${error.message}`;
+    }
+  }, [preparedRequest, selectedSnippet]);
 
   return (
     <div className="flex-1 h-full border-t border-zinc-700! bg-zinc-950 flex flex-col overflow-hidden">
@@ -407,11 +417,11 @@ export default function CodeSnippets({ request }) {
                   >
                     {copied ? (
                       <>
-                        <Check size={10} /> 
+                        <Check size={10} />
                       </>
                     ) : (
                       <>
-                        <Copy size={10} /> 
+                        <Copy size={10} />
                       </>
                     )}
                   </button>
@@ -440,7 +450,7 @@ export default function CodeSnippets({ request }) {
               {/* Code Display */}
               <div className="flex-1 overflow-hidden p-0 bg-[#0f0f0f]">
                 <CodeViewer
-                  value={selectedSnippet.code}
+                  value={activeCode}
                   language={selectedSnippet.language || "javascript"}
                   theme="code-snippet"
                   config={{

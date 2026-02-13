@@ -9,7 +9,7 @@ export default function CodeViewer({
   theme = "customized-request",
   lineNumbers = "on",
   lineNumbersMinChars = 3,
-  config = {  }
+  config = {},
 }) {
   const displayValue = React.useMemo(() => {
     if (value === null || value === undefined) return "";
@@ -27,11 +27,11 @@ export default function CodeViewer({
       monacoRegistry.setActive(editor);
     });
   };
-  
+
   return (
     <div className="w-full h-full overflow-hidden bg-transparent monaco-editor-transparente">
       <Editor
-        key={`${language}-${displayValue.length}`}
+        key={`${language}`}
         height="100%"
         language={language === "bash" ? "shell" : language}
         value={displayValue}
@@ -43,7 +43,7 @@ export default function CodeViewer({
           minimap: { enabled: false },
           lineNumbers: lineNumbers,
           lineNumbersMinChars: lineNumbersMinChars,
-          ...config
+          ...config,
         }}
       />
     </div>

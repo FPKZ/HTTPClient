@@ -10,7 +10,6 @@ import useInterfaceStore from "../../store/useInterfaceStore";
 import Response from "./includes/Response";
 import CodeSnippets from "./includes/CodeSnippets";
 import { usePanelPersistence } from "../../hooks/usePanelPersistence";
-
 import {
   Group as PanelGroup,
   Panel,
@@ -47,13 +46,16 @@ export default function TabEditor() {
   const {
     verticalPanelRef,
     horizontalPanelRef,
-    onVerticalLayoutChanged,
-    onHorizontalLayoutChanged,
+    onVerticalLayoutChanged: baseOnVerticalLayoutChanged,
+    onHorizontalLayoutChanged: baseOnHorizontalLayoutChanged,
   } = usePanelPersistence(
     activeTab?.id,
     { vertical: panelVerticalSize, horizontal: panelHorizontalSize },
     updateTabUiState,
   );
+
+  const onVerticalLayoutChanged = baseOnVerticalLayoutChanged;
+  const onHorizontalLayoutChanged = baseOnHorizontalLayoutChanged;
 
   if (!activeTab) {
     return (

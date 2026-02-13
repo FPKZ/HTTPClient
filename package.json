@@ -33,13 +33,13 @@
       "package.json"
     ],
     "win": {
-      "icon": "assets/icon1.png",
+      "icon": "assets/volt-icon-sq.png",
       "target": [
         "nsis"
       ]
     },
     "linux": {
-      "icon": "assets/icon1.png",
+      "icon": "assets/volt-icon-sq.png",
       "target": [
         "AppImage",
         "deb"
@@ -47,7 +47,7 @@
       "category": "Development"
     },
     "mac": {
-      "icon": "assets/icon1.png",
+      "icon": "assets/volt-icon-sq.png",
       "target": [
         "dmg",
         "zip"

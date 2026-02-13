@@ -662,7 +662,7 @@ export default function RequestEditor({
   return null;
 }
 
-function JsonBodyEditor({
+const JsonBodyEditor = React.memo(function JsonBodyEditor({
   value,
   onChange,
   onRun,
@@ -714,4 +714,4 @@ function JsonBodyEditor({
       />
     </div>
   );
-}
+});

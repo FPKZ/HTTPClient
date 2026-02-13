@@ -30,6 +30,7 @@ export function usePanelPersistence(
     }, 100);
 
     return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTabId]);
 
   const onVerticalLayoutChanged = (layout) => {
