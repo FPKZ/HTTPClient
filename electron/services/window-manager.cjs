@@ -268,6 +268,11 @@ class WindowManager {
     }
   }
 
+  closeAll() {
+    const wins = BrowserWindow.getAllWindows();
+    wins.forEach((win) => win.close());
+  }
+
   setMenu(template) {
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);

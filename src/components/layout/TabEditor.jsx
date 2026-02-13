@@ -319,8 +319,8 @@ export default function TabEditor() {
                     id={`snippets-panel-${activeTab.id}`}
                     ref={horizontalPanelRef}
                     defaultSize={panelHorizontalSize}
-                    maxSize={60}
-                    minSize={15}
+                    maxSize={"70%"}
+                    minSize={"15%"}
                   >
                     <CodeSnippets request={telaData.request} theme="vs-dark" />
                   </Panel>

@@ -72,6 +72,7 @@ class IpcRouter {
     ipcMain.on("minimize", () => this.win.minimize());
     ipcMain.on("maximize", () => this.win.maximize());
     ipcMain.on("close", () => this.win.close());
+    ipcMain.on("close-all", () => this.win.closeAll());
     ipcMain.on("force-close", () => this.win.forceCloseApp());
     ipcMain.on("open-menu", () => {
       const mainWindow = this.win.getMainWindow();

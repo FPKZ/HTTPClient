@@ -49,6 +49,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   minimize: () => ipcRenderer.send("minimize"),
   maximize: () => ipcRenderer.send("maximize"),
   close: () => ipcRenderer.send("close"),
+  closeAll: () => ipcRenderer.send("close-all"),
   forceClose: () => ipcRenderer.send("force-close"),
   toggleDevTools: () => ipcRenderer.send("toggle-dev-tools"),
 

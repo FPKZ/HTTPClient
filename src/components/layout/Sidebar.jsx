@@ -148,10 +148,15 @@ const SidebarHeader = () => {
             </span>
           </div>
         </div>
+        {activeEnv && (
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)] group-hover/env:hidden transition-colors"></span>
+          </div>
+        )}
         
         <button
           onClick={() => setIsEnvManagerOpen(true)}
-          className="px-2 py-1 rounded hover:bg-zinc-800 text-[0.65rem]! font-bold text-yellow-500 transition-colors opacity-0 group-hover/env:opacity-100! uppercase"
+          className="px-2 py-1 rounded hover:bg-zinc-800 text-[0.65rem]! font-bold text-yellow-500 transition-colors hidden group-hover/env:block opacity-0 group-hover/env:opacity-100! uppercase"
         >
           Gerenciar
         </button>
