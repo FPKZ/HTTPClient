@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
 import {
   Copy,
@@ -11,215 +11,23 @@ import {
 } from "lucide-react";
 import { monacoRegistry } from "../lib/monacoRegistry";
 import { cn } from "../lib/utils";
+import { useGlobalContextMenu } from "../hooks/useGlobalContextMenu";
+import { electronService } from "../services/electronService";
 
 /**
  * GlobalContextMenu
  * Wrapper global que fornece menu de contexto dinâmico baseado no elemento clicado.
+ * Lógica extraída para useGlobalContextMenu para maior clareza e reutilização.
  */
 export default function GlobalContextMenu({ children }) {
-  const [open, setOpen] = useState(false);
-  const [targetDetails, setTargetDetails] = useState({
-    isEditable: false,
-    selectionText: "",
-    linkURL: "",
-    srcURL: "",
-    mediaType: "none",
-    tagName: "",
-  });
-
-  const isDev = window.electronAPI?.isDev;
-
-  // Atualiza detalhes do alvo ao abrir o menu
-  const handleOpenChange = (open) => {
-    setOpen(open);
-  };
-
-  // Referência temporária para o último evento de context menu
-  const lastEventRef = React.useRef(null);
-
-  const handleContextMenu = (e) => {
-    const target = e.target;
-    const monacoEditor = target.closest(".monaco-editor");
-    const isMonaco = !!monacoEditor;
-
-    // Pega a seleção de forma mais robusta
-    let selection = "";
-    if (isMonaco) {
-      const editor = monacoRegistry.getForElement(monacoEditor);
-      if (editor) {
-        const monacoSelection = editor.getSelection();
-        if (monacoSelection) {
-          selection = editor.getModel().getValueInRange(monacoSelection);
-        }
-      }
-    }
-
-    if (!selection) {
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
-        selection = target.value.substring(
-          target.selectionStart,
-          target.selectionEnd,
-        );
-      } else {
-        selection = window.getSelection()?.toString() || "";
-      }
-    }
-
-    const isEditable =
-      target.isContentEditable ||
-      target.tagName === "INPUT" ||
-      target.tagName === "TEXTAREA";
-
-    // Procura link pai
-    const linkElement = target.closest("a");
-    const linkURL = linkElement ? linkElement.href : "";
-
-    // Mídia
-    const srcURL = target.src || "";
-    const mediaType = target.tagName === "IMG" ? "image" : "none";
-
-    let selectionInfo = null;
-    if (
-      isEditable &&
-      (target.tagName === "INPUT" || target.tagName === "TEXTAREA")
-    ) {
-      selectionInfo = {
-        start: target.selectionStart,
-        end: target.selectionEnd,
-        length: target.value.length,
-      };
-    }
-
-    // Verifica se teremos itens (replicando lógica do render abaixo)
-    const hasItems =
-      isEditable ||
-      isMonaco ||
-      !!selection ||
-      !!linkURL ||
-      mediaType === "image" ||
-      isDev;
-
-    if (!hasItems) {
-      setOpen(false);
-      return;
-    }
-
-    lastEventRef.current = {
-      target,
-      e,
-      isMonaco,
-      selectionInfo,
-      monacoContainer: monacoEditor,
-    };
-
-    setTargetDetails({
-      isEditable,
-      isMonaco,
-      selectionText: selection,
-      linkURL,
-      srcURL,
-      mediaType,
-      tagName: target.tagName,
-    });
-    setOpen(true);
-  };
-
-  // Handler para ações de clipboard
-  const handleAction = React.useCallback(
-    (action) => {
-      // Pequeno delay para o menu fechar completamente e o foco estabilizar
-      setTimeout(() => {
-        const details = lastEventRef.current;
-        const target = details?.target;
-
-        if (target) {
-          if (details.isMonaco) {
-            // Tenta obter o editor para o container original ou o target
-            const container =
-              details.monacoContainer || target.closest(".monaco-editor");
-            const editorInstance = monacoRegistry.getForElement(container);
-
-            if (editorInstance) {
-              editorInstance.focus();
-            } else {
-              // Fallback robusto via DOM
-              const inputArea = container?.querySelector(".inputarea");
-              if (inputArea) {
-                inputArea.focus();
-              } else {
-                target.focus();
-              }
-            }
-          } else {
-            target.focus();
-
-            if (details?.selectionInfo) {
-              try {
-                target.setSelectionRange(
-                  details.selectionInfo.start,
-                  details.selectionInfo.end,
-                );
-              } catch (err) {
-                console.error(
-                  "[GlobalContextMenu] Failed to set selection range",
-                  err,
-                );
-              }
-            }
-          }
-        }
-
-        try {
-          if (details.isMonaco) {
-            const editor = monacoRegistry.getForElement(
-              details.monacoContainer || target,
-            );
-            if (editor) {
-              editor.focus();
-
-              if (action === "paste") {
-                const inputArea =
-                  details.monacoContainer?.querySelector(".inputarea");
-                if (inputArea) inputArea.focus();
-                else editor.focus();
-
-                window.electronAPI.paste();
-                return;
-              }
-
-              try {
-                const cmd =
-                  action === "cut"
-                    ? "editor.action.clipboardCutAction"
-                    : "editor.action.clipboardCopyAction";
-                editor.trigger("contextmenu", cmd);
-                return;
-              } catch (monacoErr) {
-                console.warn(
-                  "[GlobalContextMenu] Monaco API failed, falling back to Electron",
-                  monacoErr,
-                );
-              }
-            }
-          }
-
-          const result = document.execCommand(action);
-
-          if (!result) {
-            if (action === "cut") window.electronAPI.cut();
-            else if (action === "copy") window.electronAPI.copy();
-            else if (action === "paste") window.electronAPI.paste();
-          }
-        } catch (err) {
-          console.error(`[GlobalContextMenu] Error during ${action}:`, err);
-          if (action === "cut") window.electronAPI.cut();
-          else if (action === "copy") window.electronAPI.copy();
-          else if (action === "paste") window.electronAPI.paste();
-        }
-      }, 50);
-    },
-    [], // Ref é estável
-  );
+  const {
+    open,
+    setOpen,
+    targetDetails,
+    handleContextMenu,
+    handleAction,
+    isDev,
+  } = useGlobalContextMenu();
 
   const menuItems = React.useMemo(() => {
     const items = [];
@@ -227,7 +35,6 @@ export default function GlobalContextMenu({ children }) {
     // 1. Ações de Edição (Recortar/Copiar/Colar) - Funciona para Editável ou Monaco
     if (targetDetails.isEditable || targetDetails.isMonaco) {
       items.push(
-        // eslint-disable-next-line react-hooks/refs
         {
           label: "Recortar",
           icon: <Scissors size={14} />,
@@ -235,7 +42,6 @@ export default function GlobalContextMenu({ children }) {
           shortcut: "Ctrl+X",
           disabled: targetDetails.isEditable && !targetDetails.selectionText,
         },
-        // eslint-disable-next-line react-hooks/refs
         {
           label: "Copiar",
           icon: <Copy size={14} />,
@@ -243,7 +49,6 @@ export default function GlobalContextMenu({ children }) {
           shortcut: "Ctrl+C",
           disabled: !targetDetails.selectionText && !targetDetails.isMonaco,
         },
-        // eslint-disable-next-line react-hooks/refs
         {
           label: "Colar",
           icon: <ClipboardPaste size={14} />,
@@ -321,8 +126,7 @@ export default function GlobalContextMenu({ children }) {
         label: "Inspecionar Elemento",
         icon: <Code size={14} />,
         onClick: () => {
-          // IPC para abrir devtools
-          window.electronAPI.toggleDevTools();
+          electronService.toggleDevTools();
         },
       });
     }
@@ -331,7 +135,7 @@ export default function GlobalContextMenu({ children }) {
   }, [targetDetails, handleAction, isDev]);
 
   return (
-    <ContextMenuPrimitive.Root open={open} onOpenChange={handleOpenChange}>
+    <ContextMenuPrimitive.Root open={open} onOpenChange={setOpen}>
       <ContextMenuPrimitive.Trigger
         onContextMenu={handleContextMenu}
         className="h-full w-full"
@@ -345,9 +149,6 @@ export default function GlobalContextMenu({ children }) {
             className="min-w-[180px] bg-zinc-900 border border-zinc-700! p-1 rounded-sm shadow-2xl z-50!"
             alignOffset={5}
             onCloseAutoFocus={(e) => {
-              // Impede o Radix de tentar restaurar o foco automaticamente,
-              // o que as vezes causa o "selecionar tudo" no input.
-              // Nós faremos isso manualmente no handleAction.
               e.preventDefault();
             }}
           >

@@ -12,6 +12,7 @@ export default function EnvInfoModal() {
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50 animate-overlayShow" />
         <Dialog.Content
+          aria-describedby={undefined}
           className="
             fixed left-1/2 top-1/2 
             w-[90vw] max-w-[600px] max-h-[85vh]

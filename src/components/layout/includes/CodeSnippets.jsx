@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   Select,
   SelectContent,
@@ -6,231 +5,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../ui/select";
-import {
-  generateCodeSnippet,
-  supportedLanguages,
-} from "../../../lib/codeGenerator";
 import CodeViewer from "../../CodeViewer";
-import useTabStore from "../../../store/useTabStore";
-import { buildFinalRequest } from "../../../utils/collectionUtils";
 import { Eye, EyeOff, Copy, Check } from "lucide-react";
+import { useCodeSnippets } from "../../../hooks/useCodeSnippets";
 
+/**
+ * CodeSnippets
+ * Componente para exibição de códigos gerados para diferentes linguagens.
+ * Lógica extraída para useCodeSnippets para melhor escalabilidade e performance.
+ */
 export default function CodeSnippets({ request }) {
-  // Inicializar com 'shell' (cURL) como padrão, ou o primeiro disponível
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSnippet, setSelectedSnippet] = useState(null);
-  const [useSelectMode, setUseSelectMode] = useState(false);
-  const [useRealValues, setUseRealValues] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [hideSnippetsList, setHideSnippetsList] = useState(false);
-  const headerRef = useRef(null);
-  const contentRef = useRef(null);
-  const previousCategoryRef = useRef(activeCategory);
-
-  const collection = useTabStore((state) => state.collection);
-  const globalsFromStore = useTabStore((state) => state.globals);
-
-  const activeVariables = useMemo(() => {
-    const globals = globalsFromStore || [];
-    const envs = collection?.environments || [];
-    const activeEnvId = collection?.activeEnvironmentId;
-    const envVariables =
-      envs.find((env) => env.id === activeEnvId)?.variables || [];
-    return [...globals, ...envVariables];
-  }, [collection, globalsFromStore]);
-
-  const [debouncedRequest, setDebouncedRequest] = useState(request);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedRequest(request);
-    }, 200); // Debounce reduzido (200ms) porque agora gerar 1 snippet é instantâneo
-
-    return () => clearTimeout(handler);
-  }, [request]);
-
-  const preparedRequest = useMemo(() => {
-    if (!debouncedRequest) return null;
-    return buildFinalRequest(debouncedRequest, activeVariables, {
-      useValues: useRealValues,
-    });
-  }, [debouncedRequest, activeVariables, useRealValues]);
-
-  // Gerar METADADOS dos snippets (sem o código pesado)
-  const snippetsMetadata = useMemo(() => {
-    const list = [];
-    let idCounter = 1;
-
-    supportedLanguages.forEach((lang) => {
-      lang.variants.forEach((variant) => {
-        list.push({
-          id: idCounter++,
-          title: `${lang.label} - ${variant.label}`,
-          category: lang.id,
-          language: variant.mode,
-          variantId: variant.id,
-        });
-      });
-    });
-
-    return list;
-  }, []);
-
-  const categories = useMemo(() => {
-    const availableCategories = supportedLanguages
-      .filter((lang) => snippetsMetadata.some((s) => s.category === lang.id))
-      .map((lang) => ({
-        id: lang.id,
-        label: lang.label,
-        count: snippetsMetadata.filter((s) => s.category === lang.id).length,
-      }));
-
-    return [
-      { id: "all", label: "Todos", count: snippetsMetadata.length },
-      ...availableCategories,
-    ];
-  }, [snippetsMetadata]);
-
-  const filteredSnippets = useMemo(() => {
-    return snippetsMetadata.filter((snippet) => {
-      const matchesCategory =
-        activeCategory === "all" || snippet.category === activeCategory;
-      const matchesSearch = snippet.title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
-  }, [snippetsMetadata, activeCategory, searchQuery]);
-
-  const copyToClipboard = (code) => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  // Detectar largura disponível e alternar entre botões e select
-  useEffect(() => {
-    if (!headerRef.current) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const width = entry.contentRect.width;
-        const shouldUseSelect = width < 500;
-        setUseSelectMode(shouldUseSelect);
-
-        // Se entrar em modo select e "Todos" estiver selecionado, mudar para primeira categoria
-        if (shouldUseSelect) {
-          setActiveCategory((currentCategory) => {
-            if (currentCategory === "all") {
-              const firstCategory = categories.find((cat) => cat.id !== "all");
-              return firstCategory ? firstCategory.id : currentCategory;
-            }
-            return currentCategory;
-          });
-        }
-      }
-    });
-
-    resizeObserver.observe(headerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [categories]);
-
-  // Detectar largura da content area para ocultar snippets list
-  useEffect(() => {
-    if (!contentRef.current) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const width = entry.contentRect.width;
-        const shouldHide = width < 600;
-        setHideSnippetsList(shouldHide);
-
-        // Quando a lista estiver oculta, selecionar automaticamente o primeiro snippet
-        if (shouldHide) {
-          setSelectedSnippet((current) => {
-            if (!current && filteredSnippets.length > 0) {
-              return filteredSnippets[0];
-            }
-            return current;
-          });
-        }
-      }
-    });
-
-    resizeObserver.observe(contentRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [filteredSnippets]);
-
-  // Atualizar snippet selecionado quando categoria muda
-  const updateSnippetOnCategoryChange = useCallback(() => {
-    if (previousCategoryRef.current !== activeCategory) {
-      previousCategoryRef.current = activeCategory;
-
-      if (filteredSnippets.length > 0) {
-        // Verificar se o snippet atual ainda está na lista filtrada
-        const isStillInList =
-          selectedSnippet &&
-          filteredSnippets.some((s) => s.id === selectedSnippet.id);
-
-        if (!isStillInList) {
-          // Se não estiver mais na lista, selecionar o primeiro snippet disponível
-          setSelectedSnippet(filteredSnippets[0]);
-        }
-      }
-    } else if (
-      !selectedSnippet &&
-      filteredSnippets.length > 0 &&
-      hideSnippetsList
-    ) {
-      // Caso especial para garantir seleção inicial se necessário
-      setSelectedSnippet(filteredSnippets[0]);
-    }
-  }, [activeCategory, filteredSnippets, selectedSnippet, hideSnippetsList]);
-
-  // Executar atualização
-  useEffect(() => {
-    updateSnippetOnCategoryChange();
-  }, [updateSnippetOnCategoryChange]);
-
-  // Sincronizar snippet selecionado quando a lista de snippets muda (ex: trocar de requisição/aba)
-  useEffect(() => {
-    if (snippetsMetadata.length > 0) {
-      setSelectedSnippet((current) => {
-        if (!current) return snippetsMetadata[0];
-        const matching = snippetsMetadata.find(
-          (s) => s.category === current.category && s.title === current.title,
-        );
-        return (
-          matching ||
-          snippetsMetadata.find((s) => s.category === current.category) ||
-          snippetsMetadata[0]
-        );
-      });
-    } else {
-      setSelectedSnippet(null);
-    }
-  }, [snippetsMetadata]);
-
-  // GERAR O CÓDIGO APENAS PARA O SNIPPET ATUAL (O segredo da performance)
-  const activeCode = useMemo(() => {
-    if (!preparedRequest || !selectedSnippet) return "";
-    try {
-      return generateCodeSnippet(
-        preparedRequest,
-        selectedSnippet.category,
-        selectedSnippet.variantId,
-      );
-    } catch (error) {
-      return `// Erro ao gerar code: ${error.message}`;
-    }
-  }, [preparedRequest, selectedSnippet]);
+  const {
+    activeCategory,
+    setActiveCategory,
+    searchQuery,
+    setSearchQuery,
+    selectedSnippet,
+    setSelectedSnippet,
+    useSelectMode,
+    useRealValues,
+    setUseRealValues,
+    copied,
+    hideSnippetsList,
+    headerRef,
+    contentRef,
+    categories,
+    filteredSnippets,
+    activeCode,
+    copyToClipboard,
+  } = useCodeSnippets({ request });
 
   return (
     <div className="flex-1 h-full border-t border-zinc-700! bg-zinc-950 flex flex-col overflow-hidden">
@@ -241,7 +44,6 @@ export default function CodeSnippets({ request }) {
       >
         <div className="flex items-center gap-2 overflow-hidden">
           <span className="text-[0.65rem]! font-black tracking-widest text-zinc-500 uppercase shrink-0">
-            {/* <span className="text-yellow-500">⚡</span>  */}
             Code Snippets
           </span>
           <span className="text-zinc-700 font-bold shrink-0">•</span>
@@ -298,7 +100,6 @@ export default function CodeSnippets({ request }) {
         {/* Snippets List */}
         {!hideSnippetsList && (
           <div className="w-40 border-r border-zinc-800! bg-zinc-900/10 overflow-y-auto">
-            {/* Search Bar */}
             <div className="px-2 py-2 border-b border-zinc-800! bg-zinc-900/20 shrink-0">
               <div className="relative">
                 <input
@@ -335,7 +136,6 @@ export default function CodeSnippets({ request }) {
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      {/* Indicador de Linguagem (Cor) */}
                       <div
                         className={`w-1.5 h-1.5 rounded-full ${
                           snippet.category === "javascript" ||
@@ -364,7 +164,6 @@ export default function CodeSnippets({ request }) {
 
         {/* Snippet Viewer */}
         <div className="flex-1 bg-[#040404] overflow-hidden flex flex-col">
-          {/* Select de Snippets (quando lista está oculta) */}
           {hideSnippetsList && filteredSnippets.length > 0 && (
             <div className="px-2 py-2 border-b border-zinc-800! bg-zinc-900/20 shrink-0">
               <Select
@@ -408,22 +207,14 @@ export default function CodeSnippets({ request }) {
                 </div>
                 <div className="flex gap-1.5 shrink-0">
                   <button
-                    onClick={() => copyToClipboard(selectedSnippet.code)}
+                    onClick={() => copyToClipboard(activeCode)}
                     className={`p-2 rounded text-[0.65rem]! font-bold transition-all! border flex items-center gap-2 justify-center ${
                       copied
                         ? "bg-green-600 border-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]"
                         : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-yellow-500 border-zinc-700!"
                     }`}
                   >
-                    {copied ? (
-                      <>
-                        <Check size={10} />
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={10} />
-                      </>
-                    )}
+                    {copied ? <Check size={10} /> : <Copy size={10} />}
                   </button>
 
                   <button
@@ -440,9 +231,6 @@ export default function CodeSnippets({ request }) {
                     }
                   >
                     {useRealValues ? <Eye size={10} /> : <EyeOff size={10} />}
-                    {/* <span className="text-[0.65rem] font-bold uppercase tracking-tighter">
-                      {useRealValues ? "Valores Reais" : "Máscara"}
-                    </span> */}
                   </button>
                 </div>
               </div>

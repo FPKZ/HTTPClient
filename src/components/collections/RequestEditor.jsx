@@ -4,10 +4,12 @@ import AutoResizeTextarea from "../AutoResizeTextarea";
 import Editor from "@monaco-editor/react";
 import { monacoRegistry } from "../../lib/monacoRegistry";
 import { defaultEditorOptions } from "../../lib/monacoConfig";
+import { useRequestEditor } from "../../hooks/useRequestEditor";
 
 /**
  * RequestEditor
  * Renderiza listas editáveis (Headers, Params, Body Inputs) ou editores específicos (JSON).
+ * A lógica foi extraída para o hook useRequestEditor para melhor manutenibilidade.
  */
 export default function RequestEditor({
   subKey,
@@ -20,19 +22,24 @@ export default function RequestEditor({
   lineNumbers = "off",
   lineNumbersMinChars = 3,
 }) {
+  const {
+    items,
+    handleItemChange,
+    handleAddItem,
+    handleRemoveItem,
+    handleModeChange,
+    handleToggleAuth,
+    handleAuthModeChange,
+    handleSelectFile,
+    handleSelectSaveLocation,
+  } = useRequestEditor({ subKey, subValue, onInputChange });
+
   if (subKey === "url" || subKey === "method" || !subValue) return null;
+
   // Renderização específica para AUTH
   if (subKey === "auth") {
     const isEnabled = subValue.name && subValue.name !== "none";
     const authMode = subValue.mode || "token";
-
-    const handleToggleAuth = () => {
-      onInputChange(0, "auth", "name", isEnabled ? "none" : "Authorization");
-    };
-
-    const handleModeChange = (mode) => {
-      onInputChange(0, "auth", "mode", mode);
-    };
 
     return (
       <div className="flex h-full flex-col animate-in fade-in duration-300 gap-4 overflow-y-auto">
@@ -47,7 +54,7 @@ export default function RequestEditor({
                 type="radio"
                 name="authMode"
                 checked={authMode === m}
-                onChange={() => handleModeChange(m)}
+                onChange={() => handleAuthModeChange(m)}
                 className="hidden"
               />
               <div className="flex items-center justify-center gap-2">
@@ -90,7 +97,6 @@ export default function RequestEditor({
                 !isEnabled && "opacity-60"
               }`}
             >
-              {/* Enabled Checkbox */}
               <button
                 onClick={handleToggleAuth}
                 className="mt-1.5 flex justify-center text-zinc-600 hover:text-yellow-500"
@@ -102,7 +108,6 @@ export default function RequestEditor({
                 )}
               </button>
 
-              {/* Key Column: Field Name + Prefix */}
               <div className="flex flex-col gap-2">
                 <input
                   type="text"
@@ -134,7 +139,6 @@ export default function RequestEditor({
                 </div>
               </div>
 
-              {/* Value Column: Token + Location */}
               <div className="flex flex-col gap-2">
                 <AutoResizeTextarea
                   placeholder="Inserir token (Key)..."
@@ -173,7 +177,6 @@ export default function RequestEditor({
                 </div>
               </div>
 
-              {/* Clear Action */}
               <button
                 onClick={() => onInputChange(0, "auth", "name", "none")}
                 className="mt-1.5 opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-500 transition-opacity"
@@ -197,21 +200,21 @@ export default function RequestEditor({
                   className="flex-1 bg-zinc-800 text-zinc-300 text-[0.7rem] px-3 py-2 rounded focus:outline-none"
                 />
                 <button
-                  onClick={async () => {
-                    if (!window.electronAPI) return;
-                    const path = await window.electronAPI.selectFile([
-                      {
-                        name: "Certificado Digital (A1)",
-                        extensions: ["pfx", "p12"],
-                      },
-                    ]);
-                    if (path) {
-                      onInputChange(0, "auth", "a1", {
-                        ...subValue.a1,
-                        pfxPath: path,
-                      });
-                    }
-                  }}
+                  onClick={() =>
+                    handleSelectFile({
+                      filters: [
+                        {
+                          name: "Certificado Digital (A1)",
+                          extensions: ["pfx", "p12"],
+                        },
+                      ],
+                      onSelect: (path) =>
+                        onInputChange(0, "auth", "a1", {
+                          ...subValue.a1,
+                          pfxPath: path,
+                        }),
+                    })
+                  }
                   className="bg-yellow-600 hover:bg-yellow-700 text-black font-bold px-4 py-2 rounded text-[0.7rem] transition-colors"
                 >
                   SELECIONAR
@@ -256,135 +259,6 @@ export default function RequestEditor({
   // Se for BODY, precisamos checar o modo
   const isBody = subKey === "body";
   const mode = isBody ? subValue.mode : "list";
-  const items = isBody ? subValue.content : subValue;
-
-  // Handler para atualizar um item específico na lista
-  const handleItemChange = (index, field, value) => {
-    const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
-
-    if (isBody) {
-      onInputChange(0, "body", null, { ...subValue, content: newItems });
-    } else {
-      onInputChange(0, subKey, null, newItems);
-    }
-  };
-
-  // Handler para adicionar novo item
-  const handleAddItem = () => {
-    const newItem = { key: "", value: "", enabled: true, type: "text" };
-    const newItems = [...items, newItem];
-
-    if (isBody) {
-      onInputChange(0, "body", null, { ...subValue, content: newItems });
-    } else {
-      onInputChange(0, subKey, null, newItems);
-    }
-  };
-
-  // Handler para remover item
-  const handleRemoveItem = (index) => {
-    const newItems = items.filter((_, i) => i !== index);
-
-    if (isBody) {
-      onInputChange(0, "body", null, { ...subValue, content: newItems });
-    } else {
-      onInputChange(0, subKey, null, newItems);
-    }
-  };
-
-  // Helpers de conversão
-  const listToJson = (list) => {
-    const obj = {};
-    if (Array.isArray(list)) {
-      list.forEach((item) => {
-        if (item.key) {
-          let val = item.value;
-          // Tenta fazer o parse de volta para objeto se parecer JSON
-          try {
-            if (
-              typeof val === "string" &&
-              (val.trim().startsWith("{") || val.trim().startsWith("["))
-            ) {
-              val = JSON.parse(val);
-            }
-          } catch (e) {
-            console.log(e);
-            // Se falhar o parse, mantém como string
-          }
-          obj[item.key] = val;
-        }
-      });
-    }
-    return JSON.stringify(obj, null, 2);
-  };
-
-  const jsonToList = (jsonStr) => {
-    try {
-      const obj = JSON.parse(jsonStr);
-      return Object.entries(obj).map(([key, value]) => ({
-        key,
-        value:
-          typeof value === "object" ? JSON.stringify(value) : String(value),
-        enabled: true,
-      }));
-    } catch (e) {
-      console.log(e);
-      return [];
-    }
-  };
-
-  // Handler para trocar modo do body
-  const handleModeChange = (newMode) => {
-    const currentMode = subValue.mode;
-    const currentContent = subValue.content;
-
-    // 1. Criamos uma cópia do objeto body atual e salvamos o estado do modo que estamos saindo
-    const newBody = {
-      ...subValue,
-      [currentMode]: currentContent, // Salva o estado atual (ex: body.json = "...")
-      mode: newMode,
-    };
-
-    // 2. Verificamos se já temos algo salvo para o novo modo
-    let nextContent = newBody[newMode];
-
-    // 3. Se não temos nada salvo no novo modo, tentamos converter ou inicializar
-    if (nextContent === undefined || nextContent === null) {
-      if (
-        currentMode === "json" &&
-        (newMode === "inputs" ||
-          newMode === "formdata" ||
-          newMode === "urlencoded")
-      ) {
-        nextContent = jsonToList(currentContent);
-      } else if (
-        (currentMode === "inputs" ||
-          currentMode === "formdata" ||
-          currentMode === "urlencoded") &&
-        newMode === "json"
-      ) {
-        nextContent = listToJson(currentContent);
-      } else if (newMode === "none") {
-        nextContent = "";
-      } else if (newMode === "binary" || newMode === "stream") {
-        nextContent = typeof currentContent === "string" ? currentContent : "";
-      } else if (
-        newMode === "inputs" ||
-        newMode === "formdata" ||
-        newMode === "urlencoded"
-      ) {
-        nextContent = [];
-      } else {
-        nextContent = "";
-      }
-    }
-
-    // 4. Atualizamos o content com o que recuperamos ou convertemos
-    newBody.content = nextContent;
-
-    onInputChange(0, "body", null, newBody);
-  };
 
   // Renderização do seletor de modo (apenas para Body)
   const renderModeSelector = () => (
@@ -427,12 +301,7 @@ export default function RequestEditor({
   );
 
   // Renderização de lista (Headers, Params, Body Inputs, URL-Encoded)
-  if (
-    mode === "list" ||
-    mode === "inputs" ||
-    mode === "formdata" ||
-    mode === "urlencoded"
-  ) {
+  if (["list", "inputs", "formdata", "urlencoded"].includes(mode)) {
     return (
       <div className="flex h-full pb-2 flex-col gap-1 overflow-y-auto">
         {isBody && renderModeSelector()}
@@ -456,7 +325,6 @@ export default function RequestEditor({
               key={idx}
               className="grid grid-cols-[30px_1fr_1fr_40px] gap-2 items-center bg-zinc-900/50 p-1 rounded hover:bg-zinc-800/50 group"
             >
-              {/* Enabled Checkbox */}
               <button
                 onClick={() => handleItemChange(idx, "enabled", !item.enabled)}
                 className="mt-1.5 flex justify-center text-zinc-600 hover:text-yellow-500"
@@ -468,7 +336,6 @@ export default function RequestEditor({
                 )}
               </button>
 
-              {/* Key Input */}
               <input
                 type="text"
                 value={item.key}
@@ -479,7 +346,6 @@ export default function RequestEditor({
                 }`}
               />
 
-              {/* Value Input (Text or File) */}
               <div className="flex flex-col gap-1">
                 {mode === "formdata" ? (
                   <div className="flex gap-2">
@@ -487,13 +353,12 @@ export default function RequestEditor({
                       {item.value || "Selecione um arquivo..."}
                     </div>
                     <button
-                      onClick={async () => {
-                        if (!window.electronAPI) return;
-                        const path = await window.electronAPI.selectFile();
-                        if (path) {
-                          handleItemChange(idx, "value", path);
-                        }
-                      }}
+                      onClick={() =>
+                        handleSelectFile({
+                          onSelect: (path) =>
+                            handleItemChange(idx, "value", path),
+                        })
+                      }
                       className="bg-zinc-700 hover:bg-zinc-600 text-white px-2 py-1 rounded text-[0.6rem]"
                     >
                       Browser
@@ -513,7 +378,6 @@ export default function RequestEditor({
                 )}
               </div>
 
-              {/* Remove Action */}
               <button
                 onClick={() => handleRemoveItem(idx)}
                 className="flex justify-center opacity-0 group-hover:opacity-100! text-zinc-600 hover:text-red-500 transition-opacity"
@@ -582,16 +446,15 @@ export default function RequestEditor({
               className="flex-1 bg-zinc-800 text-zinc-300 text-[0.7rem] px-3 py-2 rounded focus:outline-none"
             />
             <button
-              onClick={async () => {
-                if (!window.electronAPI) return;
-                const path = await window.electronAPI.selectFile();
-                if (path) {
-                  onInputChange(0, "body", null, {
-                    ...subValue,
-                    content: path,
-                  });
-                }
-              }}
+              onClick={() =>
+                handleSelectFile({
+                  onSelect: (path) =>
+                    onInputChange(0, "body", null, {
+                      ...subValue,
+                      content: path,
+                    }),
+                })
+              }
               className="bg-yellow-600 hover:bg-yellow-700 text-black font-bold px-4 py-2 rounded text-[0.7rem] transition-colors"
             >
               SELECIONAR ARQUIVO
@@ -624,8 +487,7 @@ export default function RequestEditor({
             />
             <button
               onClick={async () => {
-                if (!window.electronAPI) return;
-                const path = await window.electronAPI.selectSaveLocation();
+                const path = await handleSelectSaveLocation();
                 if (path) {
                   onInputChange(0, "body", null, {
                     ...subValue,
