@@ -9,7 +9,13 @@ import { useNewCollection } from "../../hooks/useNewCollection";
 export default function NovaCollectionModal({ children }) {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
-  const [routes, setRoutes] = useState(["GET", "POST", "PUT", "DELETE", "PATCH"]);
+  const [routes, setRoutes] = useState([
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "PATCH",
+  ]);
   const navigate = useNavigate();
   const loadCollection = useTabStore((state) => state.loadCollection);
   const { newCollection, createTestRoute } = useNewCollection();
@@ -22,7 +28,7 @@ export default function NovaCollectionModal({ children }) {
   );
 
   useEffect(() => {
-    if(isNovaCollectionOpen){
+    if (isNovaCollectionOpen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setName("");
       setDesc("");
@@ -35,7 +41,7 @@ export default function NovaCollectionModal({ children }) {
       // Se o método já estiver no array, removemos ele (uncheck)
       if (prevRoutes.includes(method)) {
         return prevRoutes.filter((r) => r !== method);
-      } 
+      }
       // Se não estiver, adicionamos ao array (check)
       else {
         return [...prevRoutes, method];
@@ -45,7 +51,9 @@ export default function NovaCollectionModal({ children }) {
 
   const handleCreate = () => {
     let testRoutes = [];
-    routes.length > 0 ? testRoutes = routes : testRoutes = createTestRoute();
+    routes.length > 0
+      ? (testRoutes = routes)
+      : (testRoutes = createTestRoute());
     // const methods = ["GET", "POST", "PUT", "DELETE", "PATCH"];
     // const testRoutes = methods.map(createTestRoute);
 
@@ -64,6 +72,7 @@ export default function NovaCollectionModal({ children }) {
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50 animate-overlayShow" />
         <Dialog.Content
+          aria-describedby={undefined}
           onOpenAutoFocus={(e) => e.preventDefault()}
           className="
             fixed left-1/2 top-1/2 
@@ -116,7 +125,10 @@ export default function NovaCollectionModal({ children }) {
               </label>
               <div className="flex flex-wrap gap-4">
                 {["GET", "POST", "PUT", "DELETE", "PATCH"].map((method) => (
-                  <label key={method} className="flex items-center gap-2 cursor-pointer group">
+                  <label
+                    key={method}
+                    className="flex items-center gap-2 cursor-pointer group"
+                  >
                     <input
                       type="checkbox"
                       defaultChecked
@@ -131,7 +143,7 @@ export default function NovaCollectionModal({ children }) {
                 ))}
               </div>
             </div>
-            
+
             <div className="bg-blue-500/10 border border-blue-500/20! p-3 rounded">
               <p className="text-[0.7rem] text-blue-400">
                 💡 Esta coleção será criada com 5 rotas de teste (GET, POST,

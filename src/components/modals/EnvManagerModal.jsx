@@ -134,7 +134,10 @@ export default function EnvManagerModal({ open, onOpenChange }) {
       <Dialog.Root open={open} onOpenChange={onOpenChange}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-in fade-in duration-200" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-[80%]! max-w-[95%]! min-h-[80%]! max-h-[95%]! bg-zinc-950 rounded-xl border border-zinc-800! shadow-2xl overflow-hidden flex flex-col z-50 outline-none animate-in zoom-in-95 duration-200">
+          <Dialog.Content
+            aria-describedby={undefined}
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-[80%]! max-w-[95%]! min-h-[80%]! max-h-[95%]! bg-zinc-950 rounded-xl border border-zinc-800! shadow-2xl overflow-hidden flex flex-col z-50 outline-none animate-in zoom-in-95 duration-200"
+          >
             {/* Header */}
             <div className="flex items-center justify-between px-3 py-3 border-b border-zinc-800! bg-zinc-900/50">
               <div className="flex items-center gap-3">
