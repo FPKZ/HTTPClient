@@ -1,6 +1,6 @@
 import React from "react";
 import { useNewCollection } from "./useNewCollection";
-import useTabStore from "../store/useTabStore"; // Ajustado o caminho e import default
+// import useTabStore from "../store/useTabStore"; // Ajustado o caminho e import default
 import useModalStore from "../store/useModalStore";
 import { Plus, FileDown, LogOut, SquareTerminal } from "lucide-react";
 

@@ -277,6 +277,107 @@ export const applyVariables = (data, variables = []) => {
 };
 
 /**
+ * Helper para converter lista [{key, value, enabled, type}] em objeto {key: value}
+ */
+export const listToObj = (list) => {
+  if (!Array.isArray(list)) return {};
+  return list.reduce((acc, curr) => {
+    if (curr.enabled && curr.key) {
+      if (curr.type === "file") {
+        acc[curr.key] = { src: curr.value, type: "file" };
+      } else {
+        acc[curr.key] = curr.value;
+      }
+    }
+    return acc;
+  }, {});
+};
+
+/**
+ * Constrói o objeto de requisição final, aplicando variáveis e processando o corpo/auth.
+ * Centraliza a lógica para ser usada tanto no executor quanto no gerador de snippets.
+ */
+export const buildFinalRequest = (
+  requestOrigin,
+  variables = [],
+  options = { useValues: true },
+) => {
+  const activeVars = options.useValues ? variables : [];
+  const requestData = applyVariables(requestOrigin, activeVars);
+
+  // 1. Headers e Query Params
+  const headers = listToObj(requestData.headers);
+  const queryParams = listToObj(requestData.params);
+  const queryString = new URLSearchParams(queryParams).toString();
+  const finalUrl = queryString
+    ? `${requestData.url}${requestData.url.includes("?") ? "&" : "?"}${queryString}`
+    : requestData.url;
+
+  // 2. Injeção de Autenticação (Auth)
+  let authBodyInjection = {};
+  if (
+    requestData.auth &&
+    requestData.auth.name &&
+    requestData.auth.name !== "none"
+  ) {
+    const { key, value, type } = requestData.auth.config || {};
+    const fieldName = requestData.auth.name;
+
+    if (fieldName && key) {
+      const authString = type ? `${type} ${key}` : key;
+      if (value === "header") {
+        headers[fieldName] = authString;
+      } else if (value === "body") {
+        authBodyInjection[fieldName] = authString;
+      }
+    }
+  }
+
+  // 3. Body processado
+  let bodyToExecute = null;
+  const mode = requestData.body?.mode || "none";
+
+  if (mode === "inputs" || mode === "formdata" || mode === "urlencoded") {
+    bodyToExecute = {
+      ...listToObj(requestData.body.content),
+      ...authBodyInjection,
+    };
+  } else if (mode === "json") {
+    try {
+      const content =
+        typeof requestData.body.content === "string"
+          ? requestData.body.content
+          : JSON.stringify(requestData.body.content);
+
+      if (!content || !content.trim()) {
+        bodyToExecute = {};
+      } else {
+        const parsed = JSON.parse(content);
+        bodyToExecute = { ...parsed, ...authBodyInjection };
+      }
+    } catch {
+      bodyToExecute = requestData.body.content;
+    }
+  } else if (mode === "binary") {
+    bodyToExecute = requestData.body.content;
+  } else if (Object.keys(authBodyInjection).length > 0) {
+    bodyToExecute = authBodyInjection;
+  }
+
+  return {
+    method: requestData.method,
+    url: finalUrl,
+    headers,
+    body: mode === "stream" ? null : bodyToExecute,
+    bodyMode: mode,
+    auth: requestData.auth,
+    timeout: requestData.timeout,
+    // Preserva o streamPath se houver (para download direto)
+    streamPath: mode === "stream" ? requestData.body.content : null,
+  };
+};
+
+/**
  * Regera recursivamente os IDs de um item e seus filhos.
  * Útil para copiar e colar pastas inteiras.
  */

@@ -11,6 +11,9 @@ import {
   supportedLanguages,
 } from "../../../lib/codeGenerator";
 import CodeViewer from "../../CodeViewer";
+import useTabStore from "../../../store/useTabStore";
+import { buildFinalRequest } from "../../../utils/collectionUtils";
+import { Eye, EyeOff, Copy, Check } from "lucide-react";
 
 export default function CodeSnippets({ request }) {
   // Inicializar com 'shell' (cURL) como padrão, ou o primeiro disponível
@@ -18,14 +21,33 @@ export default function CodeSnippets({ request }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSnippet, setSelectedSnippet] = useState(null);
   const [useSelectMode, setUseSelectMode] = useState(false);
+  const [useRealValues, setUseRealValues] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [hideSnippetsList, setHideSnippetsList] = useState(false);
   const headerRef = useRef(null);
   const contentRef = useRef(null);
   const previousCategoryRef = useRef(activeCategory);
 
+  const collection = useTabStore((state) => state.collection);
+  const globalsFromStore = useTabStore((state) => state.globals);
+
+  const activeVariables = useMemo(() => {
+    const globals = globalsFromStore || [];
+    const envs = collection?.environments || [];
+    const activeEnvId = collection?.activeEnvironmentId;
+    const envVariables =
+      envs.find((env) => env.id === activeEnvId)?.variables || [];
+    return [...globals, ...envVariables];
+  }, [collection, globalsFromStore]);
+
   // Gerar snippets dinamicamente baseados na requisição atual
   const snippets = useMemo(() => {
     if (!request) return [];
+
+    // Prepara a requisição com base no modo de exibição (Real vs Representação)
+    const preparedRequest = buildFinalRequest(request, activeVariables, {
+      useValues: useRealValues,
+    });
 
     const allSnippets = [];
     let idCounter = 1;
@@ -33,11 +55,15 @@ export default function CodeSnippets({ request }) {
     supportedLanguages.forEach((lang) => {
       lang.variants.forEach((variant) => {
         try {
-          const code = generateCodeSnippet(request, lang.id, variant.id);
+          const code = generateCodeSnippet(
+            preparedRequest,
+            lang.id,
+            variant.id,
+          );
           allSnippets.push({
             id: idCounter++,
             title: `${lang.label} - ${variant.label}`,
-            category: lang.id, // Usando o ID da linguagem como categoria (ex: 'javascript', 'python')
+            category: lang.id, // Usando o ID da linguagem como categoria
             language: variant.mode, // Modo para syntax highlighting
             code: code,
           });
@@ -51,7 +77,7 @@ export default function CodeSnippets({ request }) {
     });
 
     return allSnippets;
-  }, [request]);
+  }, [request, activeVariables, useRealValues]);
 
   const categories = useMemo(() => {
     // Criar categorias baseadas nas linguagens suportadas que geraram snippets
@@ -81,7 +107,8 @@ export default function CodeSnippets({ request }) {
 
   const copyToClipboard = (code) => {
     navigator.clipboard.writeText(code);
-    // Pode adicionar um toast notification aqui
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   // Detectar largura disponível e alternar entre botões e select
@@ -369,12 +396,45 @@ export default function CodeSnippets({ request }) {
                     {selectedSnippet.language}
                   </span>
                 </div>
-                <button
-                  onClick={() => copyToClipboard(selectedSnippet.code)}
-                  className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-yellow-500 text-[0.65rem]! font-bold rounded transition-all! border border-zinc-700!"
-                >
-                  📋 Copiar
-                </button>
+                <div className="flex gap-1.5 shrink-0">
+                  <button
+                    onClick={() => copyToClipboard(selectedSnippet.code)}
+                    className={`p-2 rounded text-[0.65rem]! font-bold transition-all! border flex items-center gap-2 justify-center ${
+                      copied
+                        ? "bg-green-600 border-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]"
+                        : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-yellow-500 border-zinc-700!"
+                    }`}
+                  >
+                    {copied ? (
+                      <>
+                        <Check size={10} /> 
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={10} /> 
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setUseRealValues(!useRealValues)}
+                    className={`p-2 rounded border transition-all flex items-center gap-2 justify-center ${
+                      useRealValues
+                        ? "bg-yellow-500/10 border-yellow-500/50! text-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.1)]"
+                        : "bg-zinc-800 border-zinc-700! text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700"
+                    }`}
+                    title={
+                      useRealValues
+                        ? "Ocultar valores reais (Usar {{variaveis}})"
+                        : "Mostrar valores reais das variáveis"
+                    }
+                  >
+                    {useRealValues ? <Eye size={10} /> : <EyeOff size={10} />}
+                    {/* <span className="text-[0.65rem] font-bold uppercase tracking-tighter">
+                      {useRealValues ? "Valores Reais" : "Máscara"}
+                    </span> */}
+                  </button>
+                </div>
               </div>
 
               {/* Code Display */}
