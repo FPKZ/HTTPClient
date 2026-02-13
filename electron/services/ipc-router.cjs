@@ -29,6 +29,20 @@ class IpcRouter {
   }
 
   register() {
+
+    ipcMain.on("teste", async () => {
+      const options = {
+        'method': 'POST',
+        'headers': {'Content-Type': 'application/json'},
+        'body': '{"tokenAcessoId":"d730e1cc29cf","tokenAcessoSenha":"GAwCtR{^7BriJ4h\'6q"}'
+      };
+  
+      fetch('https://core-sistema-dev.peruibe.sp.gov.br/api/v1/auth/token', options)
+        .then(response => response.json())
+        .then(response => console.log(response))
+        .catch(err => console.error(err));
+    });
+
     console.log("[IpcRouter] Registrando handlers IPC...");
 
     ipcMain.handle("conect", async () => {

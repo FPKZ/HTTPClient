@@ -38,6 +38,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     },
   },
 
+  teste: () => ipcRenderer.send("teste"),
+
   // --- Função de Log de Ações ---
   logAction: (action, user) => ipcRenderer.invoke("log-action", action, user),
   startActionLogger: () => ipcRenderer.send("start-action-logger"),
