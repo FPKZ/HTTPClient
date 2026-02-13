@@ -27,7 +27,7 @@ export default function CodeViewer({
       monacoRegistry.setActive(editor);
     });
   };
-
+  const d = defaultEditorOptions.renderLineHighlight
   return (
     <div className="w-full h-full overflow-hidden bg-transparent monaco-editor-transparente">
       <Editor

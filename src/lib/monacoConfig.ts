@@ -1,9 +1,59 @@
+import { editor } from "monaco-editor";
+
+/**
+ * Interface customizada para as opções do editor, definindo explicitamente
+ * os valores permitidos para facilitar a visualização no IntelliSense.
+ */
+export interface IDefaultEditorOptions {
+  fontSize?: number;
+  fontFamily?: string;
+  fontLigatures?: boolean | string;
+  lineHeight?: number;
+  readOnly?: boolean;
+  wordWrap?: "off" | "on" | "wordWrapColumn" | "bounded";
+  tabSize?: number;
+  insertSpaces?: boolean;
+  formatOnPaste?: boolean;
+  formatOnType?: boolean;
+  lineNumbers?: "off" | "on" | "relative" | "interval";
+  lineNumbersMinChars?: number;
+  renderLineHighlight?: "none" | "gutter" | "line" | "all";
+  minimap?: {
+    enabled?: boolean;
+  };
+  folding?: boolean;
+  matchBrackets?: "never" | "near" | "always";
+  scrollBeyondLastLine?: boolean;
+  scrollbar?: {
+    vertical?: "auto" | "visible" | "hidden";
+    horizontal?: "auto" | "visible" | "hidden";
+    verticalScrollbarSize?: number;
+    horizontalScrollbarSize?: number;
+    alwaysConsumeMouseWheel?: boolean;
+  };
+  automaticLayout?: boolean;
+  cursorBlinking?: "blink" | "smooth" | "phase" | "expand" | "solid";
+  cursorStyle?: "line" | "block" | "underline" | "line-thin" | "block-outline" | "underline-thin";
+  cursorSmoothCaretAnimation?: "off" | "explicit" | "on";
+  multiCursorModifier?: "ctrlCmd" | "alt";
+  quickSuggestions?: boolean | {
+    other?: boolean | "on" | "inline" | "off";
+    comments?: boolean | "on" | "inline" | "off";
+    strings?: boolean | "on" | "inline" | "off";
+  };
+  suggestOnTriggerCharacters?: boolean;
+  acceptSuggestionOnEnter?: "on" | "smart" | "off";
+  contextmenu?: boolean;
+  links?: boolean;
+  colorDecorators?: boolean;
+}
+
 /**
  * Configurações padrão para o Monaco Editor.
  * Exporta um objeto 'defaultEditorOptions' que contém todas as configurações
  * que devem ser aplicadas consistentemente em toda a aplicação.
  */
-export const defaultEditorOptions = {
+export const defaultEditorOptions: IDefaultEditorOptions = {
   // --- Aparência e Fonte ---
   fontSize: 12, // Tamanho da fonte em pixels
   fontFamily: "'Fira Code', 'Consolas', 'Courier New', monospace", // Família da fonte (preferência por fontes monoespaçadas com ligaduras)
@@ -35,7 +85,7 @@ export const defaultEditorOptions = {
     horizontal: "auto", // Barra de rolagem horizontal: 'auto', 'visible', 'hidden'
     verticalScrollbarSize: 10, // Largura da barra de rolagem vertical (px)
     horizontalScrollbarSize: 10, // Altura da barra de rolagem horizontal (px)
-    alwaysConsumeMouseWheel: false, // Se true, impede que o scroll propague para o elemento pai
+    alwaysConsumeMouseWheel: false, // Se true, impede que o scroll propaque para o elemento pai
   },
   automaticLayout: true, // Ajusta automaticamente o layout quando o container muda de tamanho (importante para resizable panels)
 

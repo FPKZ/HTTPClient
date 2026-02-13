@@ -17,7 +17,7 @@ export default function RequestEditor({
   onSelectFile,
   onRun,
   requestId,
-  lineNumbers = "on",
+  lineNumbers = "off",
   lineNumbersMinChars = 3,
 }) {
   if (subKey === "url" || subKey === "method" || !subValue) return null;
@@ -708,6 +708,7 @@ function JsonBodyEditor({
           contextmenu: false, // Desativa o menu nativo para usar o GlobalContextMenu
           lineNumbers: lineNumbers,
           lineNumbersMinChars: lineNumbersMinChars,
+          folding: false,
         }}
         onMount={handleEditorDidMount}
       />
