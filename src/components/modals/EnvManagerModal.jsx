@@ -19,27 +19,41 @@ import {
 import useTabStore from "../../store/useTabStore";
 
 export default function EnvManagerModal({ open, onOpenChange }) {
-  const environments = useTabStore((state) => state.collection.environments) || [];
-  const activeEnvironmentId = useTabStore((state) => state.collection.activeEnvironmentId);
-  const setActiveEnvironment = useTabStore((state) => state.setActiveEnvironment);
+  const environments =
+    useTabStore((state) => state.collection.environments) || [];
+  const activeEnvironmentId = useTabStore(
+    (state) => state.collection.activeEnvironmentId,
+  );
+  const setActiveEnvironment = useTabStore(
+    (state) => state.setActiveEnvironment,
+  );
   const addEnvironment = useTabStore((state) => state.addEnvironment);
-  const updateEnvironmentName = useTabStore((state) => state.updateEnvironmentName);
+  const updateEnvironmentName = useTabStore(
+    (state) => state.updateEnvironmentName,
+  );
   const deleteEnvironment = useTabStore((state) => state.deleteEnvironment);
-  
+
   const addVariable = useTabStore((state) => state.addVariable);
   const updateVariable = useTabStore((state) => state.updateVariable);
   const deleteVariable = useTabStore((state) => state.deleteVariable);
 
   const globals = useTabStore((state) => state.globals) || [];
   const addGlobalVariable = useTabStore((state) => state.addGlobalVariable);
-  const updateGlobalVariable = useTabStore((state) => state.updateGlobalVariable);
-  const deleteGlobalVariable = useTabStore((state) => state.deleteGlobalVariable);
+  const updateGlobalVariable = useTabStore(
+    (state) => state.updateGlobalVariable,
+  );
+  const deleteGlobalVariable = useTabStore(
+    (state) => state.deleteGlobalVariable,
+  );
 
   const importEnvironment = useTabStore((state) => state.importEnvironment);
   const importGlobals = useTabStore((state) => state.importGlobals);
 
   const [viewMode, setViewMode] = useState("envs"); // "envs" ou "globals"
-  const [selectedEnvId, setSelectedEnvId] = useState(activeEnvironmentId || (environments.length > 0 ? environments[0].id : null));
+  const [selectedEnvId, setSelectedEnvId] = useState(
+    activeEnvironmentId ||
+      (environments.length > 0 ? environments[0].id : null),
+  );
   const [envToDelete, setEnvToDelete] = useState(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
@@ -53,7 +67,9 @@ export default function EnvManagerModal({ open, onOpenChange }) {
   const confirmDeleteEnv = () => {
     if (envToDelete) {
       deleteEnvironment(envToDelete.id);
-      setSelectedEnvId(environments.find(e => e.id !== envToDelete.id)?.id || null);
+      setSelectedEnvId(
+        environments.find((e) => e.id !== envToDelete.id)?.id || null,
+      );
       setEnvToDelete(null);
     }
   };
@@ -67,13 +83,16 @@ export default function EnvManagerModal({ open, onOpenChange }) {
       content = {
         type: "environment",
         name: selectedEnv.name,
-        variables: selectedEnv.variables
+        variables: selectedEnv.variables.map((v) => ({
+          ...v,
+          currentValue: v.initialValue, // Sanitiza para exportação
+        })),
       };
-      defaultPath = `${selectedEnv.name.replace(/\s+/g, '_').toLowerCase()}_env.json`;
+      defaultPath = `${selectedEnv.name.replace(/\s+/g, "_").toLowerCase()}_env.json`;
     } else {
       content = {
         type: "globals",
-        variables: globals
+        variables: globals,
       };
       defaultPath = "global_variables.json";
     }
@@ -93,7 +112,7 @@ export default function EnvManagerModal({ open, onOpenChange }) {
 
     try {
       const data = await window.electronAPI.readJsonFile(path);
-      
+
       if (viewMode === "envs") {
         if (data.type === "environment" || data.variables) {
           const newId = importEnvironment(data);
@@ -116,18 +135,19 @@ export default function EnvManagerModal({ open, onOpenChange }) {
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-in fade-in duration-200" />
           <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-[80%]! max-w-[95%]! min-h-[80%]! max-h-[95%]! bg-zinc-950 rounded-xl border border-zinc-800! shadow-2xl overflow-hidden flex flex-col z-50 outline-none animate-in zoom-in-95 duration-200">
-            
             {/* Header */}
             <div className="flex items-center justify-between px-3 py-3 border-b border-zinc-800! bg-zinc-900/50">
               <div className="flex items-center gap-3">
                 <Settings className="text-yellow-500" size={20} />
                 <Dialog.Title className="text-xl! font-bold tracking-tight truncate text-white m-0">
-                  {viewMode === "envs" ? "Gerenciar Ambientes" : "Variáveis Globais"}
+                  {viewMode === "envs"
+                    ? "Gerenciar Ambientes"
+                    : "Variáveis Globais"}
                 </Dialog.Title>
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center border border-zinc-800! rounded-lg overflow-hidden h-9 mr-2 p-0">
-                  <button 
+                  <button
                     onClick={handleImport}
                     className="flex items-center h-full gap-2 px-3 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-400 hover:text-white"
                   >
@@ -135,7 +155,7 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                     <span>Importar</span>
                   </button>
                   <div className="w-px h-5 bg-zinc-800"></div>
-                  <button 
+                  <button
                     onClick={handleExport}
                     className="flex items-center h-full gap-2 px-3 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-400 hover:text-white"
                   >
@@ -162,7 +182,7 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                           Ambientes
                         </p>
                       </div>
-                      
+
                       {environments.map((env) => (
                         <div
                           key={env.id}
@@ -173,7 +193,14 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                               : "hover:bg-zinc-800/50 text-zinc-400 hover:text-zinc-200 border border-transparent!"
                           }`}
                         >
-                          <Code size={18} className={selectedEnvId === env.id ? "text-yellow-500" : "text-zinc-500"} />
+                          <Code
+                            size={18}
+                            className={
+                              selectedEnvId === env.id
+                                ? "text-yellow-500"
+                                : "text-zinc-500"
+                            }
+                          />
                           <p className="text-sm font-medium leading-normal flex-1 truncate m-0">
                             {env.name}
                           </p>
@@ -204,16 +231,24 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                             <input
                               type="text"
                               value={selectedEnv.name}
-                              onChange={(e) => updateEnvironmentName(selectedEnv.id, e.target.value)}
+                              onChange={(e) =>
+                                updateEnvironmentName(
+                                  selectedEnv.id,
+                                  e.target.value,
+                                )
+                              }
                               className="text-lg! font-semibold text-white bg-transparent border-none outline-none focus:ring-0 w-full p-0 mb-1 hover:bg-zinc-800/30 rounded! px-1 -ml-1 transition-colors"
                             />
                             <p className="text-sm text-zinc-500">
-                              Configure as variáveis para o ambiente {selectedEnv.name}.
+                              Configure as variáveis para o ambiente{" "}
+                              {selectedEnv.name}.
                             </p>
                           </div>
                           <div className="flex gap-2">
                             <button
-                              onClick={() => setActiveEnvironment(selectedEnv.id)}
+                              onClick={() =>
+                                setActiveEnvironment(selectedEnv.id)
+                              }
                               disabled={activeEnvironmentId === selectedEnv.id}
                               className={`flex items-center gap-2 px-3 h-8 rounded text-xs font-bold transition-all ${
                                 activeEnvironmentId === selectedEnv.id
@@ -229,7 +264,7 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                                 "Ativar"
                               )}
                             </button>
-                            <button 
+                            <button
                               onClick={() => setEnvToDelete(selectedEnv)}
                               className="p-1.5 rounded hover:bg-red-500/10 text-zinc-500 hover:text-red-500 transition-colors"
                             >
@@ -242,21 +277,34 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                           <table className="w-full text-left border-collapse">
                             <thead>
                               <tr className="bg-zinc-900/50 border-b border-zinc-800!">
-                                <th className="px-3 py-2 text-sm font-medium text-zinc-300 w-1/4">Variável</th>
-                                <th className="px-3 py-2 text-sm font-medium text-zinc-300 w-1/3">Valor Inicial</th>
-                                <th className="px-4 py-2 text-sm font-medium text-zinc-300 w-1/3">Valor Atual</th>
+                                <th className="px-3 py-2 text-sm font-medium text-zinc-300 w-1/4">
+                                  Variável
+                                </th>
+                                <th className="px-3 py-2 text-sm font-medium text-zinc-300 w-1/3">
+                                  Valor Inicial
+                                </th>
+                                <th className="px-4 py-2 text-sm font-medium text-zinc-300 w-1/3">
+                                  Valor Atual
+                                </th>
                                 <th className="px-2 py-2 text-sm font-medium text-zinc-500 w-12 text-center"></th>
                               </tr>
                             </thead>
                             <tbody>
                               {selectedEnv.variables.map((v) => (
-                                <tr key={v.id} className="border-b border-zinc-800/50! hover:bg-zinc-800/20 transition-colors">
+                                <tr
+                                  key={v.id}
+                                  className="border-b border-zinc-800/50! hover:bg-zinc-800/20 transition-colors"
+                                >
                                   <td className="px-3 py-2">
                                     <input
                                       type="text"
                                       value={v.key}
                                       placeholder="CHAVE"
-                                      onChange={(e) => updateVariable(selectedEnv.id, v.id, { key: e.target.value })}
+                                      onChange={(e) =>
+                                        updateVariable(selectedEnv.id, v.id, {
+                                          key: e.target.value,
+                                        })
+                                      }
                                       className="w-full bg-transparent border-none outline-none text-sm! text-zinc-200 font-mono placeholder:text-zinc-700"
                                     />
                                   </td>
@@ -265,7 +313,11 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                                       type="text"
                                       value={v.initialValue}
                                       placeholder="Valor inicial"
-                                      onChange={(e) => updateVariable(selectedEnv.id, v.id, { initialValue: e.target.value })}
+                                      onChange={(e) =>
+                                        updateVariable(selectedEnv.id, v.id, {
+                                          initialValue: e.target.value,
+                                        })
+                                      }
                                       className="w-full bg-transparent border-none outline-none text-sm! text-zinc-400 font-mono placeholder:text-zinc-700"
                                     />
                                   </td>
@@ -273,16 +325,26 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                                     <input
                                       type="text"
                                       value={v.currentValue}
-                                      placeholder={v.initialValue || "Valor atual"}
-                                      onChange={(e) => updateVariable(selectedEnv.id, v.id, { currentValue: e.target.value })}
+                                      placeholder={
+                                        v.initialValue || "Valor atual"
+                                      }
+                                      onChange={(e) =>
+                                        updateVariable(selectedEnv.id, v.id, {
+                                          currentValue: e.target.value,
+                                        })
+                                      }
                                       className={`w-full bg-transparent border-none outline-none text-sm! font-mono placeholder:text-zinc-600 ${
-                                        !v.currentValue && v.initialValue ? "text-zinc-500 italic opacity-50" : "text-zinc-400"
+                                        !v.currentValue && v.initialValue
+                                          ? "text-zinc-500 italic opacity-50"
+                                          : "text-zinc-400"
                                       }`}
                                     />
                                   </td>
                                   <td className="px-1 py-2 text-center">
                                     <button
-                                      onClick={() => deleteVariable(selectedEnv.id, v.id)}
+                                      onClick={() =>
+                                        deleteVariable(selectedEnv.id, v.id)
+                                      }
                                       className="p-1 rounded-lg hover:bg-red-500/10 text-zinc-600 hover:text-red-500 transition-colors"
                                     >
                                       <Trash2 size={16} />
@@ -306,16 +368,25 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                         </div>
 
                         <div className="bg-zinc-500/10 border border-zinc-500/20! mt-4 py-3 px-4 rounded-lg flex items-center gap-2">
-                          <Info size={18} className="text-amber-400 shrink-0 m-0" />
+                          <Info
+                            size={18}
+                            className="text-amber-400 shrink-0 m-0"
+                          />
                           <p className="text-[0.65rem]! text-zinc-400 m-0">
-                            <span className="text-amber-300/80 font-bold">Valores Iniciais:</span> Compartilhados na exportação da coleção. <br />
-                            <span className="text-amber-300/80 font-bold">Valores Atuais:</span> Locais e privados (ideais para segredos).
+                            <span className="text-amber-300/80 font-bold">
+                              Valores Iniciais:
+                            </span>{" "}
+                            Compartilhados na exportação da coleção. <br />
+                            <span className="text-amber-300/80 font-bold">
+                              Valores Atuais:
+                            </span>{" "}
+                            Locais e privados (ideais para segredos).
                           </p>
                         </div>
 
                         {/* Help Section */}
                         <div className="mt-6 border-t border-zinc-800! pt-3 mb-2">
-                          <button 
+                          <button
                             onClick={() => setIsHelpOpen(!isHelpOpen)}
                             className="flex items-center justify-between w-full p-0 bg-transparent border-none outline-none group/help cursor-pointer"
                           >
@@ -326,7 +397,17 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                               </h3>
                             </div>
                             <div className="bg-zinc-800/50 p-1 rounded transition-colors group-hover/help:bg-zinc-800">
-                              {isHelpOpen ? <ChevronUp size={16} className="text-zinc-400" /> : <ChevronDown size={16} className="text-zinc-400" />}
+                              {isHelpOpen ? (
+                                <ChevronUp
+                                  size={16}
+                                  className="text-zinc-400"
+                                />
+                              ) : (
+                                <ChevronDown
+                                  size={16}
+                                  className="text-zinc-400"
+                                />
+                              )}
                             </div>
                           </button>
 
@@ -335,10 +416,17 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <section className="bg-zinc-900/40 p-4 rounded-lg border border-zinc-800/50!">
                                   <h4 className="text-xs! font-bold text-white mb-2 flex items-center gap-2 uppercase tracking-wide">
-                                    <Zap size={14} className="text-yellow-500" />O Conceito
+                                    <Zap
+                                      size={14}
+                                      className="text-yellow-500"
+                                    />
+                                    O Conceito
                                   </h4>
                                   <p className="text-[0.7rem] text-zinc-400 leading-relaxed m-0">
-                                    Variáveis permitem que você armazene valores que mudam dependendo do contexto (ex: URLs de produção vs local, tokens de acesso) e os reutilize em qualquer lugar.
+                                    Variáveis permitem que você armazene valores
+                                    que mudam dependendo do contexto (ex: URLs
+                                    de produção vs local, tokens de acesso) e os
+                                    reutilize em qualquer lugar.
                                   </p>
                                 </section>
 
@@ -348,7 +436,8 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                                     Sintaxe
                                   </h4>
                                   <p className="text-[0.7rem]! text-zinc-400 mb-2 m-0">
-                                    Para usar uma variável, envolva o nome dela em chaves duplas:
+                                    Para usar uma variável, envolva o nome dela
+                                    em chaves duplas:
                                   </p>
                                   <div className="bg-zinc-950 p-2 rounded border border-zinc-800! font-mono text-[0.7rem]! text-yellow-500/90 italic">
                                     {"{{nome_da_variavel}}"}
@@ -362,27 +451,51 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                                 </h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                                   <div className="bg-zinc-800/50 p-2.5 rounded border border-zinc-700/50!">
-                                    <span className="text-[0.6rem] text-zinc-500 uppercase font-bold block mb-1">Na URL</span>
-                                    <code className="text-[0.7rem] text-zinc-200">{"{{base_url}}v1/users"}</code>
+                                    <span className="text-[0.6rem] text-zinc-500 uppercase font-bold block mb-1">
+                                      Na URL
+                                    </span>
+                                    <code className="text-[0.7rem] text-zinc-200">
+                                      {"{{base_url}}v1/users"}
+                                    </code>
                                   </div>
                                   <div className="bg-zinc-800/50 p-2.5 rounded border border-zinc-700/50!">
-                                    <span className="text-[0.6rem] text-zinc-500 uppercase font-bold block mb-1">Nos Headers</span>
+                                    <span className="text-[0.6rem] text-zinc-500 uppercase font-bold block mb-1">
+                                      Nos Headers
+                                    </span>
                                     <div className="flex justify-between text-[0.7rem]">
-                                      <span className="text-blue-400 font-medium">Authorization</span>
-                                      <span className="text-zinc-200">{"Bearer {{token}}"}</span>
+                                      <span className="text-blue-400 font-medium">
+                                        Authorization
+                                      </span>
+                                      <span className="text-zinc-200">
+                                        {"Bearer {{token}}"}
+                                      </span>
                                     </div>
                                   </div>
                                 </div>
                                 <div className="bg-zinc-800/50 p-2.5 rounded border border-zinc-700/50!">
-                                  <span className="text-[0.6rem] text-zinc-500 uppercase font-bold block mb-1">No Body (JSON)</span>
-                                  <pre className="text-[0.65rem] text-zinc-400 mt-1 m-0">{"{\n \"email\": \"{{user_email}}\"\n}"}</pre>
+                                  <span className="text-[0.6rem] text-zinc-500 uppercase font-bold block mb-1">
+                                    No Body (JSON)
+                                  </span>
+                                  <pre className="text-[0.65rem] text-zinc-400 mt-1 m-0">
+                                    {'{\n "email": "{{user_email}}"\n}'}
+                                  </pre>
                                 </div>
                               </section>
 
                               <div className="bg-blue-500/10 border border-blue-500/20! p-4 rounded-lg flex items-center gap-3">
-                                <Info size={16} className="text-blue-400 shrink-0 m-0" />
+                                <Info
+                                  size={16}
+                                  className="text-blue-400 shrink-0 m-0"
+                                />
                                 <p className="text-[0.72rem] leading-relaxed text-blue-200 m-0">
-                                  <strong>Dica:</strong> Se o valor atual estiver vazio, o sistema utilizará o valor inicial. Se a variável não for encontrada, o texto original <code className="text-blue-100">{"{{variavel}}"}</code> será enviado.
+                                  <strong>Dica:</strong> Se o valor atual
+                                  estiver vazio, o sistema utilizará o valor
+                                  inicial. Se a variável não for encontrada, o
+                                  texto original{" "}
+                                  <code className="text-blue-100">
+                                    {"{{variavel}}"}
+                                  </code>{" "}
+                                  será enviado.
                                 </p>
                               </div>
                             </div>
@@ -392,7 +505,9 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                     ) : (
                       <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 gap-4">
                         <Settings size={48} className="opacity-20" />
-                        <p>Selecione um ambiente para gerenciar suas variáveis</p>
+                        <p>
+                          Selecione um ambiente para gerenciar suas variáveis
+                        </p>
                       </div>
                     )}
                   </div>
@@ -402,9 +517,12 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                 <div className="flex-1 flex flex-col bg-zinc-950 overflow-hidden">
                   <div className="flex-1 overflow-y-auto p-6">
                     <div className="mb-6">
-                      <h2 className="text-lg! font-semibold text-white m-0">Variáveis Globais</h2>
+                      <h2 className="text-lg! font-semibold text-white m-0">
+                        Variáveis Globais
+                      </h2>
                       <p className="text-sm text-zinc-500">
-                        Variáveis universais que funcionam em todos os ambientes. Elas não acompanham a coleção ao exportar.
+                        Variáveis universais que funcionam em todos os
+                        ambientes. Elas não acompanham a coleção ao exportar.
                       </p>
                     </div>
 
@@ -412,20 +530,31 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                       <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-zinc-900/50 border-b border-zinc-800!">
-                            <th className="px-3 py-2 text-sm font-medium text-zinc-300 w-1/3">Variável</th>
-                            <th className="px-3 py-2 text-sm font-medium text-zinc-300 w-1/2">Valor</th>
+                            <th className="px-3 py-2 text-sm font-medium text-zinc-300 w-1/3">
+                              Variável
+                            </th>
+                            <th className="px-3 py-2 text-sm font-medium text-zinc-300 w-1/2">
+                              Valor
+                            </th>
                             <th className="px-2 py-2 text-sm font-medium text-zinc-500 w-12 text-center"></th>
                           </tr>
                         </thead>
                         <tbody>
                           {globals.map((v) => (
-                            <tr key={v.id} className="border-b border-zinc-800/50! hover:bg-zinc-800/20 transition-colors">
+                            <tr
+                              key={v.id}
+                              className="border-b border-zinc-800/50! hover:bg-zinc-800/20 transition-colors"
+                            >
                               <td className="px-3 py-2">
                                 <input
                                   type="text"
                                   value={v.key}
                                   placeholder="CHAVE_GLOBAL"
-                                  onChange={(e) => updateGlobalVariable(v.id, { key: e.target.value })}
+                                  onChange={(e) =>
+                                    updateGlobalVariable(v.id, {
+                                      key: e.target.value,
+                                    })
+                                  }
                                   className="w-full bg-transparent border-none outline-none text-sm! text-zinc-200 font-mono placeholder:text-zinc-700"
                                 />
                               </td>
@@ -434,7 +563,11 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                                   type="text"
                                   value={v.value}
                                   placeholder="Valor"
-                                  onChange={(e) => updateGlobalVariable(v.id, { value: e.target.value })}
+                                  onChange={(e) =>
+                                    updateGlobalVariable(v.id, {
+                                      value: e.target.value,
+                                    })
+                                  }
                                   className="w-full bg-transparent border-none outline-none text-sm! text-zinc-400 font-mono placeholder:text-zinc-700"
                                 />
                               </td>
@@ -464,11 +597,21 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                     </div>
 
                     <div className="mt-8 bg-zinc-900/50 border border-zinc-800! p-4 rounded-lg flex gap-3">
-                      <Info size={16} className="text-zinc-500 shrink-0 mt-0.5" />
+                      <Info
+                        size={16}
+                        className="text-zinc-500 shrink-0 mt-0.5"
+                      />
                       <div className="space-y-2">
-                        <p className="text-[0.75rem] text-zinc-200 leading-relaxed font-bold m-0">Hierarquia e Sobrescrita</p>
+                        <p className="text-[0.75rem] text-zinc-200 leading-relaxed font-bold m-0">
+                          Hierarquia e Sobrescrita
+                        </p>
                         <p className="text-[0.7rem] text-zinc-400 leading-relaxed m-0">
-                          Se houver uma variável com o mesmo nome em um <span className="text-zinc-200">Ambiente Ativo</span> e na seção <span className="text-zinc-200">Global</span>, o valor do ambiente terá prioridade e sobrescreverá o valor global.
+                          Se houver uma variável com o mesmo nome em um{" "}
+                          <span className="text-zinc-200">Ambiente Ativo</span>{" "}
+                          e na seção{" "}
+                          <span className="text-zinc-200">Global</span>, o valor
+                          do ambiente terá prioridade e sobrescreverá o valor
+                          global.
                         </p>
                       </div>
                     </div>
@@ -479,11 +622,13 @@ export default function EnvManagerModal({ open, onOpenChange }) {
 
             {/* Footer do Modal */}
             <div className="px-2 py-2.5 border-t border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
-              <button 
-                onClick={() => setViewMode(viewMode === "envs" ? "globals" : "envs")}
+              <button
+                onClick={() =>
+                  setViewMode(viewMode === "envs" ? "globals" : "envs")
+                }
                 className={`flex items-center px-2 gap-2 h-10 rounded-lg! transition-colors font-medium text-sm! ${
-                  viewMode === "globals" 
-                    ? "bg-yellow-500/10 text-yellow-500" 
+                  viewMode === "globals"
+                    ? "bg-yellow-500/10 text-yellow-500"
                     : "text-zinc-400 hover:text-white hover:bg-zinc-800"
                 }`}
               >
@@ -517,7 +662,10 @@ export default function EnvManagerModal({ open, onOpenChange }) {
       </Dialog.Root>
 
       {/* Modal de Confirmação customizado */}
-      <Dialog.Root open={!!envToDelete} onOpenChange={() => setEnvToDelete(null)}>
+      <Dialog.Root
+        open={!!envToDelete}
+        onOpenChange={() => setEnvToDelete(null)}
+      >
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-60 animate-in fade-in duration-200" />
           <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[400px] bg-zinc-950 rounded-xl border border-zinc-800! shadow-2xl p-6 z-60 outline-none animate-in zoom-in-95 duration-200">
@@ -529,9 +677,13 @@ export default function EnvManagerModal({ open, onOpenChange }) {
                 Excluir Ambiente
               </Dialog.Title>
               <Dialog.Description className="text-sm text-zinc-400">
-                Tem certeza que deseja excluir o ambiente <span className="text-zinc-200 font-bold">"{envToDelete?.name}"</span>? Esta ação não pode ser desfeita.
+                Tem certeza que deseja excluir o ambiente{" "}
+                <span className="text-zinc-200 font-bold">
+                  "{envToDelete?.name}"
+                </span>
+                ? Esta ação não pode ser desfeita.
               </Dialog.Description>
-              
+
               <div className="flex gap-3 w-full mt-2">
                 <button
                   onClick={() => setEnvToDelete(null)}

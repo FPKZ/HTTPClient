@@ -175,7 +175,13 @@ export default function ExportModal() {
     const exportData = {
       ...collection,
       items: filteredItems,
-      environments: filteredEnvironments,
+      environments: filteredEnvironments.map((env) => ({
+        ...env,
+        variables: env.variables.map((v) => ({
+          ...v,
+          currentValue: v.initialValue, // Exporta o valor inicial como atual para preservar privacidade
+        })),
+      })),
       activeEnvironmentId: selectedEnvIds.has(activeEnvironmentId)
         ? activeEnvironmentId
         : filteredEnvironments[0]?.id || null,
@@ -204,10 +210,12 @@ export default function ExportModal() {
             onClick={() => toggleFolder(item.id)}
             className="flex items-center gap-2 flex-1 text-left"
           >
-            <div onClick={(e) => {
+            <div
+              onClick={(e) => {
                 e.stopPropagation();
                 toggleRouteSelection(item.id, item);
-              }}>
+              }}
+            >
               {checkState === "checked" && (
                 <CheckSquare size={16} className="text-yellow-500" />
               )}
@@ -218,18 +226,21 @@ export default function ExportModal() {
                 <MinusSquare size={16} className="text-yellow-500/70" />
               )}
             </div>
-              
+
             {item.type === "folder" ? (
               <FolderOpen size={16} className="text-blue-400" />
             ) : (
               <FileText size={16} className="text-zinc-400" />
             )}
-            {item.request?.method && <span 
-              className={`text-sm! font-bold ${getMethodColor(
-                item.request?.method,
-              )}`}>
+            {item.request?.method && (
+              <span
+                className={`text-sm! font-bold ${getMethodColor(
+                  item.request?.method,
+                )}`}
+              >
                 {item.request?.method}
-            </span>}
+              </span>
+            )}
             <span className="text-sm! text-zinc-200">{item.name}</span>
           </button>
 
@@ -296,7 +307,11 @@ export default function ExportModal() {
                   </button>
                 </div>
                 <p className="text-xs! text-zinc-500 m-0">
-                  {selectedRouteIds.size === 0 ? "Nenhuma" : selectedRouteIds.size} {selectedRouteIds.size > 1 ? "rotas" : "rota"} selecionada{selectedRouteIds.size > 1 ? "s" : ""}
+                  {selectedRouteIds.size === 0
+                    ? "Nenhuma"
+                    : selectedRouteIds.size}{" "}
+                  {selectedRouteIds.size > 1 ? "rotas" : "rota"} selecionada
+                  {selectedRouteIds.size > 1 ? "s" : ""}
                 </p>
               </div>
 
@@ -322,7 +337,9 @@ export default function ExportModal() {
                   </button>
                 </div>
                 <p className="text-xs! text-zinc-500 m-0">
-                  {selectedEnvIds.size === 0 ? "Nenhum" : selectedEnvIds.size} {selectedEnvIds.size > 1 ? "ambientes" : "ambiente"} selecionado{selectedEnvIds.size > 1 ? "s" : ""}
+                  {selectedEnvIds.size === 0 ? "Nenhum" : selectedEnvIds.size}{" "}
+                  {selectedEnvIds.size > 1 ? "ambientes" : "ambiente"}{" "}
+                  selecionado{selectedEnvIds.size > 1 ? "s" : ""}
                 </p>
               </div>
 
