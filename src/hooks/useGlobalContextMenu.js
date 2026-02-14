@@ -82,6 +82,16 @@ export function useGlobalContextMenu() {
         mediaType === "image" ||
         isDev;
 
+      setTargetDetails({
+        isEditable,
+        isMonaco,
+        selectionText: selection,
+        linkURL,
+        srcURL,
+        mediaType,
+        tagName: target.tagName,
+      });
+
       if (!hasItems) {
         setOpen(false);
         return;
@@ -95,15 +105,6 @@ export function useGlobalContextMenu() {
         monacoContainer: monacoEditor,
       };
 
-      setTargetDetails({
-        isEditable,
-        isMonaco,
-        selectionText: selection,
-        linkURL,
-        srcURL,
-        mediaType,
-        tagName: target.tagName,
-      });
       setOpen(true);
     },
     [isDev],
