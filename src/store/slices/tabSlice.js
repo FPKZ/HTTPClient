@@ -169,4 +169,15 @@ export const createTabSlice = (set, get) => ({
       activeTabId: null,
     });
   },
+  reorderTabs: (oldIndex, newIndex) => {
+    set((state) => {
+      // Implementação manual de arrayMove para evitar dependência extra no slice se preferir,
+      // mas como já temos dnd-kit, podemos importar ou fazer simples:
+      const newTabs = [...state.tabs];
+      const [movedItem] = newTabs.splice(oldIndex, 1);
+      newTabs.splice(newIndex, 0, movedItem);
+
+      return { tabs: newTabs };
+    });
+  },
 });

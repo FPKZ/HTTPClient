@@ -1,12 +1,28 @@
 import React, { useEffect } from "react";
 import { X, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
+
 import useTabStore from "../../store/useTabStore";
 import { useTabScroll } from "../../hooks/useTabScroll";
 import NovoItemModal from "../modals/NovoItemModal";
+import { SortableTab } from "./SortableTab";
 
 /**
  * TabBar
- * Barra de abas horizontal (estilo navegador).
+ * Barra de abas horizontal (estilo navegador) com Drag and Drop.
  */
 export default function TabBar() {
   const tabs = useTabStore((state) => state.tabs);
@@ -15,6 +31,7 @@ export default function TabBar() {
   const closeTab = useTabStore((state) => state.closeTab);
   const addBlankTab = useTabStore((state) => state.addBlankTab);
   const isTabDirty = useTabStore((state) => state.isTabDirty);
+  const reorderTabs = useTabStore((state) => state.reorderTabs);
 
   const {
     navRef,
@@ -26,6 +43,18 @@ export default function TabBar() {
   } = useTabScroll();
 
   const showScrollButtons = canScrollLeft || canScrollRight;
+
+  // Configuração de sensores para Dnd
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Previne que cliques simples sejam interpretados como drag
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   // Verifica scroll quando tabs mudam
   useEffect(() => {
@@ -63,6 +92,16 @@ export default function TabBar() {
     }
   }, [navRef, tabs]);
 
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      const oldIndex = tabs.findIndex((t) => t.id === active.id);
+      const newIndex = tabs.findIndex((t) => t.id === over.id);
+      reorderTabs(oldIndex, newIndex);
+    }
+  };
+
   const handleCloseTab = (e, tabId) => {
     e.stopPropagation();
     closeTab(tabId);
@@ -87,10 +126,7 @@ export default function TabBar() {
     return (
       <div className="h-12 bg-zinc-800 border-b border-zinc-700 flex items-center justify-center">
         <NovoItemModal onAdd={handleAddTab}>
-          <button
-            // onClick={addBlankTab}
-            className="flex items-center gap-2 px-4 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-gray-300 rounded transition-colors"
-          >
+          <button className="flex items-center gap-2 px-4 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-gray-300 rounded transition-colors">
             <Plus size={16} />
             <span className="text-sm">Nova Aba</span>
           </button>
@@ -105,83 +141,49 @@ export default function TabBar() {
       {showScrollButtons && canScrollLeft && (
         <button
           onClick={scrollLeft}
-          className="h-full px-2 hover:bg-zinc-700 transition-colors border-r border-zinc-700 shrink-0"
+          className="h-full px-2 hover:bg-zinc-700 transition-colors border-r border-zinc-700 shrink-0 z-10"
           title="Rolar para esquerda"
         >
           <ChevronLeft size={16} className="text-gray-400" />
         </button>
       )}
 
-      {/* Abas */}
-      <div
-        ref={navRef}
-        onScroll={checkScroll}
-        className="flex-1 h-full flex items-center overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent min-w-0"
-        style={{ scrollbarWidth: "none" }}
+      {/* Abas com Drag and Drop */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
       >
-        {tabs.map((tab) => {
-          const isActive = tab.id === activeTabId;
-
-          return (
-            <div
-              key={tab.id}
-              data-tab-id={tab.id}
-              onAuxClick={(e) => {
-                e.stopPropagation();
-                handleCloseTab(e, tab.id);
-              }}
-              onClick={() => {
-                setActiveTab(tab.id);
-              }}
-              className={`
-                group flex items-center gap-1 px-2 h-full min-w-[180px] max-w-[220px] shrink-0 border-r border-zinc-700 cursor-pointer transition-colors
-                ${
-                  isActive
-                    ? "bg-zinc-900 text-white"
-                    : "bg-zinc-800 text-gray-400 hover:bg-zinc-750 hover:text-gray-200"
-                }
-              `}
-            >
-              {/* Indicador de Modificação */}
-              {isTabDirty(tab.id) && (
-                <div
-                  className="w-2 h-2 me-1 bg-orange-500 rounded-full"
-                  title="Modificado"
-                />
-              )}
-
-              {/* Método HTTP */}
-              <span
-                className={`text-[0.6rem]! font-bold ${getMethodColor(
-                  tab.method,
-                )} min-w-[40px]`}
-              >
-                {tab.method}
-              </span>
-
-              {/* Título da Aba */}
-              <span className="flex-1 text-[0.7rem]! truncate">
-                {tab.title}
-              </span>
-
-              {/* Botão Fechar */}
-              <button
-                onClick={(e) => handleCloseTab(e, tab.id)}
-                className="opacity-0  group-hover:opacity-100! p-0.5 hover:bg-zinc-600 rounded transition-all"
-                title="Fechar aba"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          );
-        })}
-      </div>
+        <div
+          ref={navRef}
+          onScroll={checkScroll}
+          className="flex-1 h-full flex items-center overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent min-w-0"
+          style={{ scrollbarWidth: "none" }}
+        >
+          <SortableContext
+            items={tabs.map((t) => t.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            {tabs.map((tab) => (
+              <SortableTab
+                key={tab.id}
+                tab={tab}
+                isActive={tab.id === activeTabId}
+                isDirty={isTabDirty}
+                onActivate={setActiveTab}
+                onClose={handleCloseTab}
+                getMethodColor={getMethodColor}
+              />
+            ))}
+          </SortableContext>
+        </div>
+      </DndContext>
 
       {/* Botão Scroll Direita */}
       {showScrollButtons && canScrollRight && (
         <button
           onClick={scrollRight}
-          className="h-full px-2 hover:bg-zinc-700 transition-colors border-l border-zinc-700 shrink-0"
+          className="h-full px-2 hover:bg-zinc-700 transition-colors border-l border-zinc-700 shrink-0 z-10"
           title="Rolar para direita"
         >
           <ChevronRight size={16} className="text-gray-400" />
@@ -191,8 +193,7 @@ export default function TabBar() {
       {/* Botão Nova Aba */}
       <NovoItemModal onAdd={handleAddTab}>
         <button
-          // onClick={addBlankTab}
-          className="px-3 py-2 hover:bg-zinc-700 transition-colors"
+          className="px-3 py-2 hover:bg-zinc-700 transition-colors shrink-0"
           title="Nova aba"
         >
           <Plus size={18} className="text-gray-400" />
