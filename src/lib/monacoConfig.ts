@@ -19,6 +19,9 @@ export interface IDefaultEditorOptions {
   minimap?: {
     enabled?: boolean;
   };
+  stickyScroll?: {
+    enabled?: boolean;
+  };
   folding?: boolean;
   matchBrackets?: "never" | "near" | "always";
   scrollBeyondLastLine?: boolean;
@@ -52,6 +55,40 @@ export interface IDefaultEditorOptions {
   contextmenu?: boolean;
   links?: boolean;
   colorDecorators?: boolean;
+  theme?: string;
+  bracketPairColorization?: {
+    enabled?: boolean;
+    independentColorPoolPerBracketType?: boolean;
+  };
+  guides?: {
+    bracketPairs?: boolean | "active";
+    bracketPairsHorizontal?: boolean | "active";
+    highlightActiveBracketPair?: boolean;
+    indentation?: boolean;
+    highlightActiveIndentation?: boolean;
+  };
+  dragAndDrop?: boolean;
+  emptySelectionClipboard?: boolean;
+  copyWithSyntaxHighlighting?: boolean;
+  mouseWheelZoom?: boolean;
+  smoothScrolling?: boolean;
+  padding?: {
+    top?: number;
+    bottom?: number;
+  };
+  renderControlCharacters?: boolean;
+  renderWhitespace?: "none" | "boundary" | "selection" | "trailing" | "all";
+  snippetSuggestions?: "top" | "bottom" | "inline" | "none";
+  hover?: {
+    enabled?: boolean;
+    delay?: number;
+    sticky?: boolean;
+  };
+  find?: {
+    addExtraSpaceOnTop?: boolean;
+    autoFindInSelection?: "never" | "always" | "multiline";
+    seedSearchStringFromSelection?: "never" | "always" | "selection";
+  };
 }
 
 /**
@@ -80,6 +117,9 @@ export const defaultEditorOptions: IDefaultEditorOptions = {
   renderLineHighlight: "all", // Destaca a linha atual: 'none', 'gutter', 'line', 'all'
   minimap: {
     enabled: false, // Exibe o minimapa (visão geral do código na lateral direita)
+  },
+  stickyScroll: {
+    enabled: false, // Desabilita o "grude" do contexto em cima do editor
   },
   folding: true, // Habilita a funcionalidade de dobrar/expandir blocos de código
   matchBrackets: "always", // Destaca os parênteses/chaves correspondentes: 'always', 'near', 'never'
@@ -111,4 +151,36 @@ export const defaultEditorOptions: IDefaultEditorOptions = {
   // Geralmente desativado para implementar menus customizados.
   links: true, // Detecta e torna clicáveis links no código
   colorDecorators: true, // Exibe caixinhas de cor inline (ex: #FF0000 mostra um quadrado vermelho)
+
+  // --- Extras / Faltantes ---
+  theme: "vs-dark", // Tema padrão
+  bracketPairColorization: {
+    enabled: true, // Colore pares de chaves/parênteses com cores diferentes
+  },
+  guides: {
+    bracketPairs: false, // Mostra guias de alinhamento para pares de chaves
+    indentation: true, // Mostra guias de indentação
+  },
+  dragAndDrop: true, // Permite arrastar e soltar texto
+  emptySelectionClipboard: true, // Copia a linha atual se nada estiver selecionado
+  copyWithSyntaxHighlighting: true, // Copia o texto com a formatação de sintaxe
+  mouseWheelZoom: false, // Permite zoom com Ctrl + Scroll
+  smoothScrolling: true, // Rolagem suave
+  padding: {
+    top: 5,
+    bottom: 5,
+  },
+  renderControlCharacters: false, // Exibe caracteres de controle
+  renderWhitespace: "none", // Exibe espaços em branco: 'none', 'boundary', 'selection', 'trailing', 'all'
+  snippetSuggestions: "inline", // Sugestões de snippets: 'top', 'bottom', 'inline', 'none'
+  hover: {
+    enabled: true,
+    delay: 300,
+    sticky: true,
+  },
+  find: {
+    addExtraSpaceOnTop: false,
+    autoFindInSelection: "multiline",
+    seedSearchStringFromSelection: "always",
+  },
 };
