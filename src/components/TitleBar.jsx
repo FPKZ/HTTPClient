@@ -7,6 +7,7 @@ import { useMenuGeral } from "../hooks/useMenuGeral";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import useTabStore from "../store/useTabStore";
 import icons from "../assets/icons";
+import useDialogStore from "../store/useDialogStore";
 
 export default function TitleBar() {
   const { templete, devTemplete, isDev } = useMenuGeral();
@@ -15,6 +16,10 @@ export default function TitleBar() {
 
   const activeTab = useTabStore((state) => state.getActiveTab());
   const deleteActiveTab = useTabStore((state) => state.deleteActiveTab);
+  const getCollectionForExport = useTabStore(
+    (state) => state.getCollectionForExport,
+  );
+  const showDialog = useDialogStore((state) => state.showDialog);
 
   // Registra os atalhos de teclado globais apenas quando o menu geral é visível
   const menuItems =
@@ -26,9 +31,25 @@ export default function TitleBar() {
   const handleMinimize = () => window.electronAPI.minimize();
   const handleMaximize = () => window.electronAPI.maximize();
 
-  const handleClose = () => {
+  const handleClose = async () => {
     if (location.pathname === "/") {
-      window.electronAPI.close();
+      const result = await showDialog({
+        title: "Sair do Sistema",
+        description: "Deseja salvar as alterações na coleção antes de sair?",
+        options: [
+          // { label: "Cancelar", value: "cancel", variant: "secondary" },
+          { label: "Não", value: false, variant: "secondary" },
+          { label: "Salvar", value: true, variant: "primary" },
+        ],
+      });
+
+      if (result === true) {
+        const collectionData = getCollectionForExport();
+        window.electronAPI.saveAndQuit(collectionData);
+      } else if (result === false) {
+        window.electronAPI.forceClose();
+      }
+      // Se for "cancel" ou fechar o modal (null), não faz nada (não fecha o app)
     } else {
       window.electronAPI.forceClose();
     }

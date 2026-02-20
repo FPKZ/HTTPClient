@@ -47,23 +47,25 @@ export default function Home() {
     };
   }, [resetTabs]);
 
-  // 4. Auto-save ao sair (Ctrl+Q)
+  // 4. Auto-save ao sair (Ctrl+Q ou fechamento pelo SO)
   useQuickExit(async () => {
-    const confirmed = await showDialog({
+    const result = await showDialog({
       title: "Salvar coleção",
-      description: "Deseja salvar a coleção antes de sair?",
+      description:
+        "O sistema está sendo fechado. Deseja salvar a coleção antes de sair?",
       options: [
-        { label: "Não salvar", value: false, variant: "secondary" },
-        { label: "Salvar", value: true, variant: "primary" },
+        { label: "Não", value: "no", variant: "secondary" },
+        { label: "Salvar", value: "yes", variant: "primary" },
       ],
     });
-    if (confirmed) {
+
+    if (result === "yes") {
       const collectionData = getCollectionForExport();
-      // Passa o objeto completo e unificado
       window.electronAPI.saveAndQuit(collectionData);
-    } else {
+    } else if (result === "no") {
       window.electronAPI.forceClose();
     }
+    // Se result for null (cancelamento), não faz nada e o app continua aberto
   });
 
   // if (!collection.items.length) return null; // Pode exibir loading ou null se quiser force

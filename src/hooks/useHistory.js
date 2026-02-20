@@ -49,16 +49,8 @@ export function useHistory(fetchOnMount = true) {
     }
   };
 
-  const handleSaveCollection = async () => {
+  const handleSaveCollection = async (confirmed) => {
     if (!window.electronAPI) return;
-    const confirmed = await showDialog({
-      title: "Salvar coleção",
-      description: "Deseja salvar esta coleção no histórico?",
-      options: [
-        { label: "Não salvar", value: false, variant: "secondary" },
-        { label: "Salvar", value: true, variant: "primary" },
-      ],
-    });
     if (confirmed) {
       const collection = useTabStore.getState().getCollectionForExport();
       window.electronAPI.logAction("Salvando coleção no historico: " + collection.name);
