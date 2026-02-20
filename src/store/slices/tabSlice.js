@@ -29,6 +29,8 @@ export const createTabSlice = (set, get) => ({
         panelVerticalSize: "50",
         panelHorizontalSize: "30",
       },
+      logs: [],
+      isExecuting: false,
     };
 
     set({
@@ -70,6 +72,8 @@ export const createTabSlice = (set, get) => ({
         panelVerticalSize: "50",
         panelHorizontalSize: "30",
       },
+      logs: [],
+      isExecuting: false,
     };
 
     set((state) => ({
@@ -137,6 +141,18 @@ export const createTabSlice = (set, get) => ({
         tab.id === id
           ? { ...tab, uiState: { ...tab.uiState, ...partialUiState } }
           : tab,
+      ),
+    }));
+  },
+  updateTabLogs: (id, logs) => {
+    set((state) => ({
+      tabs: state.tabs.map((tab) => (tab.id === id ? { ...tab, logs } : tab)),
+    }));
+  },
+  setTabExecuting: (id, isExecuting) => {
+    set((state) => ({
+      tabs: state.tabs.map((tab) =>
+        tab.id === id ? { ...tab, isExecuting } : tab,
       ),
     }));
   },
