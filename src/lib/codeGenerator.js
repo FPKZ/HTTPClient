@@ -120,11 +120,44 @@ export const generateCodeSnippet = (preparedRequest, target, client) => {
 
     // Pós-processamento estético para JavaScript/Node
     if (target === "javascript" || target === "node") {
-      // 1. Garante aspas em todas as chaves de headers
+      // 1. Garante aspas em todas as chaves de headers (mas evita chaves nativas das bibliotecas de request)
+      const nativeKeys = [
+        "method",
+        "headers",
+        "body",
+        "data",
+        "url",
+        "qs",
+        "json",
+        "params",
+        "auth",
+        "proxy",
+        "hostname",
+        "port",
+        "path",
+        "protocol",
+        "agent",
+        "timeout",
+        "rejectUnauthorized",
+        "async",
+        "crossDomain",
+        "processData",
+        "contentType",
+        "mimeType",
+        "formData",
+        "gzip",
+        "credentials",
+      ];
+
       finalCode = finalCode.replace(
         /^(\s+)([a-zA-Z0-9_$xX-]+):/gm,
         (match, space, key) => {
-          if (key.startsWith("'") || key.startsWith('"')) return match;
+          if (
+            key.startsWith("'") ||
+            key.startsWith('"') ||
+            nativeKeys.includes(key)
+          )
+            return match;
           return `${space}'${key}':`;
         },
       );
