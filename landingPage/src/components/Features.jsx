@@ -21,9 +21,10 @@ const Features = () => {
       icon: Zap,
       title: "Interface Ultra-Responsiva",
       description:
-        "Construído com React 19, Vite e Electron para latência zero. Painéis redimensionáveis e menus nativos.",
-      gradient: "from-yellow-500 to-orange-500",
+        "Evolução do HTTPClient clássico. Construído com React 19 e Electron para latência zero e máxima fluidez.",
+      gradient: "from-primary-600 to-primary-400",
     },
+
     {
       icon: Layers,
       title: "Gerenciamento de Sessões",

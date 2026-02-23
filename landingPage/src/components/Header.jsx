@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { Menu, X, Github } from "lucide-react";
+import { Menu, X, Github, Zap } from "lucide-react";
 import { useState } from "react";
+import VoltLogo from "./VoltLogo";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,19 +18,16 @@ const Header = () => {
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-white/10"
+      className="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-white/5"
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <motion.div
             whileHover={{ scale: 1.05 }}
-            className="flex items-center space-x-3"
+            className="flex items-center overflow-visible"
           >
-            <img src="/icon.png" alt="HTTPClient" className="h-10 w-10" />
-            <span className="text-xl font-display font-bold gradient-text">
-              HTTPClient
-            </span>
+            <VoltLogo size="text-2xl" />
           </motion.div>
 
           {/* Desktop Menu */}

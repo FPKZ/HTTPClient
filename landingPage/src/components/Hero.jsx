@@ -1,5 +1,7 @@
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { Download, Github, ArrowRight } from "lucide-react";
+import { VoltIcon } from "./VoltLogo";
 
 const Hero = () => {
   return (
@@ -19,7 +21,7 @@ const Hero = () => {
             repeat: Infinity,
             ease: "linear",
           }}
-          className="absolute -top-1/2 -left-1/2 w-full h-full bg-linear-to-br from-primary-500/20 to-transparent rounded-full blur-3xl"
+          className="absolute -top-1/2 -left-1/2 w-full h-full bg-linear-to-br from-primary-500/10 to-transparent rounded-full blur-3xl"
         />
         <motion.div
           animate={{
@@ -31,7 +33,7 @@ const Hero = () => {
             repeat: Infinity,
             ease: "linear",
           }}
-          className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-linear-to-tl from-accent-500/20 to-transparent rounded-full blur-3xl"
+          className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-linear-to-tl from-primary-600/10 to-transparent rounded-full blur-3xl"
         />
       </div>
 
@@ -42,14 +44,14 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center space-x-2 glass-effect px-4 py-2 rounded-full mb-8"
+            className="inline-flex items-center space-x-2 glass-effect px-4 py-2 rounded-full mb-8 border-primary-500/20"
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
             </span>
-            <span className="text-sm font-medium">
-              Em desenvolvimento ativo
+            <span className="text-sm font-medium text-primary-200">
+              Nova Identidade Visual VOLT
             </span>
           </motion.div>
 
@@ -58,11 +60,15 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-5xl sm:text-6xl lg:text-7xl font-display font-bold mb-6 text-shadow"
+            className="text-6xl sm:text-7xl lg:text-8xl font-display font-black mb-6 text-shadow tracking-normal flex flex-col items-center overflow-visible"
           >
-            <span className="gradient-text">HTTPClient</span>
-            <br />
-            <span className="text-white">Requisições API Simplificadas</span>
+            <div className="flex items-center overflow-visible">
+              <VoltIcon className="h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24 mt-2 shrink-0" />
+              <span className="gradient-text italic inline-block px-4">
+                VOLT
+              </span>
+            </div>
+            <span className="text-white mt-2">Potencialize suas APIs</span>
           </motion.h1>
 
           {/* Description */}
@@ -70,38 +76,55 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-xl sm:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed"
+            className="text-xl sm:text-2xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed"
           >
-            Uma solução desktop de alta performance para simplificar seu
-            workflow de requisições HTTP, testes de API e automação corporativa.
+            A evolução do HTTPClient. Uma ferramenta desktop ultrarrápida para
+            desenvolvedores que buscam performance e simplicidade em testes de
+            API.
           </motion.p>
 
-          {/* CTA Buttons */}
+          {/* Download & Actions Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="flex flex-col items-center justify-center gap-6"
           >
-            <a
-              href="#donation"
-              className="btn-primary flex items-center space-x-2 group"
-            >
-              <Download size={20} />
-              <span>Apoiar o Projeto</span>
-              <ArrowRight
-                size={20}
-                className="group-hover:translate-x-1 transition-transform"
-              />
-            </a>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <a
+                href="https://github.com/FPKZ/HTTPClient/releases/download/v1.0.46/HTTPClient-1.0.46-win.exe"
+                className="btn-primary flex items-center space-x-3 px-8 py-4 text-lg"
+              >
+                <Download size={24} />
+                <div className="flex flex-col items-start leading-none">
+                  <span className="text-xs uppercase font-bold opacity-70">
+                    Download para
+                  </span>
+                  <span className="font-black">Windows</span>
+                </div>
+              </a>
+              <a
+                href="https://github.com/FPKZ/HTTPClient/releases/download/v1.0.46/HTTPClient-1.0.46-linux.AppImage"
+                className="btn-secondary flex items-center space-x-3 px-8 py-4 text-lg border-white/10 hover:border-primary-500/50"
+              >
+                <Download size={24} />
+                <div className="flex flex-col items-start leading-none text-white">
+                  <span className="text-xs uppercase font-bold opacity-70">
+                    Download para
+                  </span>
+                  <span className="font-black">Linux</span>
+                </div>
+              </a>
+            </div>
+
             <a
               href="https://github.com/FPKZ/HTTPClient"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-secondary flex items-center space-x-2"
+              className="flex items-center space-x-2 text-slate-400 hover:text-white transition-colors"
             >
               <Github size={20} />
-              <span>Ver no GitHub</span>
+              <span>Ver código fonte no GitHub</span>
             </a>
           </motion.div>
 
