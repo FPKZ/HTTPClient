@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import UpdatePage from "./pages/UpdatePage";
 import ResizableDemo from "./pages/ResizableDemo";
 import Layout from "./pages/layout";
+import Login from "./pages/login";
 import { initMonacoThemes } from "./lib/monacoSetup";
 
 // Components
@@ -78,6 +79,7 @@ function App() {
               <ResizableDemo />
             </Layout>
           } />
+          <Route path="/login" element={<Layout><Login /></Layout>} />
           <Route path="/action-logger" element={<ResizableDemo />} />
         </Routes>
       </GlobalContextMenu>
