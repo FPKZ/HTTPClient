@@ -1,13 +1,40 @@
-// eslint-disable-next-line no-unused-vars
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Download, Github, ArrowRight } from "lucide-react";
+import { Download, Github, ArrowRight, Users } from "lucide-react";
 import { VoltIcon } from "./VoltLogo";
 
 const Hero = () => {
+  const [downloadCount, setDownloadCount] = useState(null);
+
+  useEffect(() => {
+    const fetchDownloads = async () => {
+      try {
+        const response = await fetch(
+          "https://api.github.com/repos/FPKZ/HTTPClient/releases",
+        );
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          let total = 0;
+          data.forEach((release) => {
+            if (release.assets && Array.isArray(release.assets)) {
+              release.assets.forEach((asset) => {
+                total += asset.download_count || 0;
+              });
+            }
+          });
+          setDownloadCount(total);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar contagem de downloads:", error);
+      }
+    };
+    fetchDownloads();
+  }, []);
+
   return (
     <section
       id="hero"
-      className="min-h-screen flex items-center justify-center relative overflow-hidden pt-16"
+      className="min-h-screen flex items-center justify-center relative overflow-hidden"
     >
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
@@ -40,7 +67,7 @@ const Hero = () => {
       <div className="section-container relative z-10">
         <div className="text-center max-w-5xl mx-auto">
           {/* Badge */}
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -53,14 +80,14 @@ const Hero = () => {
             <span className="text-sm font-medium text-primary-200">
               Nova Identidade Visual VOLT
             </span>
-          </motion.div>
+          </motion.div> */}
 
           {/* Main heading */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-6xl sm:text-7xl lg:text-8xl font-display font-black mb-6 text-shadow tracking-normal flex flex-col items-center overflow-visible"
+            className="text-6xl sm:text-7xl! lg:text-8xl font-display font-black pt-10 sm:pt-0! mb-6 text-shadow tracking-normal flex flex-col items-center overflow-visible"
           >
             <div className="flex items-center overflow-visible">
               <VoltIcon className="h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24 mt-2 shrink-0" />
@@ -68,7 +95,9 @@ const Hero = () => {
                 VOLT
               </span>
             </div>
-            <span className="text-white mt-2">Potencialize suas APIs</span>
+            <span className="text-white mt-2 text-3xl sm:text-5xl! md:text-6xl! lg:text-7xl!">
+              Potencialize suas APIs
+            </span>
           </motion.h1>
 
           {/* Description */}
@@ -76,11 +105,10 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-xl sm:text-2xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed"
+            className="text-md! sm:text-xl! text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed"
           >
-            A evolução do HTTPClient. Uma ferramenta desktop ultrarrápida para
-            desenvolvedores que buscam performance e simplicidade em testes de
-            API.
+            Uma ferramenta desktop ultrarrápida para desenvolvedores que buscam
+            performance e simplicidade em testes de API.
           </motion.p>
 
           {/* Download & Actions Buttons */}
@@ -93,11 +121,11 @@ const Hero = () => {
             <div className="flex flex-wrap items-center justify-center gap-4">
               <a
                 href="https://github.com/FPKZ/HTTPClient/releases/download/v1.0.46/HTTPClient-1.0.46-win.exe"
-                className="btn-primary flex items-center space-x-3 px-8 py-4 text-lg"
+                className="btn-primary flex items-center space-x-3 px-5 py-4 text-md"
               >
                 <Download size={24} />
                 <div className="flex flex-col items-start leading-none">
-                  <span className="text-xs uppercase font-bold opacity-70">
+                  <span className="text-xs! uppercase font-bold opacity-70">
                     Download para
                   </span>
                   <span className="font-black">Windows</span>
@@ -105,17 +133,33 @@ const Hero = () => {
               </a>
               <a
                 href="https://github.com/FPKZ/HTTPClient/releases/download/v1.0.46/HTTPClient-1.0.46-linux.AppImage"
-                className="btn-secondary flex items-center space-x-3 px-8 py-4 text-lg border-white/10 hover:border-primary-500/50"
+                className="btn-secondary flex items-center space-x-3 px-5 py-4 text-md border-white/10 hover:border-primary-500/50"
               >
                 <Download size={24} />
                 <div className="flex flex-col items-start leading-none text-white">
-                  <span className="text-xs uppercase font-bold opacity-70">
+                  <span className="text-xs! uppercase font-bold opacity-70">
                     Download para
                   </span>
                   <span className="font-black">Linux</span>
                 </div>
               </a>
             </div>
+
+            {downloadCount !== null && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center space-x-2 bg-primary-500/10 px-4 py-2 rounded-full border border-primary-500/20"
+              >
+                <Users size={16} className="text-primary-400" />
+                <span className="text-sm font-medium text-primary-200">
+                  <span className="font-bold text-white">
+                    {downloadCount.toLocaleString()}
+                  </span>{" "}
+                  downloads realizados
+                </span>
+              </motion.div>
+            )}
 
             <a
               href="https://github.com/FPKZ/HTTPClient"
@@ -133,7 +177,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.8 }}
-            className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8"
+            className="mt-16 grid-cols-2 hidden sm:grid md:grid-cols-4 gap-8"
           >
             {[
               { label: "Versão", value: "1.0.41" },
@@ -142,7 +186,7 @@ const Hero = () => {
               { label: "Gratuito", value: "Sempre" },
             ].map((stat, index) => (
               <div key={index} className="glass-effect rounded-xl p-4">
-                <div className="text-3xl font-bold gradient-text">
+                <div className="text-2xl font-bold gradient-text">
                   {stat.value}
                 </div>
                 <div className="text-sm text-slate-400 mt-1">{stat.label}</div>
