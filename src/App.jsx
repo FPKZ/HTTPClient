@@ -1,11 +1,6 @@
 import { useEffect } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
-import UploadPage from "./pages/UploadPage";
-import Home from "./pages/Home";
-import UpdatePage from "./pages/UpdatePage";
-import ResizableDemo from "./pages/ResizableDemo";
-import Layout from "./pages/layout";
-import LoginPage from "./pages/loginPage";
+import { useNavigate } from "react-router-dom";
+import Rotes from "./Rotes";
 import { initMonacoThemes } from "./lib/monacoSetup";
 
 // Components
@@ -56,32 +51,7 @@ function App() {
     <div className="d-flex flex-column h-screen">
       <GlobalContextMenu>
         <Dialog />
-        <Routes>
-          <Route
-            path="/upload"
-            element={
-              <Layout>
-                <UploadPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/"
-            element={
-              <Layout>
-                <Home />
-              </Layout>
-            }
-          />
-          <Route path="/update" element={<UpdatePage />} />
-          <Route path="/demo" element={
-            <Layout>
-              <ResizableDemo />
-            </Layout>
-          } />
-          <Route path="/login" element={<Layout><LoginPage /></Layout>} />
-          <Route path="/action-logger" element={<ResizableDemo />} />
-        </Routes>
+        <Rotes />
       </GlobalContextMenu>
     </div>
   );

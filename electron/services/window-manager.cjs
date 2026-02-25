@@ -92,18 +92,18 @@ class WindowManager {
       },
     );
 
-    const url = this.getRouteURL("/upload");
+    const url = this.getRouteURL("/login");
     log.info(`Loading URL in Main Window: ${url}`);
     this.mainWindow.loadURL(url).catch((e) => {
       const log = require("electron-log");
       log.error(`Falha ao carregar URL: ${e.message}`, {
-        url: this.getRouteURL("/upload"),
+        url: this.getRouteURL("/login"),
       });
       const { dialog } = require("electron");
       dialog.showErrorBox(
         "Erro ao carregar janela",
         `Falha ao carregar URL: ${e.message}\nPath: ${this.getRouteURL(
-          "/upload",
+          "/login",
         )}`,
       );
     });

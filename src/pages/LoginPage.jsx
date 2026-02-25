@@ -1,29 +1,24 @@
-import React, { useEffect } from "react";
+import { useState } from "react";
 import { Container, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-// import useTabStore from "../store/useTabStore";
-
-// Components
-// import DropZone from "../components/DropZone";
-// import HistoryList from "../components/history/HistoryList";
-// import ImportCollectionModal from "../components/modals/ImportCollectionModal";
-// import NovaCollectionModal from "../components/modals/NovaCollectionModal";
 import icons from "../assets/icons";
 import { ArrowRight } from "lucide-react";
-
-// Hooks
-// import { useQuickExit } from "../hooks/useQuickExit";
-// import { useHistory } from "../hooks/useHistory";
 
 /**
  * Página de login
  * @returns {JSX.Element}
  */
-export default function loginPage() {
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
 
   const { fullLogo } = icons();
+
+  const handleLogin = () => {
+    navigate("/upload");
+  };
 
   return (
     <div className="d-flex flex-col h-100 position-relative overflow-hidden">
@@ -34,14 +29,13 @@ export default function loginPage() {
       >
         <div className="my-auto w-full flex flex-col min-h-0 max-h-full">
           <div className="flex shrink-0 flex-col justify-center gap-2 text-sm">
-            <div className="flex justify-center mb-4" onClick={() => navigate(-1)}>
-              {fullLogo()}
-            </div>
+            <div className="flex justify-center mb-4">{fullLogo()}</div>
             <div className="flex flex-col gap-2 border border-[#313131]! bg-[#1b1b1b]! shadow-sm p-10 rounded-lg">
               <div className="flex flex-col gap-1 group/input">
                 <label
                   htmlFor="email"
-                  className="text-[#cecece]/70 transition-colors duration-200 group-focus-within/input:text-[#ffffff]!">
+                  className="text-[#cecece]/70 transition-colors duration-200 group-focus-within/input:text-[#ffffff]!"
+                >
                   Email
                 </label>
                 <input
@@ -51,13 +45,17 @@ export default function loginPage() {
                     rounded border border-[#313131]!
                     bg-[#181818]! hover:bg-[#121212]! focus:bg-[#121212]!
                     p-2 outline-none
-                  " />
+                  "
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
 
               <div className="flex flex-col gap-1 group/input">
                 <label
                   htmlFor="password"
-                  className="text-[#cecece]/70 transition-colors duration-200 group-focus-within/input:text-[#ffffff]!">
+                  className="text-[#cecece]/70 transition-colors duration-200 group-focus-within/input:text-[#ffffff]!"
+                >
                   Senha
                 </label>
                 <input
@@ -67,27 +65,41 @@ export default function loginPage() {
                     rounded border border-[#313131]!
                     bg-[#181818]! hover:bg-[#121212]! focus:bg-[#121212]!
                     p-2 outline-none
-                  " />
+                  "
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
 
-              <Button className="
+              <Button
+                className="
                 bg-[#ffc107]/90!
                 hover:bg-[#ffc107]/60!
                 focus:bg-[#ffc107]/60!
                 text-zinc-900!
                 border-0 px-4 py-2 rounded mt-3
-              " onClick={() => navigate("/")}>
+              "
+                onClick={handleLogin}
+              >
                 Entrar
               </Button>
             </div>
             <div className="flex gap-2 p-2 justify-between text-[0.7rem] text-[#cecece]/70">
               <div>
-                <p className="m-0">Não tem uma conta? <a href="#" className="link-warning">Cadastre-se</a></p>
-                
+                <p className="m-0">
+                  Não tem uma conta?{" "}
+                  <a href="#" className="link-warning">
+                    Cadastre-se
+                  </a>
+                </p>
               </div>
               <div>
-                <p className="m-0">Esqueceu sua senha? <a href="#" className="link-warning">Recuperar senha</a></p>
-                
+                <p className="m-0">
+                  Esqueceu sua senha?{" "}
+                  <a href="#" className="link-warning">
+                    Recuperar senha
+                  </a>
+                </p>
               </div>
             </div>
             <div className="flex justify-center pt-2 pb-3">
@@ -98,23 +110,29 @@ export default function loginPage() {
               </div>
             </div>
             <div className="flex justify-center gap-3">
-              <Button className="
+              <Button
+                className="
               bg-white! hover:bg-zinc-300! focus:bg-zinc-300!
               text-zinc-900!
               text-sm! font-semibold!
               border-0 px-3 py-1 rounded-lg!
-              " onClick={() => navigate("/")}>
+              "
+                onClick={handleLogin}
+              >
                 <div className="flex items-center gap-2">
                   <img src="google-favicon.ico" alt="" />
                   Entrar com Google
                 </div>
               </Button>
-              <Button className="
+              <Button
+                className="
                 bg-transparent! hover:bg-zinc-900! focus:bg-zinc-900!
                 text-zinc-100!
                 text-sm! font-semibold!
                 border-0 px-3 py-1 rounded-lg!
-              " onClick={() => navigate("/")}>
+              "
+                onClick={handleLogin}
+              >
                 <div className="flex items-center gap-2">
                   Entrar sem conta
                   <ArrowRight size={16} />
