@@ -1,10 +1,13 @@
 import { Spinner } from "react-bootstrap";
 import { Progress } from "../components/ui/progress";
 import { useEffect, useState } from "react";
+import icons from "../assets/icons";
 
 export default function UpdatePage() {
   const [status, setStatus] = useState("checking"); // checking, available, downloading, ready
   const [progress, setProgress] = useState(0);
+
+  const { roundIcon } = icons();
 
   useEffect(() => {
     // Escutando eventos do Main Process
@@ -62,11 +65,9 @@ export default function UpdatePage() {
             }}
           />
         )}
-        <img
-          src="./icon1.png"
-          width="90"
-          className="position-relative animate-pulse"
-        />
+        <div className="animate-pulse">
+          {roundIcon()}
+        </div>
       </div>
 
       {status === "downloading" && (
