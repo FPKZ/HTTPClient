@@ -1,12 +1,111 @@
 import React from "react";
-import icon from "../assets/icon1.png";
+// import icon from "../assets/icon1.png";
 import { Menu, Plus, Settings, SquareTerminal, FileDown } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import DropdownMenuComponent from "./DropdownMenu";
+import ModalUser from "./ui/ModalUSer";
 import { useMenuGeral } from "../hooks/useMenuGeral";
+import Workspaces from "./modals/Workspaces";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import useTabStore from "../store/useTabStore";
 import icons from "../assets/icons";
+
+function ActionButtons({ menuItems, handleMinimize, handleMaximize, handleClose, location }){
+  return(
+    <div className="window-controls d-flex no-drag h-100">
+      
+
+      {location.pathname === "/" && (
+        <div className="btn-control">
+          <DropdownMenuComponent
+            buttonContent={
+              <Menu
+                size={16}
+                title="Menu"
+                strokeWidth={2}
+                className="text-zinc-400 hover:text-zinc-100 transition-colors duration-200"
+              />
+            }
+            items={menuItems}
+          />
+        </div>
+      )}
+      <button
+        onClick={handleMinimize}
+        className="btn-control h-100 text-zinc-400 hover:text-zinc-100 transition-colors duration-200"
+        title="Minimizar"
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <rect fill="currentColor" width="10" height="2" x="1" y="6"></rect>
+        </svg>
+      </button>
+      <button
+        onClick={handleMaximize}
+        className="btn-control h-100 text-zinc-400 hover:text-zinc-100 transition-colors duration-200"
+        title="Maximizar"
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <rect
+            width="9"
+            height="9"
+            x="1.5"
+            y="1.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          ></rect>
+        </svg>
+      </button>
+      <button
+        onClick={handleClose}
+        className="btn-control h-100 text-zinc-400 hover:text-zinc-100 hover:bg-red-500! transition-colors duration-200"
+        title="Fechar"
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <path
+            d="M2 2l8 8M10 2l-8 8"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="none"
+          ></path>
+        </svg>
+      </button>
+    </div>
+  )
+}
+
+function TitleBarContent({activeTab}){
+  return(
+    <div className="flex w-100 items-center align-center justify-between mx-2 px-0">
+        <div className="ps-3 h-100 flex items-center justify-center border-l-2 border-zinc-700">
+          <Workspaces>
+            <div 
+              className="
+                px-2 py-1 flex items-center justify-center 
+                bg-amber-100/10
+                rounded-full
+                no-drag
+              "
+            >
+              <span className="text-[0.7rem] font-bold m-0">Workspaces</span>
+            </div>
+          </Workspaces>
+        </div>
+
+        <div className="w-100 text-center text-[0.7rem] font-bold m-0 truncate">
+          {activeTab?.title || ""}
+        </div>
+
+        <ModalUser>
+          <div className="h-100 flex items-center px-2 no-drag">
+            <div className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer bg-[#ffc107] hover:bg-[#ffc107]/80 transition-colors">
+              <span className="text-[0.6rem] font-extrabold">LF</span>
+            </div>
+          </div>
+        </ModalUser>
+      </div>
+  )
+}
 
 export default function TitleBar() {
   const { templete, devTemplete, isDev } = useMenuGeral();
@@ -51,75 +150,24 @@ export default function TitleBar() {
   return (
     <div
       className="titlebar titlebar-drag-region d-flex justify-content-between align-items-center"
-      style={{ backgroundColor: "#1e1e1e", height: "35px", color: "white" }}
+      style={{ backgroundColor: "#1e1e1e", height: "40px", color: "white" }}
     >
       <div className="titlebar-left d-flex align-items-center gap-2 ms-2">
-        <img src={icon} alt="Icon" style={{ width: "20px", height: "20px" }} />
-        <span className="fw-bold">HTTPClient</span>
-        {/* {fullLogo({ width: "66", height: "40" })} */}
+        {/* <img src={icon} alt="Icon" style={{ width: "20px", height: "20px" }} /> */}
+        {/* <span className="fw-bold">HTTPClient</span> */}
+        {fullLogo({ width: "78", height: "50" })}
+        
       </div>
 
-      <div className="flex-1 mx-5 px-5 text-center text-[0.7rem] truncate">
-        {activeTab?.title || ""}
-      </div>
+      <TitleBarContent activeTab={activeTab} />
 
-      <div className="window-controls d-flex no-drag h-100">
-        {location.pathname === "/" && (
-          <div className="btn-control">
-            <DropdownMenuComponent
-              buttonContent={
-                <Menu
-                  size={16}
-                  title="Menu"
-                  strokeWidth={2}
-                  className="text-zinc-100"
-                />
-              }
-              items={menuItems}
-            />
-          </div>
-        )}
-        <button
-          onClick={handleMinimize}
-          className="btn-control h-100"
-          title="Minimizar"
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12">
-            <rect fill="currentColor" width="10" height="1" x="1" y="6"></rect>
-          </svg>
-        </button>
-        <button
-          onClick={handleMaximize}
-          className="btn-control h-100"
-          title="Maximizar"
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12">
-            <rect
-              width="9"
-              height="9"
-              x="1.5"
-              y="1.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1"
-            ></rect>
-          </svg>
-        </button>
-        <button
-          onClick={handleClose}
-          className="btn-control hover-red h-100"
-          title="Fechar"
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12">
-            <path
-              d="M2 2l8 8M10 2l-8 8"
-              stroke="currentColor"
-              strokeWidth="1"
-              fill="none"
-            ></path>
-          </svg>
-        </button>
-      </div>
+      <ActionButtons
+        menuItems={menuItems}
+        handleMinimize={handleMinimize}
+        handleMaximize={handleMaximize}
+        handleClose={handleClose}
+        location={location}
+      />
       <style>{`
         .titlebar {
           -webkit-app-region: drag;
@@ -131,19 +179,12 @@ export default function TitleBar() {
         .btn-control {
           background: transparent;
           border: none;
-          color: white;
           width: 36px;
 
           display: flex;
           justify-content: center;
           align-items: center;
           cursor: pointer;
-        }
-        .btn-control:hover {
-          background: rgba(255,255,255,0.1);
-        }
-        .hover-red:hover {
-          background: #e81123 !important;
         }
       `}</style>
     </div>

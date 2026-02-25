@@ -59,6 +59,7 @@ body {
   color: var(--text-color);
   font-family: "Inter", sans-serif;
   overflow: hidden; /* Prevent scroll on body, handle in containers */
+  outline: none;
 }
 
 /* Custom Scrollbar for Webkit */
