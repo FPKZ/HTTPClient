@@ -109,35 +109,48 @@ export default function LoginPage() {
                 <div className="w-10 h-px bg-[#313131]!"></div>
               </div>
             </div>
-            <div className="flex justify-center gap-3">
-              <Button
+            <div className="flex flex-col items-center justify-between px-3 gap-3 text-zinc-900! font-bold">
+              {[
+                { img: "google.svg", alt: "Google", size: "w-8 h-8", text: "Entrar com o Google", action: handleLogin },
+                { img: "/github-brands-solid-full(1).svg", alt: "GitHub", size: "w-8 h-8", text: "Entrar com o GitHub", action: handleLogin },
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  className="
+                  w-full p-1.5
+                  flex items-center justify-between gap-2 bg-white!
+                  cursor-pointer rounded-full
+                  active:opacity-100 hover:opacity-80 focus:opacity-80 transition-opacity duration-200"
+                  onClick={item.action}
+                >
+                  <img
+                    src={item.img}
+                    alt={item.alt}
+                    className={item.size}
+                  />
+                  <p className="m-0 text-sm">{item.text}</p>
+                  <div className="w-8 h-8 flex items-center justify-center">
+                    <ArrowRight size={16} strokeWidth={4} />
+                  </div>
+                </div>
+              ))}
+              <div
                 className="
-              bg-white! hover:bg-zinc-300! focus:bg-zinc-300!
-              text-zinc-900!
-              text-sm! font-semibold!
-              border-0 px-3 py-1 rounded-lg!
-              "
+                  w-full flex items-center justify-between
+                  bg-zinc-900! hover:bg-zinc-800! focus:bg-zinc-800! transition-colors duration-200
+                  text-zinc-100!
+                  text-sm! font-bold!
+                  border-0 p-1.5 rounded-full!
+                  cursor-pointer
+                "
                 onClick={handleLogin}
               >
-                <div className="flex items-center gap-2">
-                  <img src="google-favicon.ico" alt="" />
-                  Entrar com Google
+                <img src="google.svg" alt="Google" className="w-8 h-8 invisible" />
+                Entrar sem conta
+                <div className="w-8 h-8 flex items-center justify-center">
+                  <ArrowRight size={16} strokeWidth={4} />
                 </div>
-              </Button>
-              <Button
-                className="
-                bg-transparent! hover:bg-zinc-900! focus:bg-zinc-900!
-                text-zinc-100!
-                text-sm! font-semibold!
-                border-0 px-3 py-1 rounded-lg!
-              "
-                onClick={handleLogin}
-              >
-                <div className="flex items-center gap-2">
-                  Entrar sem conta
-                  <ArrowRight size={16} />
-                </div>
-              </Button>
+              </div>
             </div>
           </div>
         </div>
