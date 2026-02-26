@@ -146,7 +146,7 @@ export default function TitleBar() {
       });
     }
   }, []);
-
+  
   return (
     <div
       className="titlebar titlebar-drag-region d-flex justify-content-between align-items-center"
@@ -158,8 +158,9 @@ export default function TitleBar() {
         {fullLogo({ width: "78", height: "50" })}
         
       </div>
-
-      <TitleBarContent activeTab={activeTab} />
+      {
+        location.pathname === "/home" && <TitleBarContent activeTab={activeTab} />
+      }
 
       <ActionButtons
         menuItems={menuItems}

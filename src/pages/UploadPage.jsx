@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Container, Button, Tab, Nav, Row, Col } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import useTabStore from "../store/useTabStore";
@@ -9,17 +9,21 @@ import HistoryList from "../components/history/HistoryList";
 import ImportCollectionModal from "../components/modals/ImportCollectionModal";
 import NovaCollectionModal from "../components/modals/NovaCollectionModal";
 // import icons from "../assets/icons";
-import { LogOut } from "lucide-react";
+import { ArrowRight, LogOut } from "lucide-react";
 
 // Hooks
 import { useQuickExit } from "../hooks/useQuickExit";
 import { useHistory } from "../hooks/useHistory";
+
+import img from "../assets/icon1.png"
 
 /**
  * UploadPage (Refatorada)
  * SRP: Focada no carregamento de novos arquivos e visualização do histórico.
  */
 function UploadPage() {
+
+  const [user, setUser] = useState({userId: 12, name: "Luis Felipe", email: "luisfelipe@prefeitura.sp.gov.br", img: img});
 
   const navigate = useNavigate();
 
@@ -65,19 +69,56 @@ function UploadPage() {
     if (path) startConversion(path, true);
   };
 
+  
   return (
     <div className="d-flex h-100 position-relative overflow-hidden">
 
       <div className="flex flex-col align-center w-[25%] mb-4 border-r border-[#313131] position-relative">
         <div className="flex flex-col items-center justify-center my-4 gap-2">
           {/* {fullLogo()} */}
-          <div className="w-30 h-30 rounded-full flex items-center justify-center bg-[#ffc107] overflow-hidden">
-            <span className="text-[3rem] font-extrabold">LF</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-[1rem] font-extrabold">Luis Felipe</span>
-            <span className="text-[0.8rem] text-zinc-500">luisfelipe@prefeitura.sp.gov.br</span>
-          </div>
+          {
+            user ? (<>
+              <div className={`w-30 h-30 rounded-full flex items-center justify-center ${!user.img && "bg-[#ffc107]" } overflow-hidden`} onClick={() => setUser(!user)}>
+                {
+                  user.img ? (
+                    <img src={user.img} alt="" className="w-full" />
+                  ) : (
+                    <span className="text-[3rem] font-extrabold">LF</span>
+                  )
+                }
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[1rem] font-extrabold">Luis Felipe</span>
+                <span className="text-[0.8rem] text-zinc-500">luisfelipe@prefeitura.sp.gov.br</span>
+              </div>
+            </>) : (
+              <div className="px-3 flex flex-col gap-3">
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-[1rem] font-extrabold">Fazer login!</span>
+                  <span className="text-[0.7rem] text-center text-zinc-400">Fazer login para acessar todos os recursos do sistema!</span>
+                </div>
+                <div className="flex w-full px-1">
+                  <div 
+                    className="
+                      flex items-center justify-between w-full p-1
+                      bg-[#ffb117]/90! hover:bg-zinc-900!
+                      border border-[#ffb117]/90! hover:border-zinc-700/60!
+                      rounded 
+                      font-bold hover:text-zinc-200!
+                      cursor-pointer transition-colors duration-200
+                    "
+                    onClick={() => setUser(!user)}
+                  >
+                    <div></div>
+                    <span>Ir para Login</span> 
+                    <ArrowRight size={18} strokeWidth={3} />
+                  </div>
+
+                </div>
+                
+              </div>
+            )
+          }
         </div>
 
         <div className="flex flex-col px-3 gap-2.5">
@@ -95,40 +136,47 @@ function UploadPage() {
             </div>
           </ImportCollectionModal>
         </div>
-
-        <div className="flex justify-center position-absolute bottom-0 w-full px-4">
-          <div
-            className="
-              p-1 mt-2 w-full flex items-center justify-center gap-2
-              text-[1rem] font-bold text-[#cecece]
-              bg-red-500/90 hover:bg-red-500/80 active:bg-red-500/70 transition-colors
-              rounded cursor-pointer outline-none
-              group
-            "
-            onClick={() => navigate("/login")}
-          >
-            <span className="pt-0.5">Sair</span>
-            <LogOut size={15} className="stroke-3" />
+        {
+          user && (
+          <div className="flex justify-center position-absolute bottom-0 w-full px-4">
+            <div
+              className="
+                p-1 mt-2 w-full flex items-center justify-center gap-2
+                text-[1rem] font-bold text-[#cecece]
+                bg-red-500/90 hover:bg-red-500/80 active:bg-red-500/70 transition-colors
+                rounded cursor-pointer outline-none
+                group
+              "
+              onClick={() => navigate("/login")}
+            >
+              <span className="pt-0.5">Sair</span>
+              <LogOut size={15} className="stroke-3" />
+            </div>
           </div>
-        </div>
+          )
+        }
       </div>
 
       <div className="flex flex-col w-full h-full p-4 justify-center">
-        <Tab.Container id="left-tabs-example" defaultActiveKey="first">
+        <Tab.Container id="left-tabs-example" defaultActiveKey="history">
           <div className="flex w-full justify-center text-xs">
-            <Nav variant="underline" className="flex custom-tabs">
-              <Nav.Item>
-                <Nav.Link eventKey="first">Histórico</Nav.Link>
-              </Nav.Item>
-              <Nav.Item>
-                <Nav.Link eventKey="second">Configurações</Nav.Link>
-              </Nav.Item>
-            </Nav>
+            {
+              user && (
+                <Nav variant="underline" className="flex custom-tabs">
+                  <Nav.Item>
+                    <Nav.Link eventKey="history">Dispositivo</Nav.Link>
+                  </Nav.Item>
+                  <Nav.Item>
+                    <Nav.Link eventKey="settings">Onedrive</Nav.Link>
+                  </Nav.Item>
+                </Nav>
+              )
+            }
           </div>
           <div className="flex w-full h-full px-12 py-4 justify-center">
             <Tab.Content className="flex w-full h-full justify-center">
               <Tab.Pane
-                eventKey="first"
+                eventKey="history"
                 className="flex w-full h-full justify-center"
               >
                 <div className="flex-1 min-h-0">
@@ -140,7 +188,7 @@ function UploadPage() {
                   />
                 </div>
               </Tab.Pane>
-              <Tab.Pane eventKey="second">s{/* <Sonnet /> */}</Tab.Pane>
+              <Tab.Pane eventKey="settings">s{/* <Sonnet /> */}</Tab.Pane>
             </Tab.Content>
           </div>
         </Tab.Container>
