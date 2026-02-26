@@ -44,6 +44,7 @@
 * {
   -webkit-user-select: none; /* Para compatibilidade com o Chromium */
   user-select: none; /* Padrão */
+  outline: none;
 }
 
 .permitirSelect,
@@ -174,4 +175,24 @@ body {
 .monaco-editor-transparente .monaco-editor .margin,
 .monaco-editor-transparente .monaco-editor-background {
   background-color: transparent !important;
+}
+
+/* Customização de Tabs (Bootstrap Upgrade) */
+.custom-tabs .nav-link {
+  color: #71717a !important; /* zinc-400 */
+  font-weight: 700 !important;
+  border-bottom: 2px solid transparent !important;
+  transition: all 0.2s ease;
+  padding: 0.5rem 1rem !important;
+  font-size: 0.75rem !important;
+}
+
+.custom-tabs .nav-link:hover {
+  color: #e4e4e7 !important; /* zinc-200 */
+}
+
+.custom-tabs .nav-link.active {
+  color: #ffffff !important;
+  background-color: transparent !important;
+  border-bottom-color: #ffc107 !important; /* amber-400 (cor do logo) */
 }

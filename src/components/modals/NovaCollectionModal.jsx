@@ -70,7 +70,7 @@ export default function NovaCollectionModal({ children }) {
     >
       {children && <Dialog.Trigger asChild>{children}</Dialog.Trigger>}
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50 animate-overlayShow" />
+        <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200" />
         <Dialog.Content
           aria-describedby={undefined}
           onOpenAutoFocus={(e) => e.preventDefault()}

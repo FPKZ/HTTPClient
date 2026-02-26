@@ -25,7 +25,7 @@ export default function ImportCollectionModal({
     <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/60 data-[state=open]:animate-overlayShow z-50!" />
+        <Dialog.Overlay className="fixed inset-0 bg-black/60 animate-in fade-in duration-200 z-50!" />
         <Dialog.Content
           className="
             fixed left-1/2 top-1/2 
