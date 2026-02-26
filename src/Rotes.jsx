@@ -11,9 +11,9 @@ export default function Rotes() {
     <Routes>
       {/* Rotas COM Layout (TitleBar) */}
       <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/upload" element={<UploadPage />} />
+        <Route path="/" element={<UploadPage />} />
         <Route path="/demo" element={<ResizableDemo />} />
       </Route>
 

@@ -17,7 +17,7 @@ export default function LoginPage() {
   const { fullLogo } = icons();
 
   const handleLogin = () => {
-    navigate("/upload");
+    navigate("/");
   };
 
   return (

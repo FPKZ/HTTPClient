@@ -28,7 +28,7 @@ export function useHistory(fetchOnMount = true) {
       // Carrega diretamente no store para evitar passar objeto gigante pelo state do router
       window.electronAPI.logAction("Carregando coleção salva no historico: " + item.name);
       useTabStore.getState().loadCollection(content);
-      navigate("/");
+      navigate("/home");
     }
   };
 

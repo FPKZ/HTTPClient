@@ -45,7 +45,7 @@ function UploadPage() {
           // Carrega diretamente no store
           window.electronAPI.logAction("Carregando coleção: " + data.raw.name);
           useTabStore.getState().loadCollection(data.raw);
-          navigate("/");
+          navigate("/home");
         }
       });
 

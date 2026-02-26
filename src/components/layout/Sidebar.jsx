@@ -88,7 +88,7 @@ const SidebarHeader = () => {
           className="flex items-center gap-2 p-2 rounded hover:bg-zinc-700 text-zinc-300 text-[0.75rem]! font-semibold transition-colors"
           onClick={async () => {
             await handleSaveCollection();
-            navigate("/upload");
+            navigate("/");
           }}
         >
           <ArrowLeft size={20} />

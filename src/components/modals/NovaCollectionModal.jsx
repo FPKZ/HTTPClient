@@ -60,7 +60,7 @@ export default function NovaCollectionModal({ children }) {
     // Atualiza diretamente o store, forçando a re-renderização da Home
     loadCollection(newCollection(name, desc, testRoutes));
     setNovaCollectionOpen(false);
-    navigate("/");
+    navigate("/home");
   };
 
   return (
