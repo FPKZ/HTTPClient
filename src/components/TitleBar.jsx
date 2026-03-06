@@ -15,7 +15,7 @@ function ActionButtons({ menuItems, handleMinimize, handleMaximize, handleClose,
     <div className="window-controls d-flex no-drag h-100">
       
 
-      {location.pathname === "/" && (
+      {location.pathname === "/home" && (
         <div className="btn-control">
           <DropdownMenuComponent
             buttonContent={
