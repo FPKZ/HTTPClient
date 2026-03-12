@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Container, Button, Tab, Nav, Row, Col } from "react-bootstrap";
+import { Tab, Nav, Row, Col } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import useTabStore from "../store/useTabStore";
 
 // Components
-import DropZone from "../components/DropZone";
 import HistoryList from "../components/history/HistoryList";
 import ImportCollectionModal from "../components/modals/ImportCollectionModal";
 import NovaCollectionModal from "../components/modals/NovaCollectionModal";
-// import icons from "../assets/icons";
 import { ArrowRight, LogOut } from "lucide-react";
 
 // Hooks
@@ -209,64 +207,7 @@ function UploadPage() {
         </Col>
       </Row>
 
-      {/* <Container
-        fluid
-        className="d-flex flex-col p-3 h-full mb-4"
-        style={{ overflow: "hidden", maxWidth: "900px" }}
-      >
-        <div className="my-auto w-full flex flex-col min-h-0 max-h-full">
-          <div className="flex shrink-0 flex-col justify-center gap-2">
 
-            <div className="flex justify-center mb-4">
-              {fullLogo()}
-            </div>
-
-            <div className="grid grid-cols-2 h-20 gap-2 mb-4">
-              <NovaCollectionModal>
-                <div
-                  className="
-                    flex w-full h-full py-2 px-4
-                    rounded items-center justify-center cursor-pointer
-                    bg-[#1b1b1b] border border-[#313131]!
-                    hover:bg-[#292929] active:bg-[#1d1d1d]
-                    transition-colors
-                    text-gray-300 font-medium
-                    "
-                >
-                  Nova Coleção
-                </div>
-              </NovaCollectionModal>
-
-              <ImportCollectionModal
-                onImport={(path) => startConversion(path, true)}
-                onFolderSelect={handleFolderSelect}
-              >
-                <div
-                  className="
-                    flex w-full h-full py-2 px-4
-                    rounded items-center justify-center cursor-pointer
-                    bg-[#1b1b1b] border border-[#313131]!
-                    hover:bg-[#292929] active:bg-[#1d1d1d]
-                    transition-colors
-                    text-gray-300 font-medium
-                    "
-                >
-                  Importar Coleção
-                </div>
-              </ImportCollectionModal>
-            </div>
-          </div>
-
-          <div className="flex-1 min-h-0">
-            <HistoryList
-              history={history}
-              onLoad={handleLoadHistory}
-              onDelete={handleDeleteHistoryItem}
-              onAllDelete={handleDeleteAllHistory}
-            />
-          </div>
-        </div>
-      </Container> */}
 
       <Row className="w-full position-absolute bottom-0 end-0 px-2">
         <Col className="w-full text-end">

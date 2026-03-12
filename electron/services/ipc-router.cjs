@@ -141,8 +141,8 @@ class IpcRouter {
 
     // History
     ipcMain.handle("get-history", () => this.history.getHistory());
-    ipcMain.handle("load-collection", (event, fileName) =>
-      this.history.loadCollection(fileName),
+    ipcMain.handle("get-collection-by-id", (event, { id, source }) =>
+      this.history.getCollectionById(id, source)
     );
     ipcMain.on("save-and-quit", async (event, collectionData) => {
       if (collectionData && collectionData.name) {

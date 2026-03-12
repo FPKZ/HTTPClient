@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 import {
   Group as PanelGroup,
@@ -37,15 +37,6 @@ export default function Home() {
   const getCollectionForExport = useTabStore(
     (state) => state.getCollectionForExport,
   );
-
-  const resetTabs = useTabStore((state) => state.resetTabs);
-
-  // 1. Limpeza de estado ao sair da Home (voltar para o início)
-  useEffect(() => {
-    return () => {
-      resetTabs();
-    };
-  }, [resetTabs]);
 
   // 4. Auto-save ao sair (Ctrl+Q)
   useQuickExit(async () => {

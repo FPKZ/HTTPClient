@@ -93,7 +93,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // --- Gestão de Coleções e Histórico ---
   getHistory: () => ipcRenderer.invoke("get-history"),
   saveHistory: (data) => ipcRenderer.invoke("save-history", data),
-  loadCollection: (fileName) => ipcRenderer.invoke("load-collection", fileName),
+  getCollectionById: (id, source) => ipcRenderer.invoke("get-collection-by-id", { id, source }),
   deleteHistoryItem: (id) => ipcRenderer.invoke("delete-history-item", id),
   deleteAllHistory: () => ipcRenderer.invoke("delete-all-history"),
   onRequestSaveSession: (callback) => {

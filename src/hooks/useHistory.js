@@ -8,11 +8,9 @@ export function useHistory(fetchOnMount = true) {
   const navigate = useNavigate();
   const showDialog = useDialogStore((state) => state.showDialog);
 
-  // const { getCollectionForExport } = useTabStore();
-
   useEffect(() => {
     if (!fetchOnMount) return;
-    
+
     const getHistory = async () => {
       if (!window.electronAPI) return;
       const history = await window.electronAPI.getHistory();
@@ -23,10 +21,16 @@ export function useHistory(fetchOnMount = true) {
 
   const handleLoadHistory = async (item) => {
     if (!window.electronAPI) return;
-    const content = await window.electronAPI.loadCollection(item.file);
+
+    const content = await window.electronAPI.getCollectionById(
+      item.id,
+      item.sourceType || "local"
+    );
+
     if (content) {
-      // Carrega diretamente no store para evitar passar objeto gigante pelo state do router
-      window.electronAPI.logAction("Carregando coleção salva no historico: " + item.name);
+      window.electronAPI.logAction(
+        "Carregando coleção salva no historico: " + item.name
+      );
       useTabStore.getState().loadCollection(content);
       navigate("/home");
     }
@@ -61,7 +65,9 @@ export function useHistory(fetchOnMount = true) {
     });
     if (confirmed) {
       const collection = useTabStore.getState().getCollectionForExport();
-      window.electronAPI.logAction("Salvando coleção no historico: " + collection.name);
+      window.electronAPI.logAction(
+        "Salvando coleção no historico: " + collection.name
+      );
       await window.electronAPI.saveHistory(collection);
     }
   };

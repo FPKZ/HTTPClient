@@ -18,7 +18,7 @@ import { cn } from "../lib/utils";
  * }>} items - Itens do menu.
  */
 
-const MenuItem = ({ item, index }) => {
+export const MenuItem = ({ item, index }) => {
   if (item.separator) {
     return (
       <DropdownMenu.Separator
@@ -100,7 +100,7 @@ const MenuItem = ({ item, index }) => {
   );
 };
 
-export default function DropdownMenuComponent({ buttonContent, items }) {
+export function DropdownMenuComponent({ buttonContent, items }) {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>

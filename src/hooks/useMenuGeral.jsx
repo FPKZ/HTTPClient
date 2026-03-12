@@ -97,12 +97,12 @@ export function useMenuGeral() {
     {
       separator: true,
     },
-    {
-      icon: <LogOut size={14} />,
-      label: "Sair",
-      shortcut: "Ctrl+Q",
-      onClick: () => window.electronAPI.close(),
-    },
+    // {
+    //   icon: <LogOut size={14} />,
+    //   label: "Sair",
+    //   shortcut: "Ctrl+Q",
+    //   onClick: () => window.electronAPI.close(),
+    // },
   ];
 
   const devTemplete = [
