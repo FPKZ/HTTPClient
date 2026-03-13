@@ -1,7 +1,10 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { LogOut } from "lucide-react";
+import { useMenuGeral } from "../../hooks/useMenuGeral";
+import { MenuItem } from "../DropdownMenu";
 
 export default function ModalUser({ children }) {
+  const { templete } = useMenuGeral();
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>{children}</DropdownMenu.Trigger>
@@ -15,23 +18,12 @@ export default function ModalUser({ children }) {
               <p className="font-bold m-0">Luis Felipe</p>
             </div>
           </div>
-          {[
-            { label: "Item 1", onClick: () => {} },
-            { label: "Item 2", onClick: () => {} },
-          ].map((item, index) => (
-            <DropdownMenu.Item
-              key={index}
-              className="
-                px-2 py-1 flex items-center
-                text-[0.8rem] font-normal text-zinc-300 
-                data-highlighted:text-zinc-100 data-highlighted:font-bold
-                data-highlighted:bg-zinc-800! 
-                rounded cursor-pointer outline-none
-              "
-              onClick={item.onClick}
-            >
-              {item.label}
-            </DropdownMenu.Item>
+          {templete.map((item, index) => (
+            <MenuItem
+            key={index}
+            item={item}
+            index={index}
+          />
           ))}
 
           <DropdownMenu.Item
@@ -42,6 +34,7 @@ export default function ModalUser({ children }) {
                 data-highlighted:bg-red-500/90! 
                 rounded cursor-pointer outline-none
                 group
+                transition-all duration-200 ease-in-out
             "
             onClick={() => {}}
           >

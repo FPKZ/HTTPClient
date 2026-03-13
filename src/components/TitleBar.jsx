@@ -2,20 +2,21 @@ import React from "react";
 // import icon from "../assets/icon1.png";
 import { Menu, Plus, Settings, SquareTerminal, FileDown } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import DropdownMenuComponent from "./DropdownMenu";
+// import { DropdownMenuComponent } from "./DropdownMenu";
 import ModalUser from "./ui/ModalUSer";
-import { useMenuGeral } from "../hooks/useMenuGeral";
+// import { useMenuGeral } from "../hooks/useMenuGeral";
 import Workspaces from "./modals/Workspaces";
-import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+// import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import useTabStore from "../store/useTabStore";
 import icons from "../assets/icons";
 
-function ActionButtons({ menuItems, handleMinimize, handleMaximize, handleClose, location }){
+function ActionButtons({ handleMinimize, handleMaximize, handleClose, location }){
+  // const { templete: menuItems } = useMenuGeral();
   return(
     <div className="window-controls d-flex no-drag h-100">
       
 
-      {location.pathname === "/" && (
+      {/* {location.pathname === "/home" && (
         <div className="btn-control">
           <DropdownMenuComponent
             buttonContent={
@@ -29,7 +30,7 @@ function ActionButtons({ menuItems, handleMinimize, handleMaximize, handleClose,
             items={menuItems}
           />
         </div>
-      )}
+      )} */}
       <button
         onClick={handleMinimize}
         className="btn-control h-100 text-zinc-400 hover:text-zinc-100 transition-colors duration-200"
@@ -108,7 +109,7 @@ function TitleBarContent({activeTab}){
 }
 
 export default function TitleBar() {
-  const { templete, devTemplete, isDev } = useMenuGeral();
+  // const { templete, devTemplete, isDev } = useMenuGeral();
   const { fullLogo } = icons();
   const location = useLocation();
 
@@ -116,11 +117,11 @@ export default function TitleBar() {
   const deleteActiveTab = useTabStore((state) => state.deleteActiveTab);
 
   // Registra os atalhos de teclado globais apenas quando o menu geral é visível
-  const menuItems =
-    (location.pathname === "/" &&
-      (isDev ? [...templete, ...devTemplete] : templete)) ||
-    [];
-  useKeyboardShortcuts(menuItems);
+  // const menuItems =
+  //   (location.pathname === "/" &&
+  //     (isDev ? [...templete, ...devTemplete] : templete)) ||
+  //   [];
+  // useKeyboardShortcuts(menuItems);
 
   const handleMinimize = () => window.electronAPI.minimize();
   const handleMaximize = () => window.electronAPI.maximize();
@@ -163,7 +164,7 @@ export default function TitleBar() {
       }
 
       <ActionButtons
-        menuItems={menuItems}
+        // menuItems={menuItems}
         handleMinimize={handleMinimize}
         handleMaximize={handleMaximize}
         handleClose={handleClose}

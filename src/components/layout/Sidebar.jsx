@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 import NovoItemModal from "../modals/NovoItemModal";
 import { useHistory } from "../../hooks/useHistory";
 import ContextMenu from "../ContextMenu";
-import DropdownMenuComponent from "../DropdownMenu";
+import { DropdownMenuComponent } from "../DropdownMenu";
 import EditCollectionModal from "../modals/EditCollectionModal";
 import EnvInfoModal from "../modals/EnvInfoModal";
 import EnvManagerModal from "../modals/EnvManagerModal";

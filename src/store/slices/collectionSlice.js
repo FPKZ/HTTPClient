@@ -695,5 +695,21 @@ export const createCollectionSlice = (set, get) => {
       const { collection } = get();
       return { ...collection };
     },
+
+    resetCollection: () => {
+      set({
+        collection: {
+          id: null,
+          name: "",
+          description: "",
+          items: [],
+          environments: [],
+          activeEnvironmentId: null,
+        },
+        globals: [],
+        tabs: [],
+        activeTabId: null,
+      });
+    },
   };
 };

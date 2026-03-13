@@ -12,29 +12,69 @@ class HistoryService {
   }
 
   async getHistory() {
-    const history = (await this.storage.readJson(this.historyFile)) || [];
-    // Auto-repair corrupted items (detect "native" as file)
-    return history.map((item) => {
+    const raw = (await this.storage.readJson(this.historyFile)) || [];
+    let needsPersist = false;
+
+    const history = raw.map((item) => {
       if (item.file === "native") {
+        needsPersist = true;
         return {
           ...item,
           file: `${item.id}.json`,
           sourceType: "native",
-          // Tenta recuperar a descrição se ela foi salva errada no campo type
-          descricao: item.descricao || (item.sourceType !== "native" ? item.sourceType : ""),
+          descricao: item.descricao || "",
         };
       }
       return item;
     });
+
+    // Persiste a correção em disco para não depender do auto-repair sempre
+    if (needsPersist) {
+      await this.storage.writeJson(this.historyFile, history);
+    }
+
+    return history;
   }
 
-  async loadCollection(fileName) {
-    const isAbsolute = path.isAbsolute(fileName);
-    const filePath = isAbsolute ? fileName : path.join(this.storage.getCollectionsPath(), fileName);
-    // console.log(`[HistoryService] Loading collection: ${fileName}`);
-    // console.log(`[HistoryService] Resolved path: ${filePath}`);
-    const result = await this.storage.readJson(filePath, true);
-    // console.log(`[HistoryService] Result found: ${!!result}`);
+  async getCollectionById(id, source = "local") {
+    if (source === "online") {
+      // Placeholder para futura integração online
+      console.warn(`[HistoryService] Fonte online ainda não implementada para id: ${id}`);
+      return null;
+    }
+
+    // Busca o item no index de histórico para obter o nome de arquivo real
+    const history = await this.getHistory();
+    const item = history.find((h) => h.id === id);
+
+    if (!item) {
+      console.warn(`[HistoryService] Item não encontrado no histórico para id: ${id}`);
+      return null;
+    }
+
+    const collectionsPath = this.storage.getCollectionsPath();
+    const filePath = path.join(collectionsPath, item.file);
+    let result = await this.storage.readJson(filePath, true);
+
+    // Fallback: tenta o arquivo legado (quando o bug salvava como "native")
+    if (!result) {
+      const legacyPath = path.join(collectionsPath, "native");
+      result = await this.storage.readJson(legacyPath, true);
+
+      if (result) {
+        // Migra: renomeia o arquivo para o nome correto em disco
+        const fs = require("fs");
+        try {
+          await fs.promises.rename(legacyPath, filePath);
+          console.log(`[HistoryService] Arquivo migrado: native → ${item.file}`);
+        } catch (e) {
+          console.error(`[HistoryService] Falha ao migrar arquivo:`, e);
+        }
+      } else {
+        console.warn(`[HistoryService] Arquivo não encontrado: ${filePath}`);
+      }
+    }
+
     return result;
   }
 
