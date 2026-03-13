@@ -90,6 +90,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return () => ipcRenderer.removeListener("menu-action", subscription);
   },
 
+  // --- Usuário ---
+  getUser: () => ipcRenderer.invoke("get-user"),
+  login: (email, password) => ipcRenderer.invoke("login", { email, password }),
+  logout: () => ipcRenderer.invoke("logout"),
+  register: (email, password) => ipcRenderer.invoke("register", { email, password }),
+  update: (user) => ipcRenderer.invoke("update", { user }),
+
   // --- Gestão de Coleções e Histórico ---
   getHistory: () => ipcRenderer.invoke("get-history"),
   saveHistory: (data) => ipcRenderer.invoke("save-history", data),

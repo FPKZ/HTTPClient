@@ -36,6 +36,7 @@ const ContextMenuBuilder = require("./core/context-menu-builder.cjs");
 // Services
 const HistoryService = require("./services/history-service.cjs");
 const NetworkService = require("./services/network-service.cjs");
+const UserService = require("./services/user-service.cjs");
 const WindowManager = require("./services/window-manager.cjs");
 const AutoUpdateService = require("./services/auto-update-service.cjs");
 const IpcRouter = require("./services/ipc-router.cjs");
@@ -60,6 +61,7 @@ const exportService = new ExportService(storage);
 // 2. Instanciar Serviços de Negócio
 const historyService = new HistoryService(storage);
 const networkService = new NetworkService();
+const userService = new UserService();
 const windowManager = new WindowManager(isDev, preloadPath, actionLogger);
 
 const autoUpdateService = new AutoUpdateService(isDev, actionLogger);
@@ -78,6 +80,7 @@ const ipcRouter = new IpcRouter(
   exportService,
   dialogReact,
   actionLogger,
+  userService,
 );
 
 // app.disableHardwareAcceleration();

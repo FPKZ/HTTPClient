@@ -17,6 +17,7 @@ class IpcRouter {
     exportService,
     dialogReact,
     actionLogger,
+    userService,
   ) {
     this.win = windowManager;
     this.history = historyService;
@@ -26,6 +27,7 @@ class IpcRouter {
     this.export = exportService;
     this.dialogReact = dialogReact;
     this.actionLogger = actionLogger;
+    this.user = userService;
   }
 
   register() {
@@ -189,6 +191,13 @@ class IpcRouter {
         console.log(`[IpcRouter] Requisição ${requestId} cancelada.`);
       }
     });
+
+    //user
+    ipcMain.handle("get-user", () => this.user.getUser());
+    ipcMain.handle("login", (event, { email, password }) => this.user.login(email, password));
+    ipcMain.handle("logout", () => this.user.logout());
+    ipcMain.handle("register", (event, { email, password }) => this.user.register(email, password));
+    ipcMain.handle("update", (event, { user }) => this.user.update(user));
 
     // Export
     ipcMain.handle("save-file", async (event, { content, defaultPath }) => {
