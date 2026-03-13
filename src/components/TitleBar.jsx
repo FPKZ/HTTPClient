@@ -10,27 +10,10 @@ import Workspaces from "./modals/Workspaces";
 import useTabStore from "../store/useTabStore";
 import icons from "../assets/icons";
 
-function ActionButtons({ handleMinimize, handleMaximize, handleClose, location }){
-  // const { templete: menuItems } = useMenuGeral();
+function ActionButtons({ handleMinimize, handleMaximize, handleClose}){
   return(
     <div className="window-controls d-flex no-drag h-100">
-      
-
-      {/* {location.pathname === "/home" && (
-        <div className="btn-control">
-          <DropdownMenuComponent
-            buttonContent={
-              <Menu
-                size={16}
-                title="Menu"
-                strokeWidth={2}
-                className="text-zinc-400 hover:text-zinc-100 transition-colors duration-200"
-              />
-            }
-            items={menuItems}
-          />
-        </div>
-      )} */}
+    
       <button
         onClick={handleMinimize}
         className="btn-control h-100 text-zinc-400 hover:text-zinc-100 transition-colors duration-200"

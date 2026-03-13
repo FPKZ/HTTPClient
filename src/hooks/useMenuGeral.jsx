@@ -1,8 +1,10 @@
 import React from "react";
 import { useNewCollection } from "./useNewCollection";
-// import useTabStore from "../store/useTabStore"; // Ajustado o caminho e import default
+import useTabStore from "../store/useTabStore"; // Ajustado o caminho e import default
 import useModalStore from "../store/useModalStore";
-import { Plus, FileDown, LogOut, SquareTerminal } from "lucide-react";
+import { Plus, FileDown, LogIn, User, SquareTerminal } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import useUserStore from "@/store/useUserStote";
 
 /**
  * useMenuGeral
@@ -11,7 +13,10 @@ import { Plus, FileDown, LogOut, SquareTerminal } from "lucide-react";
 export function useMenuGeral() {
   const { triggerNewCollection } = useNewCollection();
   const setExportModalOpen = useModalStore((state) => state.setExportModalOpen);
+  const collection = useTabStore((state) => state.collection);
+  const user = useUserStore((state) => state.user);
   const isDev = window.electronAPI?.isDev;
+  const navigate = useNavigate();
 
   const handleExportCollection = () => {
     setExportModalOpen(true, "json");
@@ -65,7 +70,15 @@ export function useMenuGeral() {
     </svg>
   );
 
-  const templete = [
+  const userLogin = [
+    {
+      icon: <LogIn size={14} />,
+      label: "Login",
+      onClick: () => navigate("/login"),
+    },
+  ];
+
+  const menuCollections = [
     {
       icon: <Plus size={14} />,
       label: "Nova Coleção",
@@ -94,16 +107,31 @@ export function useMenuGeral() {
         },
       ],
     },
+  ]
+
+  const userMenu = [
     {
-      separator: true,
+      icon: <User size={14} />,
+      label: "Perfil",
+      onClick: () => navigate("/profile"),
     },
-    // {
-    //   icon: <LogOut size={14} />,
-    //   label: "Sair",
-    //   shortcut: "Ctrl+Q",
-    //   onClick: () => window.electronAPI.close(),
-    // },
   ];
+
+  const templete = [
+    ...(user ? userMenu : userLogin),
+    ...(collection.id ? [
+      {
+        separator: true,
+      },
+    ] : []),
+    ...(collection.id ? menuCollections : []),
+    ...(user ? [
+      {
+        separator: true,
+      },
+    ] : []),
+  ];
+  console.log(user)
 
   const devTemplete = [
     {

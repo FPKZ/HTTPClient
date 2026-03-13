@@ -85,6 +85,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "autoprefixer": "^10.4.23",
     "axios": "^1.13.2",
+    "bcrypt": "^6.0.0",
     "bootstrap": "^5.3.8",
     "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.1",
@@ -134,6 +135,8 @@
     "wait-on": "^9.0.3"
   },
   "overrides": {
-    "tar": "^7.4.3"
+    "tar": "^7.4.3",
+    "@tootallnate/once": "^3.0.1",
+    "dompurify": "^3.1.5"
   }
 }

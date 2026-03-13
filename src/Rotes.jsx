@@ -1,6 +1,6 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import useTabStore from "../store/useTabStore";
+import useTabStore from "./store/useTabStore";
 import UpdatePage from "./pages/UpdatePage";
 import ResizableDemo from "./pages/ResizableDemo";
 import Layout from "./pages/layout";
