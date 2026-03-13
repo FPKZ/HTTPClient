@@ -2,9 +2,11 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { LogOut } from "lucide-react";
 import { useMenuGeral } from "../../hooks/useMenuGeral";
 import { MenuItem } from "../DropdownMenu";
+import useUserStore from "../../store/useUserStote";
 
 export default function ModalUser({ children }) {
   const { templete } = useMenuGeral();
+  const user = useUserStore((state) => state.user);
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>{children}</DropdownMenu.Trigger>
@@ -12,10 +14,10 @@ export default function ModalUser({ children }) {
         <DropdownMenu.Content className="min-w-[180px] bg-zinc-900 border border-zinc-700! p-2 rounded-sm shadow-2xl z-50!">
           <div className="flex flex-col items-center gap-2 p-1 my-2">
             <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#ffc107]">
-              <span className="text-[1rem] font-extrabold">LF</span>
+              <span className="text-[1rem] font-extrabold">{user?.name ? user.name.substring(0, 2).toUpperCase() : "US"}</span>
             </div>
             <div className="text-[0.8rem] text-zinc-300">
-              <p className="font-bold m-0">Luis Felipe</p>
+              <p className="font-bold m-0">{user?.name || "Usuário"}</p>
             </div>
           </div>
           {templete.map((item, index) => (

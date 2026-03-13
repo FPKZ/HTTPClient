@@ -3,22 +3,16 @@ import { Container, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import icons from "../assets/icons";
 import { ArrowRight } from "lucide-react";
+import useLogin from "../hooks/useLogin";
 
 /**
  * Página de login
  * @returns {JSX.Element}
  */
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const navigate = useNavigate();
+  const { email, password, loading, error, success, handleLogin, setEmail, setPassword, setLoading, setError, setSuccess } = useLogin();
 
   const { fullLogo } = icons();
-
-  const handleLogin = () => {
-    navigate("/");
-  };
 
   return (
     <div className="d-flex flex-col h-100 position-relative overflow-hidden">
@@ -83,6 +77,9 @@ export default function LoginPage() {
               >
                 Entrar
               </Button>
+
+              {error && <p className="text-red-500">{error}</p>}
+              {success && <p className="text-green-500">Login realizado com sucesso!</p>}
             </div>
             <div className="flex gap-2 p-2 justify-between text-[0.7rem] text-[#cecece]/70">
               <div>

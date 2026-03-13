@@ -96,6 +96,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   logout: () => ipcRenderer.invoke("logout"),
   register: (email, password) => ipcRenderer.invoke("register", { email, password }),
   update: (user) => ipcRenderer.invoke("update", { user }),
+  onUserChangerd: (callback) => ipcRenderer.on("user-changed", (_event, user) => callback(user)),
+  
 
   // --- Gestão de Coleções e Histórico ---
   getHistory: () => ipcRenderer.invoke("get-history"),
