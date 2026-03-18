@@ -1,187 +1,163 @@
-const bcrypt = require("bcrypt");
-
-//MOCAP
-const mocapUsers = [
-    {
-        id: "1",
-        name: "Luis Felipe",
-        email: "felipedosantos.tr@gmail.com",
-        displayName: "Luis Felipe",
-        emailVerified: true,
-        phone: "1234567890",
-        phoneVerified: true,
-        password: bcrypt.hashSync("felipe1706", bcrypt.genSaltSync(10)),
-        avatar: "https://example.com/avatar.jpg",
-        provider: "email",
-        autoSave: true,
-        defaultWorkspaceId: "1",
-        updatedAt: "2022-01-01T00:00:00.000Z",
-        createdAt: "2022-01-01T00:00:00.000Z",
-        deletedAt: null,
-    },
-    {
-        id: "2",
-        name: "Jorge",
-        email: "jorgeGay@gmail.com",
-        displayName: "Jorge",
-        emailVerified: true,
-        phone: "1234567890",
-        phoneVerified: true,
-        password: bcrypt.hashSync("jorge123", bcrypt.genSaltSync(10)),
-        avatar: "https://example.com/avatar.jpg",
-        provider: "email",
-        autoSave: true,
-        defaultWorkspaceId: "1",
-        updatedAt: "2022-01-01T00:00:00.000Z",
-        createdAt: "2022-01-01T00:00:00.000Z",
-        deletedAt: null,
-    }
-]
-
 /**
  * User service 
+ * Refatorado para integrar com Supabase Auth e Banco de Dados Local (SQLite)
  */
 
 class UserService {
-    constructor() {
-        this.user = null
+    /**
+     * @param {import('./supabase-service.cjs')} supabaseService 
+     * @param {import('../utils/local-db-provider.cjs')} localDbProvider 
+     */
+    constructor(supabaseService, localDbProvider) {
+        this.supabaseService = supabaseService;
+        this.dbProvider = localDbProvider;
+        this.user = null; // Usuário logado em memória
     }
 
-    async login(email, password) {
-        try {
-            //verificação de login no banco de dados
-            // const user = await this.storage.getUserByEmail(email);
-            const user = mocapUsers.find((user) => user.email === email);
-            
-            if (!user) {
-                return { success: false, error: 'User not found' };
-            }
-            if (!bcrypt.compareSync(password, user.password)) {
-                return { success: false, error: 'Invalid password' };
-            }
-            this.user = user;
+    get supabase() {
+        return this.supabaseService.getClient();
+    }
 
-            this.user = new User(user);
-            
-            return { success: true, user };
+    get db() {
+        return this.dbProvider.getDb();
+    }
+
+    /**
+     * Tenta recuperar a sessão ativa do Supabase/Local no startup
+     */
+    async initSession() {
+        if (!this.supabaseService.isActive()) return;
+        
+        const { data, error } = await this.supabase.auth.getSession();
+        if (data && data.session && data.session.user) {
+            this.setLocalUserFromAuth(data.session.user);
+        }
+    }
+
+    /**
+     * Realiza o login via Supabase
+     */
+    async login(email, password) {
+        if (!this.supabaseService.isActive()) {
+            return { success: false, error: 'Serviço de Nuvem indisponível.' };
+        }
+
+        try {
+            const { data, error } = await this.supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+
+            if (error) {
+                return { success: false, error: error.message };
+            }
+
+            if (data && data.user) {
+                this.setLocalUserFromAuth(data.user);
+                return { success: true, user: this.user };
+            }
+
+            return { success: false, error: 'Erro desconhecido ao logar.' };
             
         } catch (error) {
-            console.error('Error logging in:', error);
+            console.error('[UserService] Erro ao logar:', error);
             return { success: false, error: error.message };
         }
     }
 
+    /**
+     * Realiza o registro via Supabase
+     */
+    async register(email, password, displayName = '') {
+        if (!this.supabaseService.isActive()) {
+            return { success: false, error: 'Serviço de Nuvem indisponível.' };
+        }
+
+        try {
+            const { data, error } = await this.supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        name: displayName
+                    }
+                }
+            });
+
+            if (error) {
+                return { success: false, error: error.message };
+            }
+
+            if (data && data.user) {
+                this.setLocalUserFromAuth(data.user);
+                return { success: true, user: this.user };
+            }
+
+            return { success: false, error: 'Erro ao registrar.' };
+            
+        } catch (error) {
+            console.error('[UserService] Erro ao registrar:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Encerra sessão
+     */
     async logout() {
         try {
+            if (this.supabaseService.isActive()) {
+                await this.supabase.auth.signOut();
+            }
             this.user = null;
             return { success: true };
         } catch (error) {
-            console.error('Error logging out:', error);
+            console.error('[UserService] Erro ao deslogar:', error);
             return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Sincroniza os dados do usuário autenticado para a tabela SQLite local
+     */
+    setLocalUserFromAuth(authUser) {
+        const userId = authUser.id;
+        const email = authUser.email;
+        const displayName = authUser.user_metadata?.name || email.split('@')[0];
+        const avatarUrl = authUser.user_metadata?.avatar_url || null;
+
+        try {
+            // Upsert no BD Local para Cache
+            const stmt = this.db.prepare(`
+                INSERT INTO users (id, email, display_name, avatar_url)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    email=excluded.email,
+                    display_name=excluded.display_name,
+                    avatar_url=excluded.avatar_url
+            `);
+            
+            stmt.run(userId, email, displayName, avatarUrl);
+
+            this.user = {
+                id: userId,
+                email: email,
+                displayName: displayName,
+                avatar: avatarUrl
+            };
+        } catch (err) {
+            console.error('[UserService] Falha ao persistir usuário localmente:', err);
         }
     }
 
     getUser() {
         return this.user;
     }
-}
 
-class User {
-    constructor(user) {
-        this.id = user.id;
-        this.name = user.name;
-        this.email = user.email;
-        this.displayName = user.displayName;
-        this.emailVerified = user.emailVerified;
-        this.phone = user.phone;
-        this.phoneVerified = user.phoneVerified;
-        this.password = user.password;
-        this.avatar = user.avatar;
-        this.provider = user.provider;
-        this.autoSave = user.autoSave;
-        this.defaultWorkspaceId = user.defaultWorkspaceId;
-        this.updatedAt = user.updatedAt;
-        this.createdAt = user.createdAt;
-        this.deletedAt = user.deletedAt;
-    }
-
-    async register(email, password) {
-        try {
-            //verificação de registro no banco de dados
-            // const user = await this.storage.getUserByEmail(email);
-            // if (user) {
-            //     return { success: false, error: 'User already exists' };
-            // }
-            // this.user = user;
-            const user = {
-                id: "1",
-                name: "Felipe",
-                email: "[EMAIL_ADDRESS]",
-                displayName: "Felipe",
-                emailVerified: true,
-                phone: "1234567890",
-                phoneVerified: true,
-                password: "[PASSWORD]",
-                avatar: "https://example.com/avatar.jpg",
-                provider: "email",
-                autoSave: true,
-                defaultWorkspaceId: "1",
-                updatedAt: "2022-01-01T00:00:00.000Z",
-                createdAt: "2022-01-01T00:00:00.000Z",
-                deletedAt: null,
-            };
-            
-            return { success: true, user };
-            
-        } catch (error) {
-            console.error('Error registering:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async update(user) {
-        try {
-            //verificação de atualização no banco de dados
-            // const user = await this.storage.getUserByEmail(email);
-            // if (user) {
-            //     return { success: false, error: 'User already exists' };
-            // }
-            // this.user = user;
-            const user = {
-                id: "1",
-                name: "Felipe",
-                email: "[EMAIL_ADDRESS]",
-                displayName: "Felipe",
-                emailVerified: true,
-                phone: "1234567890",
-                phoneVerified: true,
-                password: "[PASSWORD]",
-                avatar: "https://example.com/avatar.jpg",
-                provider: "email",
-                autoSave: true,
-                defaultWorkspaceId: "1",
-                updatedAt: "2022-01-01T00:00:00.000Z",
-                createdAt: "2022-01-01T00:00:00.000Z",
-                deletedAt: null,
-            };
-            
-            return { success: true, user };
-            
-        } catch (error) {
-            console.error('Error updating:', error);
-            return { success: false, error: error.message };
-        }
+    async update(userParams) {
+        // Implementação futura de update de profile
+        return { success: false, error: 'Not implemented' };
     }
 }
 
-class UserSettings {
-    constructor() {
-        this.user_id = null;
-        this.auto_save_enabled = null;
-        this.default_workspace_id = null;
-        this.updated_at = null;
-        this.created_at = null;
-    }
-}
-
-module.exports = UserService
+module.exports = UserService;

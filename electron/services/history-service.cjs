@@ -3,52 +3,112 @@ const path = require("path");
 /**
  * HistoryService
  * Orquestra a persistência do histórico e coleções.
- * Segue o OCP e DIP ao usar um StorageProvider para persistência.
+ * Atualizado para utilizar o DB Local (SQLite) via LocalDbProvider, mantendo StorageProvider como fallback de migração.
  */
 class HistoryService {
-  constructor(storageProvider) {
+  constructor(storageProvider, dbProvider, userService) {
     this.storage = storageProvider;
+    this.dbProvider = dbProvider;
+    this.userService = userService;
     this.historyFile = "history.json";
   }
 
-  async getHistory() {
-    const raw = (await this.storage.readJson(this.historyFile)) || [];
-    let needsPersist = false;
+  get db() {
+    return this.dbProvider.getDb();
+  }
 
-    const history = raw.map((item) => {
-      if (item.file === "native") {
-        needsPersist = true;
+  async getHistory() {
+    try {
+      // Pega o dono ativo
+      const currentUser = this.userService?.getUser();
+      const ownerId = currentUser ? currentUser.id : null;
+
+      // Busca últimas coleções modificadas do banco de dados (SQLite)
+      let queryStr = `
+        SELECT id, name, data, updated_at as updatedAt
+        FROM collections
+      `;
+      let params = [];
+      
+      if (ownerId) {
+          queryStr += ` WHERE owner_id = ? `;
+          params.push(ownerId);
+      } else {
+          queryStr += ` WHERE owner_id IS NULL `;
+      }
+
+      queryStr += ` ORDER BY updated_at DESC LIMIT 15`;
+
+      const rows = this.db.prepare(queryStr).all(...params);
+
+      let dbHistory = rows.map(row => {
+        let description = '';
+        try {
+          if (row.data) {
+            const parsed = JSON.parse(row.data);
+            description = parsed.description || parsed.descricao || '';
+          }
+        } catch (e) {
+          console.error("Erro ao fazer parse dos dados db:", e);
+        }
+        
+        return {
+          id: row.id,
+          name: row.name,
+          description: description,
+          updatedAt: row.updatedAt,
+          sourceType: "native",
+          file: `${row.id}.json` // Mantido para UI compatibility
+        };
+      });
+
+      // Busca do JSON legado como fallback
+      const raw = (await this.storage.readJson(this.historyFile)) || [];
+      const legacyHistory = raw.filter(item => !dbHistory.some(dbItem => dbItem.id === item.id)).map(item => {
         return {
           ...item,
-          file: `${item.id}.json`,
+          file: item.file === "native" ? `${item.id}.json` : item.file,
           sourceType: "native",
           descricao: item.descricao || "",
         };
-      }
-      return item;
-    });
+      });
 
-    // Persiste a correção em disco para não depender do auto-repair sempre
-    if (needsPersist) {
-      await this.storage.writeJson(this.historyFile, history);
+      return [...dbHistory, ...legacyHistory].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 15);
+    } catch (error) {
+      console.error("[HistoryService] Erro ao obter histórico:", error);
+      return [];
     }
-
-    return history;
   }
 
   async getCollectionById(id, source = "local") {
     if (source === "online") {
-      // Placeholder para futura integração online
-      console.warn(`[HistoryService] Fonte online ainda não implementada para id: ${id}`);
+      console.warn(`[HistoryService] Fonte online não implementada para id: ${id}`);
       return null;
     }
 
-    // Busca o item no index de histórico para obter o nome de arquivo real
-    const history = await this.getHistory();
+    try {
+      // Tenta carregar do banco de dados primeiro
+      const row = this.db.prepare(`
+        SELECT data FROM collections WHERE id = ?
+      `).get(id);
+
+      if (row && row.data) {
+        return JSON.parse(row.data);
+      }
+    } catch (error) {
+      console.error("[HistoryService] Erro ao buscar id no banco de dados:", error);
+    }
+
+    // Fallback: carregar dos arquivos antigos JSON
+    return await this.fallbackLoadFromStorage(id);
+  }
+
+  async fallbackLoadFromStorage(id) {
+    const history = (await this.storage.readJson(this.historyFile)) || [];
     const item = history.find((h) => h.id === id);
 
     if (!item) {
-      console.warn(`[HistoryService] Item não encontrado no histórico para id: ${id}`);
+      console.warn(`[HistoryService] Item não encontrado no histórico antigo para id: ${id}`);
       return null;
     }
 
@@ -56,99 +116,89 @@ class HistoryService {
     const filePath = path.join(collectionsPath, item.file);
     let result = await this.storage.readJson(filePath, true);
 
-    // Fallback: tenta o arquivo legado (quando o bug salvava como "native")
     if (!result) {
       const legacyPath = path.join(collectionsPath, "native");
       result = await this.storage.readJson(legacyPath, true);
 
       if (result) {
-        // Migra: renomeia o arquivo para o nome correto em disco
         const fs = require("fs");
         try {
           await fs.promises.rename(legacyPath, filePath);
-          console.log(`[HistoryService] Arquivo migrado: native → ${item.file}`);
-        } catch (e) {
-          console.error(`[HistoryService] Falha ao migrar arquivo:`, e);
-        }
-      } else {
-        console.warn(`[HistoryService] Arquivo não encontrado: ${filePath}`);
+        } catch (e) {}
       }
+    }
+
+    // Ao migrar a leitura, poderíamos salvar no SQLite aqui para cache progressivo.
+    if (result) {
+      await this.saveHistory(result); // Auto-migrate progressivo!
     }
 
     return result;
   }
 
   async saveHistory(collectionData) {
-    const history = await this.getHistory();
-    const { id, name, items } = collectionData;
-    let collectionId = id;
-    let fileName;
+    try {
+      const { id, name } = collectionData;
+      const collectionId = id || Date.now().toString();
+      const updatedName = name || "Unnamed Request";
+      const dataString = JSON.stringify(collectionData);
+      const updatedAt = new Date().toISOString();
 
-    if (collectionId) {
-      const index = history.findIndex((item) => item.id === collectionId);
-      if (index !== -1) {
-        fileName = history[index].file;
-        const [existingItem] = history.splice(index, 1);
-        existingItem.updatedAt = new Date().toISOString();
-        existingItem.name = name;
-        existingItem.description = collectionData.description || collectionData.descricao || "";
-        history.unshift(existingItem);
-      } else {
-        fileName = `${collectionId}.json`;
-        history.unshift(
-          this._createNewHistoryItem(
-            collectionId,
-            name,
-            collectionData.description || collectionData.descricao || "",
-            "native",
-            fileName,
-          ),
-        );
-      }
-    } else {
-      collectionId = Date.now().toString();
-      fileName = `${collectionId}.json`;
-      history.unshift(
-        this._createNewHistoryItem(
-          collectionId,
-          name,
-          collectionData.description || collectionData.descricao || "",
-          "native",
-          fileName,
-        ),
-      );
+      // Identifica o dono ativo 
+      const currentUser = this.userService?.getUser();
+      const ownerId = currentUser ? currentUser.id : null;
+
+      const stmt = this.db.prepare(`
+        INSERT INTO collections (id, name, data, updated_at, is_dirty, owner_id)
+        VALUES (?, ?, ?, ?, 1, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          name=excluded.name,
+          data=excluded.data,
+          updated_at=excluded.updated_at,
+          is_dirty=1,
+          owner_id=excluded.owner_id
+      `);
+      
+      stmt.run(collectionId, updatedName, dataString, updatedAt, ownerId);
+    } catch (error) {
+      console.error("[HistoryService] Erro ao salvar histórico no SQLite:", error);
     }
-
-    // Salva o JSON da coleção
-    const collectionPath = path.join(this.storage.getCollectionsPath(), fileName);
-    await this.storage.writeJson(collectionPath, collectionData, true);
-
-    // Limita o histórico
-    if (history.length > 15) history.pop();
-
-    // Salva o índice de histórico
-    await this.storage.writeJson(this.historyFile, history);
   }
 
   async deleteHistoryItem(id) {
-    const history = await this.getHistory();
-    const index = history.findIndex((item) => item.id === id);
+    try {
+      // Deleta do DB
+      const info = this.db.prepare(`DELETE FROM collections WHERE id = ?`).run(id);
 
-    if (index !== -1) {
-      const item = history[index];
-      const collectionPath = path.join(this.storage.getCollectionsPath(), item.file);
+      // Deleta do arquivo antigo para evitar vestígios
+      const history = (await this.storage.readJson(this.historyFile)) || [];
+      const index = history.findIndex((item) => item.id === id);
+      if (index !== -1) {
+        const item = history[index];
+        const collectionPath = path.join(this.storage.getCollectionsPath(), item.file);
+        await this.storage.deleteFile(collectionPath, true);
+        history.splice(index, 1);
+        await this.storage.writeJson(this.historyFile, history);
+      }
 
-      await this.storage.deleteFile(collectionPath, true);
-      history.splice(index, 1);
-      await this.storage.writeJson(this.historyFile, history);
-      return true;
+      return info.changes > 0 || index !== -1;
+    } catch (error) {
+      console.error("[HistoryService] Erro ao deletar histórico:", error);
+      return false;
     }
-    return false;
   }
 
   async deleteAllHistory() {
-    await this.storage.deleteAll(this.storage.getCollectionsPath());
-    await this.storage.writeJson(this.historyFile, []);
+    try {
+      // Limpa DB
+      this.db.prepare(`DELETE FROM collections`).run();
+      
+      // Limpa arquivos
+      await this.storage.deleteAll(this.storage.getCollectionsPath());
+      await this.storage.writeJson(this.historyFile, []);
+    } catch (error) {
+      console.error("[HistoryService] Erro ao deletar todo o histórico:", error);
+    }
   }
 
   _createNewHistoryItem(id, name, description, type, file) {

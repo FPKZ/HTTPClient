@@ -28,6 +28,7 @@ process.on("unhandledRejection", (reason, promise) => {
 
 // Core & Utils
 const StorageProvider = require("./utils/storage-provider.cjs");
+const LocalDbProvider = require("./utils/local-db-provider.cjs");
 const PostmanTranslator = require("./core/postman-translator.cjs");
 const { AxiosFormatter, HttpFormatter } = require("./core/formatters.cjs");
 const MenuBuilder = require("./core/menu-builder.cjs");
@@ -37,6 +38,8 @@ const ContextMenuBuilder = require("./core/context-menu-builder.cjs");
 const HistoryService = require("./services/history-service.cjs");
 const NetworkService = require("./services/network-service.cjs");
 const UserService = require("./services/user-service.cjs");
+const SupabaseService = require("./services/supabase-service.cjs");
+const SyncService = require("./services/sync-service.cjs");
 const WindowManager = require("./services/window-manager.cjs");
 const AutoUpdateService = require("./services/auto-update-service.cjs");
 const IpcRouter = require("./services/ipc-router.cjs");
@@ -53,16 +56,22 @@ isDev ? actionLogger.logClear() : null;
 
 // 1. Instanciar Provedores e Conversores (Infra e Core)
 const storage = new StorageProvider(userDataPath);
+const dbProvider = new LocalDbProvider(userDataPath);
 const translator = new PostmanTranslator();
 const axiosFormatter = new AxiosFormatter();
 const httpFormatter = new HttpFormatter();
 const exportService = new ExportService(storage);
 
 // 2. Instanciar Serviços de Negócio
-const historyService = new HistoryService(storage);
+const supabaseService = new SupabaseService(userDataPath);
+const userService = new UserService(supabaseService, dbProvider);
+const historyService = new HistoryService(storage, dbProvider, userService);
 const networkService = new NetworkService();
-const userService = new UserService();
+const syncService = new SyncService(dbProvider, supabaseService);
 const windowManager = new WindowManager(isDev, preloadPath, actionLogger);
+
+// Inicializa a sessão do usuário caso exista cache local / token válido
+userService.initSession().catch(err => console.error("Erro ao inicializar sessão:", err));
 
 const autoUpdateService = new AutoUpdateService(isDev, actionLogger);
 const menuBuilder = new MenuBuilder(windowManager, isDev);
@@ -132,6 +141,10 @@ app.whenReady().then(() => {
       clearTimeout(launchTimer);
       // dialog.showMessageBox({ message: '2. Launching Main Window...' }); // Debug
       actionLogger.log("Iniciando Sistema");
+      
+      // Inicia Rotina de Sincronização Local-First
+      syncService.startBackgroundSync(30000); // 30s
+      
       windowManager.createMainWindow();
     });
   } catch (error) {
