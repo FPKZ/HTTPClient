@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {} from "react";
 import useTabStore from "../store/useTabStore";
 import { buildFinalRequest } from "../utils/collectionUtils";
 
@@ -8,8 +8,9 @@ import { buildFinalRequest } from "../utils/collectionUtils";
  * SRP: Cuida apenas do ciclo de vida das requisições HTTP.
  */
 export function useRequestExecutor() {
-  const [logsPorTela, setLogsPorTela] = useState({});
-  const [executandoPorTela, setExecutandoPorTela] = useState({});
+  const updateTabLogs = useTabStore((state) => state.updateTabLogs);
+  const setTabExecuting = useTabStore((state) => state.setTabExecuting);
+
   const environments =
     useTabStore((state) => state.collection.environments) || [];
   const activeEnvironmentId = useTabStore(
@@ -31,7 +32,7 @@ export function useRequestExecutor() {
   };
 
   const handleExecuteRequest = async (
-    screenKey,
+    screenKey, // screenKey aqui é o Tab ID na verdade
     requestDataOrigin,
     tabTitle,
   ) => {
@@ -39,7 +40,7 @@ export function useRequestExecutor() {
 
     // Gera um ID único para esta execução de requisição
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-    setExecutandoPorTela((prev) => ({ ...prev, [screenKey]: requestId }));
+    setTabExecuting(screenKey, requestId);
 
     // Constrói o objeto de requisição final (Aplica variáveis, Auth, Body, URL...)
     const requestData = buildFinalRequest(requestDataOrigin, activeVariables);
@@ -52,38 +53,26 @@ export function useRequestExecutor() {
         requestId,
       });
 
-      setLogsPorTela((prev) => ({
-        ...prev,
-        [screenKey]: [response],
-      }));
+      updateTabLogs(screenKey, [response]);
     } catch (error) {
       window.electronAPI.logAction(
         "Erro na requisição: " + tabTitle + " - " + error.message,
       );
-      setLogsPorTela((prev) => ({
-        ...prev,
-        [screenKey]: [
-          {
-            status: 500,
-            statusText: "Error",
-            data: error.message,
-            isError: true,
-            headers: {},
-          },
-        ],
-      }));
+      updateTabLogs(screenKey, [
+        {
+          status: 500,
+          statusText: "Error",
+          data: error.message,
+          isError: true,
+          headers: {},
+        },
+      ]);
     } finally {
-      setExecutandoPorTela((prev) => {
-        const newState = { ...prev };
-        delete newState[screenKey];
-        return newState;
-      });
+      setTabExecuting(screenKey, false);
     }
   };
 
   return {
-    logsPorTela,
-    executandoPorTela,
     handleExecuteRequest,
     cancelRequest,
   };

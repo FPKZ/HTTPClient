@@ -71,10 +71,12 @@ export default function ResizableDemo() {
   return (
     <div className="h-screen w-full bg-[#111111] text-zinc-300 font-mono text-xs flex flex-col overflow-hidden rounded-xl border border-zinc-700/50! shadow-2xl">
       {/* Header estilo Terminal */}
-      <div className="titlebar titlebar-drag-region bg-[#212121] px-4 py-2 flex items-center gap-2 border-b border-[#1e1e1e] select-none sticky top-0 z-10 shadow-md">
-        <Terminal size={14} className="text-green-500" />
-        <span className="font-semibold text-zinc-100">Action Logger</span>
-        <div className="ml-auto flex gap-2 no-drag">
+      <div className="titlebar titlebar-drag-region bg-[#212121] px-2 py-2 flex items-center justify-between gap-2 border-b border-[#1e1e1e] select-none sticky top-0 z-10 shadow-md">
+        <div className="flex gap-2">
+          <Terminal size={14} className="text-green-500" />
+          <span className="font-semibold text-zinc-100">Action Logger</span>
+        </div>
+        <div className="flex gap-2 no-drag">
           <span
             onClick={() => handleSizeFont("up")}
             title="Aumentar Fonte"

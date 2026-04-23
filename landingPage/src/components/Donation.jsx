@@ -13,7 +13,7 @@ const Donation = () => {
       title: "Pix",
       description: "Apoie com qualquer valor via Pix",
       action: "Copiar Chave Pix",
-      gradient: "from-amber-500 to-orange-500",
+      gradient: "from-primary-600 to-primary-400",
       key: "4bd921e4-4e6e-4a12-8f27-bd89a9a67052", // Substitua pela chave Pix real
     },
     {
@@ -55,7 +55,7 @@ const Donation = () => {
             <span className="gradient-text">Apoie o Projeto</span>
           </h2>
           <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-            O HTTPClient é gratuito e open source. Seu apoio ajuda a manter o
+            O VOLT é gratuito e open source. Seu apoio ajuda a manter o
             desenvolvimento ativo e trazer novos recursos incríveis.
           </p>
         </motion.div>
@@ -136,7 +136,7 @@ const Donation = () => {
             <div>
               <h4 className="font-semibold text-white mb-1">Sempre Gratuito</h4>
               <p className="text-sm text-slate-400">
-                O projeto permanecerá open source e gratuito
+                O VOLT permanecerá open source e gratuito
               </p>
             </div>
           </div>

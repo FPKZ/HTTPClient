@@ -38,23 +38,38 @@ export default function Home() {
     (state) => state.getCollectionForExport,
   );
 
+<<<<<<< HEAD
   // 4. Auto-save ao sair (Ctrl+Q)
+=======
+  const resetTabs = useTabStore((state) => state.resetTabs);
+
+  // 1. Limpeza de estado ao sair da Home (voltar para o início)
+  useEffect(() => {
+    return () => {
+      resetTabs();
+    };
+  }, [resetTabs]);
+
+  // 4. Auto-save ao sair (Ctrl+Q ou fechamento pelo SO)
+>>>>>>> 3e827be11222ff49cfbfae81e85119270377b7c0
   useQuickExit(async () => {
-    const confirmed = await showDialog({
+    const result = await showDialog({
       title: "Salvar coleção",
-      description: "Deseja salvar a coleção antes de sair?",
+      description:
+        "O sistema está sendo fechado. Deseja salvar a coleção antes de sair?",
       options: [
-        { label: "Não salvar", value: false, variant: "secondary" },
-        { label: "Salvar", value: true, variant: "primary" },
+        { label: "Não", value: "no", variant: "secondary" },
+        { label: "Salvar", value: "yes", variant: "primary" },
       ],
     });
-    if (confirmed) {
+
+    if (result === "yes") {
       const collectionData = getCollectionForExport();
-      // Passa o objeto completo e unificado
       window.electronAPI.saveAndQuit(collectionData);
-    } else {
+    } else if (result === "no") {
       window.electronAPI.forceClose();
     }
+    // Se result for null (cancelamento), não faz nada e o app continua aberto
   });
 
   // if (!collection.items.length) return null; // Pode exibir loading ou null se quiser force

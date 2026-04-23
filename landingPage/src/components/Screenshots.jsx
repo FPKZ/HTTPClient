@@ -11,26 +11,26 @@ const Screenshots = () => {
   const screenshots = [
     {
       src: "screenshots/request.png",
-      alt: "HTTPClient Interface Principal",
+      alt: "VOLT Interface Principal",
       title: "Interface Principal",
       description:
         "Interface moderna, intuitiva e ajustavel para gerenciar suas requisições",
     },
     {
       src: "screenshots/ambientes.png",
-      alt: "HTTPClient Gerenciamento de ambientes",
+      alt: "VOLT Gerenciamento de ambientes",
       title: "Gerenciamento de ambientes",
       description: "Organize suas variáveis de forma eficiente",
     },
     {
       src: "screenshots/variablesGlobal.png",
-      alt: "HTTPClient Gerenciamento de variáveis globais",
+      alt: "VOLT Gerenciamento de variáveis globais",
       title: "Gerenciamento de variáveis globais",
       description: "Mantenha informações importantes escondidas dos outros",
     },
     {
       src: "screenshots/export.png",
-      alt: "HTTPClient Exportação de coleções",
+      alt: "VOLT Exportação de coleções",
       title: "Exportação de coleções",
       description: "Exporte e compartilhe suas coleções com facilidade",
     },
@@ -69,7 +69,7 @@ const Screenshots = () => {
             <span className="gradient-text">Veja em Ação</span>
           </h2>
           <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-            Explore a interface moderna e intuitiva do HTTPClient
+            Explore a interface moderna e intuitiva do VOLT
           </p>
         </motion.div>
       </div>
@@ -94,7 +94,7 @@ const Screenshots = () => {
               />
 
               {/* Overlay */}
-              <div className="absolute inset-0 bg-linear-to-t from-slate-900/90 via-slate-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-8">
+              <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-8">
                 <button
                   onClick={() => setSelectedImage(screenshot)}
                   className="btn-primary flex items-center space-x-2"
@@ -157,7 +157,7 @@ const Screenshots = () => {
           E muito mais por vir!
         </h3>
         <p className="text-slate-300 max-w-3xl mx-auto">
-          O HTTPClient está em desenvolvimento ativo. Novos recursos como
+          O VOLT está em desenvolvimento ativo. Novos recursos como
           sincronização em nuvem, geração de código, testes automatizados e
           muito mais estão no roadmap.
         </p>

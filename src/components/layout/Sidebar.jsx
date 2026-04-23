@@ -27,6 +27,7 @@ import EnvManagerModal from "../modals/EnvManagerModal";
 import useTabStore from "../../store/useTabStore";
 import useMenuContext from "../../hooks/useMenuContext";
 import useModalConfig from "../../hooks/useModalConfig";
+import useDialogStore from "../../store/useDialogStore";
 // import useModalStore from "../../store/useModalStore";
 
 import {
@@ -55,6 +56,8 @@ const SidebarHeader = () => {
     (state) => state.updateCollectionMeta,
   );
   const { handleSaveCollection } = useHistory(false);
+  const showDialog = useDialogStore((state) => state.showDialog);
+
   const navigate = useNavigate();
 
   const [isEditingName, setIsEditingName] = useState(false);
@@ -81,15 +84,34 @@ const SidebarHeader = () => {
     setIsEditingName(false);
   };
 
+  const handleSaveExt = async () => {
+    const confirmed = await showDialog({
+      title: "Salvar coleção",
+      description: "Deseja salvar esta coleção no histórico?",
+      options: [
+        { label: "Não salvar", value: false, variant: "secondary" },
+        { label: "Salvar", value: true, variant: "primary" },
+      ],
+    });
+    await handleSaveCollection(confirmed);
+    if(confirmed !== null){
+      navigate("/upload");
+    }
+  }
+
   return (
     <div>
       <div className="p-2 justify-between items-center flex">
         <button
           className="flex items-center gap-2 p-2 rounded hover:bg-zinc-700 text-zinc-300 text-[0.75rem]! font-semibold transition-colors"
+<<<<<<< HEAD
           onClick={async () => {
             await handleSaveCollection();
             navigate("/");
           }}
+=======
+          onClick={handleSaveExt}
+>>>>>>> 3e827be11222ff49cfbfae81e85119270377b7c0
         >
           <ArrowLeft size={20} />
           Voltar

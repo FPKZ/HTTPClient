@@ -29,6 +29,8 @@ export const createTabSlice = (set, get) => ({
         panelVerticalSize: "50",
         panelHorizontalSize: "30",
       },
+      logs: [],
+      isExecuting: false,
     };
 
     set({
@@ -70,6 +72,8 @@ export const createTabSlice = (set, get) => ({
         panelVerticalSize: "50",
         panelHorizontalSize: "30",
       },
+      logs: [],
+      isExecuting: false,
     };
 
     set((state) => ({
@@ -140,6 +144,18 @@ export const createTabSlice = (set, get) => ({
       ),
     }));
   },
+  updateTabLogs: (id, logs) => {
+    set((state) => ({
+      tabs: state.tabs.map((tab) => (tab.id === id ? { ...tab, logs } : tab)),
+    }));
+  },
+  setTabExecuting: (id, isExecuting) => {
+    set((state) => ({
+      tabs: state.tabs.map((tab) =>
+        tab.id === id ? { ...tab, isExecuting } : tab,
+      ),
+    }));
+  },
 
   getActiveTab: () => {
     const { tabs, activeTabId } = get();
@@ -167,6 +183,17 @@ export const createTabSlice = (set, get) => ({
     set({
       tabs: [],
       activeTabId: null,
+    });
+  },
+  reorderTabs: (oldIndex, newIndex) => {
+    set((state) => {
+      // Implementação manual de arrayMove para evitar dependência extra no slice se preferir,
+      // mas como já temos dnd-kit, podemos importar ou fazer simples:
+      const newTabs = [...state.tabs];
+      const [movedItem] = newTabs.splice(oldIndex, 1);
+      newTabs.splice(newIndex, 0, movedItem);
+
+      return { tabs: newTabs };
     });
   },
 });

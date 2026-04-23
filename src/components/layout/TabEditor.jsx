@@ -30,12 +30,7 @@ export default function TabEditor() {
     (state) => state.codeSnippetsIsOpen,
   );
 
-  const {
-    logsPorTela,
-    executandoPorTela,
-    handleExecuteRequest,
-    cancelRequest,
-  } = useRequestExecutor();
+  const { handleExecuteRequest, cancelRequest } = useRequestExecutor();
 
   // Estados de UI agora vêm da aba ativa (persistentes)
   const activeSection = activeTab?.uiState?.activeSection || "headers";
@@ -90,11 +85,7 @@ export default function TabEditor() {
   };
 
   const handleExecute = () => {
-    handleExecuteRequest(
-      activeTab.screenKey || activeTab.id,
-      activeTab.data.request,
-      activeTab.title,
-    );
+    handleExecuteRequest(activeTab.id, activeTab.data.request, activeTab.title);
   };
 
   const handleSave = () => {
@@ -102,7 +93,8 @@ export default function TabEditor() {
   };
 
   const telaData = activeTab.data;
-  const logs = logsPorTela[activeTab.screenKey || activeTab.id] || [];
+  const logs = activeTab.logs || [];
+  const isExecuting = activeTab.isExecuting;
 
   return (
     <div
@@ -173,16 +165,10 @@ export default function TabEditor() {
 
                 {/* Botão Executar / Cancelar */}
                 <div className="flex items-center gap-1">
-                  {executandoPorTela[activeTab.screenKey || activeTab.id] ? (
+                  {isExecuting ? (
                     <button
                       title="Cancelar requisição"
-                      onClick={() =>
-                        cancelRequest(
-                          executandoPorTela[
-                            activeTab.screenKey || activeTab.id
-                          ],
-                        )
-                      }
+                      onClick={() => cancelRequest(isExecuting)}
                       className="p-2.5 bg-red-600 hover:bg-red-700 text-white rounded font-bold transition-colors animate-pulse"
                     >
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -200,10 +186,7 @@ export default function TabEditor() {
                   {/* Botão Salvar */}
                   <button
                     onClick={handleSave}
-                    disabled={
-                      !activeTab.isDirty ||
-                      !!executandoPorTela[activeTab.screenKey || activeTab.id]
-                    }
+                    disabled={!activeTab.isDirty || !!isExecuting}
                     className={`
                       p-2.5 rounded font-bold transition-colors flex items-center gap-2
                       ${
