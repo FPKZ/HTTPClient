@@ -1,0 +1,52 @@
+# Especificação Técnica: VOLT "Offline-First" & Colaborativo
+
+## 1. Visão Geral
+Sistema desktop para testes de API construído com **Electron, React, Vite e Zustand**. O objetivo é ser ultra-performático, funcionar sem internet (Offline-First) e permitir colaboração em tempo real (Cloud-Sync) via Supabase.
+
+## 2. Princípios de Engenharia (Mandatários)
+- **SOLID & Clean Architecture**: Separação clara entre Main Process (Back-end/Node) e Renderer Process (Front-end/React).
+- **Inversão de Dependência**: O Front-end não acessa o disco diretamente; ele utiliza uma API abstrata via Preload.
+- **Single Source of Truth**: O Zustand é o mestre do estado na memória.
+- **Atomicidade**: Dados devem ser salvos de forma relacional para evitar corrupção de arquivos JSON gigantes.
+
+## 3. Stack Tecnológica
+- **Front-end**: React, Zustand (Estado), Yjs (CRDT para edição simultânea).
+- **Back-end (Electron)**: Node.js, `better-sqlite3` (Persistência local).
+- **Cloud/BaaS**: Supabase (Auth, PostgreSQL, Realtime, Storage).
+- **Protocolos**: IPC (Electron), WebSockets (Supabase Realtime), Deep Linking (`seuapp://`).
+
+## 4. Modelagem de Dados Relacional (Schema)
+O SQLite e o PostgreSQL devem compartilhar este esquema:
+- **profiles**: `id (uuid)`, `name`, `avatar_local_path`, `avatar_url`.
+- **workspaces**: `id`, `name`, `owner_id`.
+- **workspace_members**: `workspace_id`, `user_id`, `role` (admin/editor/viewer).
+- **collections**: `id`, `workspace_id`, `name`, `order_index`, `storage_type` ('local' | 'cloud').
+- **requests**: `id`, `collection_id`, `folder_id`, `method`, `url`, `body`, `headers`, `is_dirty` (boolean para sync).
+
+## 5. Fluxos de Trabalho (Regras de Implementação)
+
+### 5.1 Autenticação & Sessão
+- **OAuth (Google/GitHub)**: Deve ser feito via navegador externo usando Deep Linking para retornar o token ao Electron.
+- **Persistência**: Tokens de sessão devem ser salvos de forma segura no disco pelo Processo Main.
+- **Logout (Purga)**: Ao deslogar, deletar do SQLite todos os dados onde `storage_type === 'cloud'`. Manter apenas dados `local`.
+
+### 5.2 Persistência & Sync (Offline-First)
+- **Escrita**: 
+  1. Atualizar Zustand (Instantâneo).
+  2. Salvar no SQLite local (Back-end).
+  3. Se `storage_type === 'cloud'` e houver internet, enviar ao Supabase.
+- **Sync Engine**: O Back-end deve monitorar a conexão. Ao detectar sinal, varrer o SQLite por registros `is_dirty === true` e sincronizar.
+
+### 5.3 Colaboração Real-time
+- **Presença**: Usar Supabase Presence para indicar usuários ativos e rotas em edição.
+- **Conflitos**: Usar Yjs para mesclar alterações no corpo (body) e headers das requisições em tempo real.
+
+### 5.4 Limites & SaaS (Futuro)
+- Implementar checagem de limites de Workspaces e Membros baseada no plano do usuário salvo no SQLite/Supabase.
+- Bloquear ações no Front-end (Zustand) e no Banco (RLS) se os limites forem atingidos.
+
+## 6. Regras para o Agente de IA (Instruções de Implementação)
+1. **Não use JSON para salvar coleções**: Migre imediatamente para a estrutura relacional do SQLite.
+2. **Priorize IPC Assíncrono**: Nunca trave a UI do React aguardando respostas lentas do disco ou rede.
+3. **Segurança de API**: Requisições HTTP reais de teste devem ser feitas pelo Node.js (Back-end) para evitar problemas de CORS.
+4. **Tratamento de Imagens**: Baixe avatares de usuários para o disco local e referencie o caminho do arquivo no banco para carregamento offline instantâneo.
