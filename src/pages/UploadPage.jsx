@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Tab, Nav, Row, Col } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import useTabStore from "../store/useTabStore";
+import useUserStore from "../store/useUserStote";
 
 // Components
 import HistoryList from "../components/history/HistoryList";
@@ -20,12 +21,7 @@ import img from "../assets/icon1.png";
  * SRP: Focada no carregamento de novos arquivos e visualização do histórico.
  */
 function UploadPage() {
-  const [user, setUser] = useState({
-    userId: 12,
-    name: "Luis Felipe",
-    email: "luisfelipe@prefeitura.sp.gov.br",
-    img: img,
-  });
+  const user = useUserStore((state) => state.user);
 
   const navigate = useNavigate();
 
@@ -86,21 +82,21 @@ function UploadPage() {
                 {user ? (
                   <>
                     <div
-                      className={`w-30 h-30 rounded-full flex items-center justify-center ${!user.img && "bg-[#ffc107]"} overflow-hidden`}
-                      onClick={() => setUser(!user)}
+                      className={`w-30 h-30 rounded-full flex items-center justify-center ${!user.avatar && "bg-[#ffc107]"} overflow-hidden cursor-pointer`}
+                      onClick={() => navigate("/login")}
                     >
-                      {user.img ? (
-                        <img src={user.img} alt="" className="w-full" />
+                      {user.avatar ? (
+                        <img src={user.avatar} alt="" className="w-full" />
                       ) : (
-                        <span className="text-[3rem] font-extrabold">LF</span>
+                        <span className="text-[3rem] font-extrabold">{user.displayName ? user.displayName.substring(0, 2).toUpperCase() : "US"}</span>
                       )}
                     </div>
                     <div className="flex flex-col items-center">
                       <span className="text-[1rem] font-extrabold">
-                        Luis Felipe
+                        {user.displayName || "Usuário"}
                       </span>
                       <span className="text-[0.8rem] text-zinc-500">
-                        luisfelipe@prefeitura.sp.gov.br
+                        {user.email}
                       </span>
                     </div>
                   </>
@@ -124,7 +120,7 @@ function UploadPage() {
                           font-bold hover:text-zinc-200!
                           cursor-pointer transition-colors duration-200
                         "
-                        onClick={() => setUser(!user)}
+                        onClick={() => navigate("/login")}
                       >
                         <div></div>
                         <span>Ir para Login</span>

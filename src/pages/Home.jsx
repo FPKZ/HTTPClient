@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import {
   Group as PanelGroup,
@@ -38,9 +38,6 @@ export default function Home() {
     (state) => state.getCollectionForExport,
   );
 
-<<<<<<< HEAD
-  // 4. Auto-save ao sair (Ctrl+Q)
-=======
   const resetTabs = useTabStore((state) => state.resetTabs);
 
   // 1. Limpeza de estado ao sair da Home (voltar para o início)
@@ -51,7 +48,6 @@ export default function Home() {
   }, [resetTabs]);
 
   // 4. Auto-save ao sair (Ctrl+Q ou fechamento pelo SO)
->>>>>>> 3e827be11222ff49cfbfae81e85119270377b7c0
   useQuickExit(async () => {
     const result = await showDialog({
       title: "Salvar coleção",

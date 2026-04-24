@@ -96,7 +96,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
   logout: () => ipcRenderer.invoke("logout"),
   register: (email, password) => ipcRenderer.invoke("register", { email, password }),
   update: (user) => ipcRenderer.invoke("update", { user }),
-  onUserChangerd: (callback) => ipcRenderer.on("user-changed", (_event, user) => callback(user)),
+  onUserChangerd: (callback) => {
+    const subscription = (_event, user) => callback(user);
+    ipcRenderer.on("user-changed", subscription);
+    return () => ipcRenderer.removeListener("user-changed", subscription);
+  },
   
 
   // --- Gestão de Coleções e Histórico ---

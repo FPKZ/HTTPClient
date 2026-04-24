@@ -95,7 +95,7 @@ const SidebarHeader = () => {
     });
     await handleSaveCollection(confirmed);
     if(confirmed !== null){
-      navigate("/upload");
+      navigate("/");
     }
   }
 
@@ -104,14 +104,7 @@ const SidebarHeader = () => {
       <div className="p-2 justify-between items-center flex">
         <button
           className="flex items-center gap-2 p-2 rounded hover:bg-zinc-700 text-zinc-300 text-[0.75rem]! font-semibold transition-colors"
-<<<<<<< HEAD
-          onClick={async () => {
-            await handleSaveCollection();
-            navigate("/");
-          }}
-=======
           onClick={handleSaveExt}
->>>>>>> 3e827be11222ff49cfbfae81e85119270377b7c0
         >
           <ArrowLeft size={20} />
           Voltar
@@ -139,7 +132,7 @@ const SidebarHeader = () => {
               label: "Fechar Coleção",
               className: "text-red-500 hover:bg-red-500/10",
               shortcut: "Ctrl+Q",
-              onClick: () => navigate("/upload"),
+              onClick: () => navigate("/"),
             },
           ]}
         />

@@ -16,6 +16,9 @@ export default function usePreload() {
 
     useEffect(() => {
         initMonacoThemes();
+    }, []);
+
+    useEffect(() => {
         // Listener para navegação
         const removeNavListener = window.electronAPI.ipcRenderer.on(
             "navigate-to",
@@ -24,7 +27,7 @@ export default function usePreload() {
             },
         );
 
-        window.electronAPI.onUserChangerd((user) => {
+        const removeUserListener = window.electronAPI.onUserChangerd((user) => {
                 if(user){
                     setUser(user);
                 }else{
@@ -65,6 +68,7 @@ export default function usePreload() {
         return () => {
             if (removeNavListener) removeNavListener();
             if (removeDialogListener) removeDialogListener();
+            if (removeUserListener) removeUserListener();
         };
     }, [navigate, showDialog]);
 

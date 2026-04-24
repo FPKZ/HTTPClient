@@ -123,7 +123,7 @@ class WindowManager {
 
     // Intercepta o fechamento para salvar sessão
     this.mainWindow.on("close", (e) => {
-      if (this.forceClose) return; // Permite o fechamento se a flag estiver ativa
+      if (this._forceCloseFlag) return; // Permite o fechamento se a flag estiver ativa
 
       if (this.mainWindow && !this.mainWindow.isDestroyed()) {
         e.preventDefault();
@@ -135,7 +135,7 @@ class WindowManager {
   }
 
   forceCloseApp() {
-    this.forceClose = true;
+    this._forceCloseFlag = true;
     if (this.mainWindow) {
       this.actionLogger.log("Fechando App");
       this.mainWindow.close();

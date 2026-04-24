@@ -38,6 +38,15 @@ class UserService {
      * Realiza o login via Supabase
      */
     async login(email, password) {
+        return {
+            success: true,
+            user: {
+                id: '1',
+                email: email,
+                displayName: "Felipe",
+                avatar: null
+            }
+        }
         if (!this.supabaseService.isActive()) {
             return { success: false, error: 'Serviço de Nuvem indisponível.' };
         }

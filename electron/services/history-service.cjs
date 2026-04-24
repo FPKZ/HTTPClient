@@ -191,7 +191,13 @@ class HistoryService {
   async deleteAllHistory() {
     try {
       // Limpa DB
-      this.db.prepare(`DELETE FROM collections`).run();
+      const currentUser = this.userService?.getUser();
+      const ownerId = currentUser ? currentUser.id : null;
+      if (ownerId) {
+        this.db.prepare(`DELETE FROM collections WHERE owner_id = ?`).run(ownerId);
+      } else {
+        this.db.prepare(`DELETE FROM collections WHERE owner_id IS NULL`).run();
+      }
       
       // Limpa arquivos
       await this.storage.deleteAll(this.storage.getCollectionsPath());
