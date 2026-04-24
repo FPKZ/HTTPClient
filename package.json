@@ -5,9 +5,9 @@
   "description": "HTTPClient - Ferramenta de testes de API",
   "author": "FPKZ <contato@fpkz.com.br>",
   "type": "module",
-  "main": "electron/main.cjs",
+  "main": "dist_electron/main.cjs",
   "scripts": {
-    "dev": "concurrently \"vite\" \"wait-on tcp:5173 && electron .\"",
+    "dev": "concurrently \"vite\" \"tsup --watch\" \"wait-on tcp:5173 dist_electron/main.cjs && node scripts/launch-electron.js\"",
     "electron": "electron .",
     "build": "vite build",
     "build:full": "vite build && electron-builder --win --linux",
@@ -121,6 +121,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.0.3",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
@@ -133,6 +134,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "nodemon": "^3.1.11",
+    "tsup": "^8.5.1",
     "vite": "^7.2.4",
     "wait-on": "^9.0.3"
   },
