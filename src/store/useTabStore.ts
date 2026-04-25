@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { createTabSlice } from "./slices/tabSlice";
 import { createCollectionSlice } from "./slices/collectionSlice";
-import { TabSlice, CollectionSlice } from "../types/store";
+import { TabSlice, CollectionSlice } from "../../types/store";
 
 /**
  * useTabStore

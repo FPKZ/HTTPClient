@@ -3,7 +3,7 @@
  * Abstrai chamadas para window.electronAPI, fornecendo uma interface segura
  * e evitando erros quando o código roda fora do ambiente Electron (navegador puro).
  */
-import { ElectronAPI } from "../types/electronAPI";
+import { ElectronAPI } from "../../types/electronAPI";
 
 const getElectronAPI = (): Partial<ElectronAPI> => {
   if (typeof window !== "undefined" && window.electronAPI) {

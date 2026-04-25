@@ -14,7 +14,7 @@ import {
   Panel,
   Separator as PanelResizeHandle,
 } from "react-resizable-panels";
-import { Tab } from "../../types/store";
+import { Tab } from "../../../types/store";
 
 /**
  * TabEditor

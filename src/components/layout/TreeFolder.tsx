@@ -20,7 +20,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
 import useDialogStore from "../../store/useDialogStore";
-import { CollectionItem } from "../../types/store";
+import { CollectionItem } from "../../../types/store";
 
 interface TreeFolderProps {
   item: CollectionItem;

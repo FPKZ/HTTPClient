@@ -3,7 +3,7 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: {
     main: 'electron/main.ts',
-    preload: 'electron/preload.ts'
+    preload: 'electron/preload/index.ts'
   },
   format: ['cjs'],
   outExtension({ format }) {

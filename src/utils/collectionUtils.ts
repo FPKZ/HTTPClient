@@ -1,5 +1,5 @@
 import { translate } from "./translate";
-import { RouteData, FolderData } from "../types";
+import { RouteData, FolderData } from "../../types";
 
 export { translate };
 

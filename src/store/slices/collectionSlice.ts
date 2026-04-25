@@ -1,6 +1,6 @@
 import { StateCreator } from "zustand";
 import * as utils from "../../utils/collectionUtils";
-import { CollectionSlice, TabSlice, Variable } from "../../types/store";
+import { CollectionSlice, TabSlice, Variable } from "../../../types/store";
 
 /**
  * collectionSlice.ts

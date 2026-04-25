@@ -1,5 +1,5 @@
 import { StateCreator } from "zustand";
-import { Tab, TabSlice } from "../../types/store";
+import { Tab, TabSlice } from "../../../types/store";
 
 /**
  * tabSlice.ts
