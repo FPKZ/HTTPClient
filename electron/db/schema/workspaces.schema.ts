@@ -1,7 +1,7 @@
 import { sqliteTable, primaryKey, text } from "drizzle-orm/sqlite-core";
-import { profiles } from "./profiles";
+import { profiles } from "./profiles.schema";
 import { relations, sql } from "drizzle-orm";
-import { collections } from "./collections";
+import { collections } from "./collections.schema";
 
 export const workspaces = sqliteTable('workspaces', {
     id: text('id').primaryKey(),
@@ -28,3 +28,9 @@ export const workspacesRelations = relations(workspaces, ({ one, many }) => ({
   members: many(workspaceMembers),
   collections: many(collections),
 }));
+
+export type Workspaces = typeof workspaces.$inferSelect;
+export type InsertWorkspace = typeof workspaces.$inferInsert;
+
+export type WorkspaceMembers = typeof workspaceMembers.$inferSelect;
+export type InsertWorkspaceMember = typeof workspaceMembers.$inferInsert;
