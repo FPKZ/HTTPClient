@@ -46,6 +46,7 @@ import IpcRouter from "./services/ipc-router";
 import ExportService from "./services/export-service";
 import DialogReact from "./utils/dialog-react";
 import actionLogger from "./utils/action-logger";
+import { db } from "./db/index";
 
 // Setup Global Constants
 const isDev = !app.isPackaged;
@@ -56,7 +57,6 @@ isDev ? actionLogger.logClear() : null;
 
 // 1. Instanciar Provedores e Conversores (Infra e Core)
 const storage = new StorageProvider(userDataPath);
-const dbProvider = new LocalDbProvider(userDataPath);
 const translator = new PostmanTranslator();
 const axiosFormatter = new AxiosFormatter();
 const httpFormatter = new HttpFormatter();
@@ -64,10 +64,10 @@ const exportService = new ExportService(storage);
 
 // 2. Instanciar Serviços de Negócio
 const supabaseService = new SupabaseService(userDataPath);
-const userService = new UserService(supabaseService, dbProvider);
-const historyService = new HistoryService(storage, dbProvider, userService);
+const userService = new UserService(supabaseService, db);
+const historyService = new HistoryService(db, userService);
 const networkService = new NetworkService();
-const syncService = new SyncService(dbProvider, supabaseService);
+const syncService = new SyncService(db, supabaseService);
 const windowManager = new WindowManager(isDev, preloadPath, actionLogger);
 
 // Inicializa a sessão do usuário caso exista cache local / token válido

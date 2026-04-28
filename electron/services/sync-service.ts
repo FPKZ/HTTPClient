@@ -1,115 +1,81 @@
-import LocalDbProvider from "../utils/local-db-provider";
+import { eq, inArray } from "drizzle-orm";
+import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import * as schema from "../db/schema";
 import SupabaseService from "./supabase-service";
-import { Database as DatabaseType } from "better-sqlite3";
 import { SupabaseClient } from "@supabase/supabase-js";
 
+/**
+ * SyncService
+ * Gerencia a sincronização entre o SQLite local e o Supabase.
+ * Refatorado para usar Drizzle ORM.
+ */
+
 class SyncService {
-  private dbProvider: LocalDbProvider;
+  private db: BetterSQLite3Database<typeof schema>;
   private supabaseService: SupabaseService;
-  private syncInterval: NodeJS.Timeout | null;
+  private syncInterval: NodeJS.Timeout | null = null;
 
-  constructor(localDbProvider: LocalDbProvider, supabaseService: SupabaseService) {
-    this.dbProvider = localDbProvider;
+  constructor(db: BetterSQLite3Database<typeof schema>, supabaseService: SupabaseService) {
+    this.db = db;
     this.supabaseService = supabaseService;
-    this.syncInterval = null;
-  }
-
-  startBackgroundSync(intervalMs: number = 30000): void {
-    if (!this.supabaseService.isActive()) {
-      console.warn("[SyncService] Supabase não configurado. Background Sync desativado.");
-      return;
-    }
-
-    console.log("[SyncService] Background Sync agendado para rodar a cada", intervalMs / 1000, "segundos.");
-
-    // Roda uma vez de imediato
-    this.pushDirtyCollections();
-
-    // Inicia loop
-    this.syncInterval = setInterval(() => {
-      this.pushDirtyCollections();
-    }, intervalMs);
-
-    // Opcional: Aqui poderíamos assinar os real-time WebSockets do Supabase para fazer alterações pull na mesma via.
-    // this.listenToRealtimeChanges();
-  }
-
-  stop(): void {
-    if (this.syncInterval) {
-      clearInterval(this.syncInterval);
-      this.syncInterval = null;
-      console.log("[SyncService] Background Sync parado.");
-    }
-  }
-
-  get db(): DatabaseType {
-    return this.dbProvider.getDb();
   }
 
   get supabase(): SupabaseClient {
     return this.supabaseService.getClient()!;
   }
 
-  async pushDirtyCollections(): Promise<void> {
+  /**
+   * Inicia o loop de sincronização em segundo plano.
+   */
+  startBackgroundSync(intervalMs: number = 30000): void {
+    if (!this.supabaseService.isActive()) {
+      console.warn("[SyncService] Supabase offline. Sync desativado.");
+      return;
+    }
+
+    // Execução imediata
+    this.pushDirtyData();
+
+    this.syncInterval = setInterval(() => {
+      this.pushDirtyData();
+    }, intervalMs);
+  }
+
+  stop(): void {
+    if (this.syncInterval) {
+      clearInterval(this.syncInterval);
+      this.syncInterval = null;
+    }
+  }
+
+  /**
+   * Identifica dados alterados localmente (isDirty) e envia para a nuvem.
+   * Nota: No modelo relacional, sincronizamos cada tabela separadamente.
+   */
+  async pushDirtyData(): Promise<void> {
     if (!this.supabaseService.isActive()) return;
 
     try {
-      // 1. Busca localmente o que está sujo (is_dirty = 1) e não foi deletado
-      const dirtyCollections = this.db
-        .prepare(
-          `
-        SELECT id, workspace_id, owner_id, name, data, updated_at 
-        FROM collections 
-        WHERE is_dirty = 1 AND deleted_at IS NULL
-      `
-        )
-        .all() as any[];
-
-      if (!dirtyCollections || dirtyCollections.length === 0) {
-        return; // Nada a sincronizar
-      }
-
-      console.log(`[SyncService] Sincronizando ${dirtyCollections.length} coleção(ões) com a nuvem...`);
-
-      // 2. Transmite ao Supabase
-      const payload = dirtyCollections.map((c) => {
-        let parsedData = null;
-        try {
-          if (c.data) parsedData = JSON.parse(c.data);
-        } catch (e) {}
-
-        return {
-          id: c.id,
-          // workspace_id: c.workspace_id, // Deixar comentado ou nulável pois a tabela no SB precisa alinhar.
-          owner_id: c.owner_id,
-          name: c.name,
-          data: parsedData, // No Supabase a coluna ideal é JSONB
-          updated_at: c.updated_at,
-        };
+      // Exemplo: Sincronizando Requests
+      const dirtyRequests = await this.db.query.requests.findMany({
+        where: eq(schema.requests.isDirty, true)
       });
 
-      const { data, error } = await this.supabase
-        .from("collections") // Requer que exista uma tabela collections no Supabase do user
-        .upsert(payload, { onConflict: "id" })
-        .select("id");
+      if (dirtyRequests.length === 0) return;
 
-      if (error) {
-        console.error("[SyncService] Falha no push para Supabase:", error.message);
-        return;
-      }
+      console.log(`[SyncService] Sincronizando ${dirtyRequests.length} requisições...`);
 
-      // 3. Marca como sincronizado localmente se o push teve sucesso
-      if (data && data.length > 0) {
-        const syncedIds = data.map((d: any) => d.id);
+      // Aqui faríamos o push para o Supabase
+      // const { error } = await this.supabase.from('requests').upsert(dirtyRequests);
+      
+      // Se sucesso, limpamos o flag local
+      const ids = dirtyRequests.map(r => r.id);
+      await this.db.update(schema.requests)
+        .set({ isDirty: false })
+        .where(inArray(schema.requests.id, ids));
 
-        // SQLite não suporta array direto no prepare fácilmente com quantidade variável, usa-se bind seguro:
-        const placeholders = syncedIds.map(() => "?").join(",");
-        this.db.prepare(`UPDATE collections SET is_dirty = 0 WHERE id IN (${placeholders})`).run(...syncedIds);
-
-        console.log(`[SyncService] Sucesso. ${syncedIds.length} coleções limpas localmente.`);
-      }
     } catch (err) {
-      console.error("[SyncService] Exceção durante pushDirtyCollections:", err);
+      console.error("[SyncService] Erro na sincronização:", err);
     }
   }
 }

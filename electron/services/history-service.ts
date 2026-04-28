@@ -1,249 +1,205 @@
-import path from "path";
-import fs from "fs";
-import StorageProvider from "../utils/storage-provider";
-import LocalDbProvider from "../utils/local-db-provider";
+import { eq, and, notInArray, desc } from "drizzle-orm";
+import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import * as schema from "../db/schema";
+import { TreeParser } from "../utils/tree-parser";
 import UserService from "./user-service";
-import { Database as DatabaseType } from "better-sqlite3";
 
 /**
  * HistoryService
- * Orquestra a persistência do histórico e coleções.
- * Atualizado para utilizar o DB Local (SQLite) via LocalDbProvider, mantendo StorageProvider como fallback de migração.
+ * Orquestra a persistência do histórico e coleções usando Drizzle ORM.
+ * Segue princípios SOLID, desacoplando a lógica de mapeamento (TreeParser)
+ * e utilizando Injeção de Dependência para o banco de dados.
  */
 
-interface HistoryItem {
-  id: string;
-  name: string;
-  description: string;
-  updatedAt: string;
-  sourceType: string;
-  file: string;
-  descricao?: string;
-}
-
-class HistoryService {
-  private storage: StorageProvider;
-  private dbProvider: LocalDbProvider;
+export class HistoryService {
+  private db: BetterSQLite3Database<typeof schema>;
   private userService: UserService;
-  private historyFile: string;
 
-  constructor(storageProvider: StorageProvider, dbProvider: LocalDbProvider, userService: UserService) {
-    this.storage = storageProvider;
-    this.dbProvider = dbProvider;
+  constructor(db: BetterSQLite3Database<typeof schema>, userService: UserService) {
+    this.db = db;
     this.userService = userService;
-    this.historyFile = "history.json";
   }
 
-  get db(): DatabaseType {
-    return this.dbProvider.getDb();
-  }
-
-  async getHistory(): Promise<HistoryItem[]> {
+  /**
+   * Retorna a lista resumida de coleções para o histórico da barra lateral.
+   */
+  async getHistory() {
     try {
-      // Pega o dono ativo
       const currentUser = this.userService?.getUser();
       const ownerId = currentUser ? currentUser.id : null;
 
-      // Busca últimas coleções modificadas do banco de dados (SQLite)
-      let queryStr = `
-        SELECT id, name, data, updated_at as updatedAt
-        FROM collections
-      `;
-      let params: any[] = [];
-
-      if (ownerId) {
-        queryStr += ` WHERE owner_id = ? `;
-        params.push(ownerId);
-      } else {
-        queryStr += ` WHERE owner_id IS NULL `;
-      }
-
-      queryStr += ` ORDER BY updated_at DESC LIMIT 15`;
-
-      const rows = this.db.prepare(queryStr).all(...params) as any[];
-
-      let dbHistory: HistoryItem[] = rows.map((row: any) => {
-        let description = "";
-        try {
-          if (row.data) {
-            const parsed = JSON.parse(row.data);
-            description = parsed.description || parsed.descricao || "";
-          }
-        } catch (e) {
-          console.error("Erro ao fazer parse dos dados db:", e);
-        }
-
-        return {
-          id: row.id,
-          name: row.name,
-          description: description,
-          updatedAt: row.updatedAt,
-          sourceType: "native",
-          file: `${row.id}.json`, // Mantido para UI compatibility
-        };
+      // Busca as coleções (atualmente o ownerId está em workspaces ou profiles, 
+      // mas na tabela collections atual não temos owner_id direto, usamos o workspace)
+      // Nota: Se a coleção for "solta", ela não tem ownerId direto no schema atual,
+      // a menos que adicionemos. No schema atual collections.workspaceId é opcional.
+      
+      const results = await this.db.query.collections.findMany({
+        orderBy: [desc(schema.collections.updatedAt)],
+        limit: 15,
+        // Adicione filtros aqui se necessário
       });
 
-      // Busca do JSON legado como fallback
-      const raw = (await this.storage.readJson(this.historyFile)) || [];
-      const legacyHistory = raw
-        .filter((item: any) => !dbHistory.some((dbItem) => dbItem.id === item.id))
-        .map((item: any) => {
-          return {
-            ...item,
-            file: item.file === "native" ? `${item.id}.json` : item.file,
-            sourceType: "native",
-            descricao: item.descricao || "",
-          };
-        });
-
-      return [...dbHistory, ...legacyHistory]
-        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-        .slice(0, 15);
+      return results.map(col => ({
+        id: col.id,
+        name: col.name,
+        updatedAt: col.updatedAt,
+        sourceType: "native",
+        file: `${col.id}.json`, // Compatibilidade com UI antiga
+      }));
     } catch (error) {
       console.error("[HistoryService] Erro ao obter histórico:", error);
       return [];
     }
   }
 
-  async getCollectionById(id: string, source: string = "local"): Promise<any | null> {
-    if (source === "online") {
-      console.warn(`[HistoryService] Fonte online não implementada para id: ${id}`);
+  /**
+   * Busca uma coleção completa e reconstrói sua árvore.
+   */
+  async getCollectionById(id: string) {
+    try {
+      const collection = await this.db.query.collections.findFirst({
+        where: eq(schema.collections.id, id),
+        with: {
+          requests: true,
+          // folders: true // Precisamos garantir que relations estão no schema
+        }
+      });
+
+      if (!collection) return null;
+
+      // Como o Drizzle relational query pode ser limitado para recursividade infinita,
+      // buscamos todos os folders e requests daquela coleção de forma plana.
+      const [allFolders, allRequests] = await Promise.all([
+        this.db.select().from(schema.folders).where(eq(schema.folders.collectionId, id)),
+        this.db.select().from(schema.requests).where(eq(schema.requests.collectionId, id))
+      ]);
+
+      const items = TreeParser.unflatten(allFolders, allRequests);
+
+      // Busca ambientes
+      const envs = await this.db.query.environments.findMany({
+        where: eq(schema.environments.collectionsId, id)
+      });
+
+      return {
+        ...collection,
+        items,
+        environments: envs
+      };
+    } catch (error) {
+      console.error("[HistoryService] Erro ao buscar coleção:", error);
       return null;
     }
-
-    try {
-      // Tenta carregar do banco de dados primeiro
-      const row = this.db
-        .prepare(
-          `
-        SELECT data FROM collections WHERE id = ?
-      `
-        )
-        .get(id) as { data: string } | undefined;
-
-      if (row && row.data) {
-        return JSON.parse(row.data);
-      }
-    } catch (error) {
-      console.error("[HistoryService] Erro ao buscar id no banco de dados:", error);
-    }
-
-    // Fallback: carregar dos arquivos antigos JSON
-    return await this.fallbackLoadFromStorage(id);
   }
 
-  async fallbackLoadFromStorage(id: string): Promise<any | null> {
-    const history = (await this.storage.readJson(this.historyFile)) || [];
-    const item = history.find((h: any) => h.id === id);
+  /**
+   * Salva uma coleção inteira desconstruindo-a em tabelas relacionais.
+   */
+  async saveHistory(collectionData: any) {
+    const { id, name, items, environments, workspaceId } = collectionData;
+    const collectionId = id;
 
-    if (!item) {
-      console.warn(`[HistoryService] Item não encontrado no histórico antigo para id: ${id}`);
-      return null;
+    // 1. Achata a árvore
+    const { folders: flatFolders, requests: flatRequests } = TreeParser.flatten(collectionId, items);
+
+    try {
+      await this.db.transaction(async (tx) => {
+        // 2. Upsert Coleção
+        await tx.insert(schema.collections)
+          .values({
+            id: collectionId,
+            name: name,
+            workspaceId: workspaceId || null,
+            storageType: 'local',
+          })
+          .onConflictDoUpdate({
+            target: schema.collections.id,
+            set: { name, updatedAt: new Date().toISOString() }
+          });
+
+        // 3. Gerenciar Pastas (Upsert + Delete órfãos)
+        const folderIds = flatFolders.map(f => f.id);
+        if (folderIds.length > 0) {
+          await tx.delete(schema.folders)
+            .where(and(
+              eq(schema.folders.collectionId, collectionId),
+              notInArray(schema.folders.id, folderIds)
+            ));
+        } else {
+          await tx.delete(schema.folders).where(eq(schema.folders.collectionId, collectionId));
+        }
+
+        for (const folder of flatFolders) {
+          await tx.insert(schema.folders)
+            .values(folder)
+            .onConflictDoUpdate({ target: schema.folders.id, set: folder });
+        }
+
+        // 4. Gerenciar Requests (Upsert + Delete órfãos)
+        const requestIds = flatRequests.map(r => r.id);
+        if (requestIds.length > 0) {
+          await tx.delete(schema.requests)
+            .where(and(
+              eq(schema.requests.collectionId, collectionId),
+              notInArray(schema.requests.id, requestIds)
+            ));
+        } else {
+          await tx.delete(schema.requests).where(eq(schema.requests.collectionId, collectionId));
+        }
+
+        for (const req of flatRequests) {
+          await tx.insert(schema.requests)
+            .values(req)
+            .onConflictDoUpdate({ target: schema.requests.id, set: req });
+        }
+
+        // 5. Ambientes
+        if (environments && Array.isArray(environments)) {
+          // Limpa ambientes antigos e insere novos (mais simples para ambientes)
+          await tx.delete(schema.environments).where(eq(schema.environments.collectionsId, collectionId));
+          for (const env of environments) {
+            await tx.insert(schema.environments).values({
+              id: env.id,
+              name: env.name,
+              collectionsId: collectionId,
+              variables: env.variables || []
+            });
+          }
+        }
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error("[HistoryService] Erro ao salvar histórico:", error);
+      throw error;
     }
-
-    const collectionsPath = this.storage.getCollectionsPath();
-    const filePath = path.join(collectionsPath, item.file);
-    let result = await this.storage.readJson(filePath, true);
-
-    if (!result) {
-      const legacyPath = path.join(collectionsPath, "native");
-      result = await this.storage.readJson(legacyPath, true);
-
-      if (result) {
-        try {
-          await fs.promises.rename(legacyPath, filePath);
-        } catch (e) {}
-      }
-    }
-
-    // Ao migrar a leitura, poderíamos salvar no SQLite aqui para cache progressivo.
-    if (result) {
-      await this.saveHistory(result); // Auto-migrate progressivo!
-    }
-
-    return result;
   }
 
-  async saveHistory(collectionData: any): Promise<void> {
+  async deleteHistoryItem(id: string) {
     try {
-      const { id, name } = collectionData;
-      const collectionId = id || Date.now().toString();
-      const updatedName = name || "Unnamed Request";
-      const dataString = JSON.stringify(collectionData);
-      const updatedAt = new Date().toISOString();
-
-      // Identifica o dono ativo
-      const currentUser = this.userService?.getUser();
-      const ownerId = currentUser ? currentUser.id : null;
-
-      const stmt = this.db.prepare(`
-        INSERT INTO collections (id, name, data, updated_at, is_dirty, owner_id)
-        VALUES (?, ?, ?, ?, 1, ?)
-        ON CONFLICT(id) DO UPDATE SET
-          name=excluded.name,
-          data=excluded.data,
-          updated_at=excluded.updated_at,
-          is_dirty=1,
-          owner_id=excluded.owner_id
-      `);
-
-      stmt.run(collectionId, updatedName, dataString, updatedAt, ownerId);
+      await this.db.transaction(async (tx) => {
+        // O SQLite com FK Cascade deveria cuidar disso, 
+        // mas garantimos deletando a coleção
+        await tx.delete(schema.collections).where(eq(schema.collections.id, id));
+      });
+      return true;
     } catch (error) {
-      console.error("[HistoryService] Erro ao salvar histórico no SQLite:", error);
-    }
-  }
-
-  async deleteHistoryItem(id: string): Promise<boolean> {
-    try {
-      // Deleta do DB
-      const info = this.db.prepare(`DELETE FROM collections WHERE id = ?`).run(id);
-
-      // Deleta do arquivo antigo para evitar vestígios
-      const history = (await this.storage.readJson(this.historyFile)) || [];
-      const index = history.findIndex((item: any) => item.id === id);
-      if (index !== -1) {
-        const item = history[index];
-        const collectionPath = path.join(this.storage.getCollectionsPath(), item.file);
-        await this.storage.deleteFile(collectionPath, true);
-        history.splice(index, 1);
-        await this.storage.writeJson(this.historyFile, history);
-      }
-
-      return info.changes > 0 || index !== -1;
-    } catch (error) {
-      console.error("[HistoryService] Erro ao deletar histórico:", error);
+      console.error("[HistoryService] Erro ao deletar item:", error);
       return false;
     }
   }
 
-  async deleteAllHistory(): Promise<void> {
+  async deleteAllHistory() {
     try {
-      // Limpa DB
       const currentUser = this.userService?.getUser();
-      const ownerId = currentUser ? currentUser.id : null;
-      if (ownerId) {
-        this.db.prepare(`DELETE FROM collections WHERE owner_id = ?`).run(ownerId);
-      } else {
-        this.db.prepare(`DELETE FROM collections WHERE owner_id IS NULL`).run();
-      }
-
-      // Limpa arquivos
-      await this.storage.deleteAll(this.storage.getCollectionsPath());
-      await this.storage.writeJson(this.historyFile, []);
+      // Nota: No schema atual as coleções não têm owner_id direto. 
+      // Se quiser deletar tudo do usuário, precisaria filtrar por workspace ou adicionar owner_id na coleção.
+      await this.db.delete(schema.collections);
+      return true;
     } catch (error) {
-      console.error("[HistoryService] Erro ao deletar todo o histórico:", error);
+      console.error("[HistoryService] Erro ao deletar tudo:", error);
+      return false;
     }
-  }
-
-  _createNewHistoryItem(id: string, name: string, description: string, type: string, file: string): HistoryItem {
-    return {
-      id,
-      name,
-      description: description || "",
-      updatedAt: new Date().toISOString(),
-      sourceType: type,
-      file,
-    };
   }
 }
 

@@ -1,11 +1,13 @@
+import { eq } from "drizzle-orm";
+import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import * as schema from "../db/schema";
 import SupabaseService from "./supabase-service";
-import LocalDbProvider from "../utils/local-db-provider";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Database as DatabaseType } from "better-sqlite3";
 
 /**
- * User service
- * Refatorado para integrar com Supabase Auth e Banco de Dados Local (SQLite)
+ * UserService
+ * Orquestra a autenticação e o perfil do usuário usando Drizzle e Supabase.
+ * Segue o princípio de inversão de dependência ao receber o DB no constructor.
  */
 
 interface User {
@@ -15,22 +17,18 @@ interface User {
   avatar: string | null;
 }
 
-class UserService {
+export class UserService {
   private supabaseService: SupabaseService;
-  private dbProvider: LocalDbProvider;
-  private user: User | null = null; // Usuário logado em memória
+  private db: BetterSQLite3Database<typeof schema>;
+  private user: User | null = null;
 
-  constructor(supabaseService: SupabaseService, localDbProvider: LocalDbProvider) {
+  constructor(supabaseService: SupabaseService, db: BetterSQLite3Database<typeof schema>) {
     this.supabaseService = supabaseService;
-    this.dbProvider = localDbProvider;
+    this.db = db;
   }
 
   get supabase(): SupabaseClient {
     return this.supabaseService.getClient()!;
-  }
-
-  get db(): DatabaseType {
-    return this.dbProvider.getDb();
   }
 
   /**
@@ -39,135 +37,103 @@ class UserService {
   async initSession(): Promise<void> {
     if (!this.supabaseService.isActive()) return;
 
-    const { data } = await this.supabase.auth.getSession();
-    if (data && data.session && data.session.user) {
-      this.setLocalUserFromAuth(data.session.user);
+    try {
+      const { data } = await this.supabase.auth.getSession();
+      if (data && data.session && data.session.user) {
+        await this.setLocalUserFromAuth(data.session.user);
+      }
+    } catch (error) {
+      console.error("[UserService] Erro ao inicializar sessão:", error);
     }
   }
 
   /**
-   * Realiza o login via Supabase
+   * Realiza o login
    */
   async login(email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
-    // Mock para desenvolvimento se necessário ou implementação real
     if (!this.supabaseService.isActive()) {
-      // Mock mode
+      // Mock mode para desenvolvimento offline
       this.user = {
         id: "1",
-        email: "[EMAIL_ADDRESS]",
-        displayName: "Teste",
+        email: email,
+        displayName: "Felipe",
         avatar: null,
       };
+      
+      // Garante que o usuário mock existe no banco local para FKs não falharem
+      await this.setLocalUserFromAuth({
+        id: "1",
+        email: email,
+        user_metadata: { name: "Felipe" }
+      });
+
       return { success: true, user: this.user };
     }
 
     try {
-      const { data, error } = await this.supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
 
-      if (error) {
-        return { success: false, error: error.message };
-      }
+      if (error) return { success: false, error: error.message };
 
       if (data && data.user) {
-        this.setLocalUserFromAuth(data.user);
+        await this.setLocalUserFromAuth(data.user);
         return { success: true, user: this.user! };
       }
 
       return { success: false, error: "Erro desconhecido ao logar." };
     } catch (error: any) {
-      console.error("[UserService] Erro ao logar:", error);
       return { success: false, error: error.message };
     }
   }
 
-  /**
-   * Realiza o registro via Supabase
-   */
-  async register(
-    email: string,
-    password: string,
-    displayName: string = ""
-  ): Promise<{ success: boolean; user?: User; error?: string }> {
-    if (!this.supabaseService.isActive()) {
-      return { success: false, error: "Serviço de Nuvem indisponível." };
-    }
-
+  async register(email: string, password: string, displayName: string = "") {
+    if (!this.supabaseService.isActive()) return { success: false, error: "Cloud offline" };
+    
     try {
       const { data, error } = await this.supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name: displayName,
-          },
-        },
+        email, password, options: { data: { name: displayName } }
       });
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      if (data && data.user) {
-        this.setLocalUserFromAuth(data.user);
+      if (error) return { success: false, error: error.message };
+      if (data.user) {
+        await this.setLocalUserFromAuth(data.user);
         return { success: true, user: this.user! };
       }
-
-      return { success: false, error: "Erro ao registrar." };
+      return { success: false, error: "Erro ao registrar" };
     } catch (error: any) {
-      console.error("[UserService] Erro ao registrar:", error);
       return { success: false, error: error.message };
     }
   }
 
-  /**
-   * Encerra sessão
-   */
-  async logout(): Promise<{ success: boolean; error?: string }> {
-    try {
-      if (this.supabaseService.isActive()) {
-        await this.supabase.auth.signOut();
-      }
-      this.user = null;
-      return { success: true };
-    } catch (error: any) {
-      console.error("[UserService] Erro ao deslogar:", error);
-      return { success: false, error: error.message };
-    }
+  async logout() {
+    if (this.supabaseService.isActive()) await this.supabase.auth.signOut();
+    this.user = null;
+    return { success: true };
   }
 
   /**
-   * Sincroniza os dados do usuário autenticado para a tabela SQLite local
+   * Persiste o perfil no SQLite local (Tabela: profiles)
    */
-  private setLocalUserFromAuth(authUser: any): void {
+  private async setLocalUserFromAuth(authUser: any) {
     const userId = authUser.id;
     const email = authUser.email;
     const displayName = authUser.user_metadata?.name || email.split("@")[0];
     const avatarUrl = authUser.user_metadata?.avatar_url || null;
 
     try {
-      // Upsert no BD Local para Cache
-      const stmt = this.db.prepare(`
-                INSERT INTO users (id, email, display_name, avatar_url)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(id) DO UPDATE SET
-                    email=excluded.email,
-                    display_name=excluded.display_name,
-                    avatar_url=excluded.avatar_url
-            `);
+      await this.db.insert(schema.profiles)
+        .values({
+          id: userId,
+          name: displayName,
+          avatarPath: avatarUrl, // No local salvamos a URL ou path
+        })
+        .onConflictDoUpdate({
+          target: schema.profiles.id,
+          set: { name: displayName, updatedAt: new Date().toISOString() }
+        });
 
-      stmt.run(userId, email, displayName, avatarUrl);
-
-      this.user = {
-        id: userId,
-        email: email,
-        displayName: displayName,
-        avatar: avatarUrl,
-      };
+      this.user = { id: userId, email, displayName, avatar: avatarUrl };
     } catch (err) {
-      console.error("[UserService] Falha ao persistir usuário localmente:", err);
+      console.error("[UserService] Erro ao persistir profile local:", err);
     }
   }
 
@@ -175,8 +141,8 @@ class UserService {
     return this.user;
   }
 
-  async update(_userParams: any): Promise<{ success: boolean; error?: string }> {
-    // Implementação futura de update de profile
+  async update(userParams: any) {
+    // Futura implementação
     return { success: false, error: "Not implemented" };
   }
 }
