@@ -11,8 +11,8 @@ Para garantir a integridade, o SQLite local e o PostgreSQL (Supabase) compartilh
 | **profiles** | Dados do usuário: id, name, avatar_local_path (SQLite), avatar_url (Nuvem). |
 | **workspaces** | Grupos de trabalho: id, name, owner_id. |
 | **workspace_members** | Controle de acesso: workspace_id, user_id, role (viewer/editor/admin). |
-| **collections** | Grupos de rotas: id, workspace_id, name, order_index, storage_type. |
-| **requests** | A rota em si: id, collection_id, method, url, body, headers, is_dirty. |
+| **collections** | Grupos de rotas: id, workspace_id, name, order_index, storage_type, owner_id (opcional no local para uso anônimo). |
+| **requests** | A rota em si: id, collection_id, method, url, body, headers, is_dirty, order_index. |
 ## 3. Fluxo Profissional de Autenticação e Sessão
 ### Inicialização (O "Boot" do App)
  1. **Leitura do Disco:** O Electron lê o access_token e refresh_token do armazenamento seguro (electron-store).
@@ -23,12 +23,19 @@ Para garantir a integridade, o SQLite local e o PostgreSQL (Supabase) compartilh
  2. O Electron abre o navegador padrão do sistema (Google/GitHub).
  3. O **Deep Linking** (seuapp://auth-callback) captura o retorno, troca o código pela sessão e salva no disco.
 ## 4. Estratégia de Sincronização e Offline-First
+### Uso Anônimo e Transição de Login
+O app funciona 100% offline para usuários não logados (coleções salvas com `owner_id = null`).
+Ao realizar o login, o sistema deve detectar coleções "órfãs" e apresentar um prompt de sincronização:
+* O usuário pode optar por sincronizar **todas** as coleções locais para a nuvem.
+* O usuário pode **selecionar individualmente** quais coleções deseja sincronizar, mantendo as demais estritamente locais.
+
 ### Escrita em Duas Etapas
 Toda alteração feita pelo usuário segue este fluxo:
  1. **Zustand (Instantâneo):** O estado na memória muda e a UI reage.
- 2. **SQLite (Permanência Local):** O Electron escreve a mudança no banco local em milissegundos. Se estiver offline, marca a linha com is_dirty = true.
- 3. **Supabase (Sincronização):** * Se online: O dado é enviado via SDK.
-   * Se offline: Uma fila (queue) aguarda a conexão e dispara o envio assim que o sinal retornar.
+ 2. **SQLite (Permanência Local):** O Electron escreve a mudança no banco local em milissegundos. Se a coleção possuir um `owner_id` e houver alterações, marca a linha com `is_dirty = true`.
+ 3. **Supabase (Sincronização):** 
+   * Se online e com `owner_id` definido: O dado é enviado via SDK.
+   * Se offline e com `owner_id` definido: Aguarda a conexão (is_dirty) e dispara o envio assim que o sinal retornar.
 ## 5. Colaboração em Tempo Real
  * **Presença (Presence):** Usar os Canais do Supabase para mostrar quem está online e qual rota está editando através de metadados efêmeros.
  * **Prevenção de Sobrescrita (Yjs):** Integrar o Yjs para mesclagem inteligente de textos (Body, Headers) sem necessidade de uma API centralizada para resolver conflitos.
