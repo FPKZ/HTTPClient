@@ -5,7 +5,7 @@ import { collections } from "./collections.schema";
 export const environments = sqliteTable("environments", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  collectionsId: text("collections_id").notNull().references(() => collections.id),
+  collectionsId: text("collections_id").notNull().references(() => collections.id, { onDelete: 'cascade' }),
   variables: text("variables").$type<Variables[]>(), // Salvo como string JSON
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`),

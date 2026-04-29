@@ -46,7 +46,7 @@ import IpcRouter from "./services/ipc-router";
 import ExportService from "./services/export-service";
 import DialogReact from "./utils/dialog-react";
 import actionLogger from "./utils/action-logger";
-import { db } from "./db/index";
+import { InstanceDB } from "./db/index";
 
 // Setup Global Constants
 const isDev = !app.isPackaged;
@@ -61,6 +61,8 @@ const translator = new PostmanTranslator();
 const axiosFormatter = new AxiosFormatter();
 const httpFormatter = new HttpFormatter();
 const exportService = new ExportService(storage);
+InstanceDB.init(path.join(userDataPath, "local.db"));
+const db = InstanceDB.getDB();
 
 // 2. Instanciar Serviços de Negócio
 const supabaseService = new SupabaseService(userDataPath);

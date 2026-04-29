@@ -6,14 +6,15 @@ import { folders } from "./folders.schema";
 export const requests = sqliteTable("requests", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  collectionId: text("collection_id").notNull().references(() => collections.id),
-  folderId: text("folder_id").references(() => folders.id),
+  collectionId: text("collection_id").notNull().references(() => collections.id, { onDelete: 'cascade' }),
+  folderId: text("folder_id").references(() => folders.id, { onDelete: 'cascade' }),
   method: text("method").notNull(), // GET, POST, etc
   url: text("url").notNull(),
   params: text("params").$type<RequestsParams[]>(), // Salvo como string JSON
   headers: text("headers").$type<RequestsHeaders[]>(), // Salvo como string JSON
   body: text("body").$type<RequestsBody>(), // Salvo como string JSON
   auth: text("auth").$type<RequestsAuth>(), // Salvo como string JSON
+  orderIndex: integer("order_index").notNull(),
   isDirty: integer("is_dirty", { mode: "boolean" }).default(false),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
