@@ -44,12 +44,14 @@ export const TreeParser = {
           name: item.name,
           method: item.request?.method || 'GET',
           url: item.request?.url || '',
-          params: item.request?.params || [],
-          headers: item.request?.headers || [],
-          body: item.request?.body || { mode: 'none', content: '' },
-          auth: item.request?.auth || { name: 'none', config: {} },
+          // Convertemos objetos para string para o SQLite
+          params: JSON.stringify(item.request?.params || []),
+          headers: JSON.stringify(item.request?.headers || []),
+          body: JSON.stringify(item.request?.body || { mode: 'none', content: '' }),
+          auth: JSON.stringify(item.request?.auth || { name: 'none', config: {} }),
+          orderIndex: index,
           isDirty: true,
-        });
+        } as any); // Usamos any aqui para o Drizzle aceitar a string no lugar do objeto tipado
       }
     });
 
@@ -76,17 +78,24 @@ export const TreeParser = {
 
     // 2. Adiciona as requisições aos folders ou à raiz
     requests.forEach((r) => {
+      // Função auxiliar para parse seguro
+      const safeParse = (data: any, fallback: any) => {
+        if (typeof data !== 'string') return data || fallback;
+        try { return JSON.parse(data); } catch (e) { return fallback; }
+      };
+
       const routeNode = {
         id: r.id,
         type: 'route',
         name: r.name,
+        orderIndex: r.orderIndex, // Mantemos para ordenar
         request: {
           method: r.method,
           url: r.url,
-          params: r.params || [],
-          headers: r.headers || [],
-          body: r.body || { mode: 'none', content: '' },
-          auth: r.auth || { name: 'none', config: {} },
+          params: safeParse(r.params, []),
+          headers: safeParse(r.headers, []),
+          body: safeParse(r.body, { mode: 'none', content: '' }),
+          auth: safeParse(r.auth, { name: 'none', config: {} }),
         },
         isDirty: r.isDirty,
       };
@@ -101,6 +110,9 @@ export const TreeParser = {
     // 3. Organiza a hierarquia de folders
     folders.forEach((f) => {
       const folderNode = itemsMap.get(f.id);
+      // Adicionamos o orderIndex ao nó para ordenação
+      folderNode.orderIndex = f.orderIndex;
+
       if (f.parentId && itemsMap.has(f.parentId)) {
         itemsMap.get(f.parentId).items.push(folderNode);
       } else {
@@ -108,6 +120,22 @@ export const TreeParser = {
       }
     });
 
+    // 4. Ordenação final por orderIndex
+    const sorter = (a: any, b: any) => (a.orderIndex || 0) - (b.orderIndex || 0);
+
+    // Ordena itens da raiz
+    rootItems.sort(sorter);
+
+    // Ordena itens dentro de cada pasta
+    itemsMap.forEach((folder) => {
+      if (folder.items) {
+        folder.items.sort(sorter);
+      }
+    });
+
+    // Removemos o orderIndex dos objetos finais para limpar o JSON se desejar, 
+    // mas o Zustand geralmente não se importa.
+    
     return rootItems;
   },
 };
