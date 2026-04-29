@@ -81,10 +81,15 @@ export class HistoryService {
         where: eq(schema.environments.collectionsId, id)
       });
 
+      const parsedEnvs = envs.map(e => ({
+        ...e,
+        variables: typeof e.variables === 'string' ? JSON.parse(e.variables) : (e.variables || [])
+      }));
+
       return {
         ...collection,
         items,
-        environments: envs
+        environments: parsedEnvs
       };
     } catch (error) {
       console.error("[HistoryService] Erro ao buscar coleção:", error);
@@ -103,9 +108,9 @@ export class HistoryService {
     const { folders: flatFolders, requests: flatRequests } = TreeParser.flatten(collectionId, items);
 
     try {
-      await this.db.transaction(async (tx) => {
+      this.db.transaction((tx) => {
         // 2. Upsert Coleção
-        await tx.insert(schema.collections)
+        tx.insert(schema.collections)
           .values({
             id: collectionId,
             name: name,
@@ -115,55 +120,54 @@ export class HistoryService {
           .onConflictDoUpdate({
             target: schema.collections.id,
             set: { name, updatedAt: new Date().toISOString() }
-          });
+          }).run();
 
         // 3. Gerenciar Pastas (Upsert + Delete órfãos)
         const folderIds = flatFolders.map(f => f.id);
         if (folderIds.length > 0) {
-          await tx.delete(schema.folders)
+          tx.delete(schema.folders)
             .where(and(
               eq(schema.folders.collectionId, collectionId),
               notInArray(schema.folders.id, folderIds)
-            ));
+            )).run();
         } else {
-          await tx.delete(schema.folders).where(eq(schema.folders.collectionId, collectionId));
+          tx.delete(schema.folders).where(eq(schema.folders.collectionId, collectionId)).run();
         }
 
         for (const folder of flatFolders) {
-          await tx.insert(schema.folders)
+          tx.insert(schema.folders)
             .values(folder)
-            .onConflictDoUpdate({ target: schema.folders.id, set: folder });
+            .onConflictDoUpdate({ target: schema.folders.id, set: folder }).run();
         }
 
         // 4. Gerenciar Requests (Upsert + Delete órfãos)
         const requestIds = flatRequests.map(r => r.id);
         if (requestIds.length > 0) {
-          await tx.delete(schema.requests)
+          tx.delete(schema.requests)
             .where(and(
               eq(schema.requests.collectionId, collectionId),
               notInArray(schema.requests.id, requestIds)
-            ));
+            )).run();
         } else {
-          await tx.delete(schema.requests).where(eq(schema.requests.collectionId, collectionId));
+          tx.delete(schema.requests).where(eq(schema.requests.collectionId, collectionId)).run();
         }
 
         for (const req of flatRequests) {
-          await tx.insert(schema.requests)
+          tx.insert(schema.requests)
             .values(req)
-            .onConflictDoUpdate({ target: schema.requests.id, set: req });
+            .onConflictDoUpdate({ target: schema.requests.id, set: req }).run();
         }
 
         // 5. Ambientes
         if (environments && Array.isArray(environments)) {
-          // Limpa ambientes antigos e insere novos (mais simples para ambientes)
-          await tx.delete(schema.environments).where(eq(schema.environments.collectionsId, collectionId));
+          tx.delete(schema.environments).where(eq(schema.environments.collectionsId, collectionId)).run();
           for (const env of environments) {
-            await tx.insert(schema.environments).values({
+            tx.insert(schema.environments).values({
               id: env.id,
               name: env.name,
               collectionsId: collectionId,
-              variables: env.variables || []
-            });
+              variables: JSON.stringify(env.variables || [])
+            } as any).run();
           }
         }
       });
@@ -177,10 +181,10 @@ export class HistoryService {
 
   async deleteHistoryItem(id: string) {
     try {
-      await this.db.transaction(async (tx) => {
+      this.db.transaction((tx) => {
         // O SQLite com FK Cascade deveria cuidar disso, 
         // mas garantimos deletando a coleção
-        await tx.delete(schema.collections).where(eq(schema.collections.id, id));
+        tx.delete(schema.collections).where(eq(schema.collections.id, id)).run();
       });
       return true;
     } catch (error) {
