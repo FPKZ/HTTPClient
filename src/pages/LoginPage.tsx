@@ -3,6 +3,7 @@ import { Container, Button } from "react-bootstrap";
 import icons from "../assets/icons";
 import { ArrowRight } from "lucide-react";
 import useLogin from "../hooks/useLogin";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Página de login
@@ -23,6 +24,7 @@ export default function LoginPage() {
     // setSuccess // available from hook if needed
   } = useLogin();
 
+  const navigate = useNavigate();
   const { fullLogo } = icons();
 
   return (
@@ -96,7 +98,7 @@ export default function LoginPage() {
               <div>
                 <p className="m-0">
                   Não tem uma conta?{" "}
-                  <a href="#" className="link-warning">
+                  <a onClick={() => navigate('/register')} className="link-warning cursor-pointer">
                     Cadastre-se
                   </a>
                 </p>
@@ -104,7 +106,7 @@ export default function LoginPage() {
               <div>
                 <p className="m-0">
                   Esqueceu sua senha?{" "}
-                  <a href="#" className="link-warning">
+                  <a className="link-warning cursor-pointer">
                     Recuperar senha
                   </a>
                 </p>

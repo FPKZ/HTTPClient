@@ -8,6 +8,8 @@ import Layout from "./pages/layout";
 import LoginPage from "./pages/LoginPage";
 import Home from "./pages/Home";
 import UploadPage from "./pages/UploadPage";
+import RegisterPage from "./pages/RegisterPage";
+import RecuperarSenha from "./pages/RecuperarSenha";
 
 export default function Rotes() {
   const location = useLocation();
@@ -26,6 +28,8 @@ export default function Rotes() {
       <Route element={<Layout />}>
         <Route path="/home" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<RecuperarSenha />} />
         {/* UploadPage como rota padrão e /uploadPage */}
         <Route path="/" element={<UploadPage />} />
         <Route path="/uploadPage" element={<UploadPage />} />
