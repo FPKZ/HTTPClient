@@ -2,7 +2,7 @@ import React from "react";
 import { Container, Button } from "react-bootstrap";
 import icons from "../assets/icons";
 import { ArrowRight } from "lucide-react";
-import useRegister from "../hooks/useRegister";
+import useRegister from "../hooks/pages/useRegister";
 import { useNavigate } from "react-router-dom";
 import PasswordField from "../components/ui/PasswordField";
 
@@ -12,17 +12,18 @@ import PasswordField from "../components/ui/PasswordField";
  */
 export default function RegisterPage() {
     const { 
-        email, 
-        password, 
-        name, 
-        confirmPassword, 
-        error, 
-        success, 
+        formValue,
+        setFormValue,
+        setErros,
+        validated,
+        setValidated,
+        handleChange,
+        validate,
+        resetForm,
+        loading,
+        erros,
+        success,
         handleRegister, 
-        setEmail, 
-        setPassword, 
-        setName, 
-        setConfirmPassword 
     } = useRegister();
 
     const navigate = useNavigate();
@@ -55,8 +56,8 @@ export default function RegisterPage() {
                             bg-[#181818]! hover:bg-[#121212]! focus:bg-[#121212]!
                             p-2 outline-none
                         "
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        value={formValue.name}
+                        onChange={(e) => handleChange("name", e.target.value)}
                         />
                     </div>
                     <div className="flex flex-col gap-1 group/input">
@@ -75,15 +76,15 @@ export default function RegisterPage() {
                             bg-[#181818]! hover:bg-[#121212]! focus:bg-[#121212]!
                             p-2 outline-none
                         "
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={formValue.email}
+                        onChange={(e) => handleChange("email", e.target.value)}
                         />
                     </div>
                     <PasswordField
                         label="Senha"
-                        name="senha"
-                        value={password || ""}
-                        onChange={(e) => setPassword(e.target.value)}
+                        name="password"
+                        value={formValue.password || ""}
+                        onChange={(e) => handleChange("password", e.target.value)}
                         placeholder="Senha"
                         required
                         // isInvalid={validated && !!erros.senha}
@@ -92,8 +93,8 @@ export default function RegisterPage() {
                     <PasswordField
                         label="Confirmar senha"
                         name="confirmPassword"
-                        value={confirmPassword || ""}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        value={formValue.confirmPassword || ""}
+                        onChange={(e) => handleChange("confirmPassword", e.target.value)}
                         placeholder="Confirmar senha"
                         required
                         // isInvalid={validated && !!erros.senha}
@@ -113,7 +114,7 @@ export default function RegisterPage() {
                         Registrar
                     </Button>
 
-                    {error && <p className="text-red-500">{error}</p>}
+                    {/* {erros && <p className="text-red-500">{erros}</p>} */}
                     {success && <p className="text-green-500">Login realizado com sucesso!</p>}
                     </div>
                     <div className="flex gap-2 p-2 justify-center text-[0.7rem] text-[#cecece]/70">

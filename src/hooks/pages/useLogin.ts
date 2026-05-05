@@ -1,39 +1,32 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useUserStore from "../store/useUserStore";
+import useUserStore from "../../store/useUserStore";
+import useForm
 
 /**
- * Hook de Registro
+ * Hook de Login
  */
 
-const useRegister = () => {
-    const [name, setName] = useState("")
+const useLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const setUser = useUserStore((state) => state.setUser);
 
-  const handleRegister = async () => {
-    if (password !== confirmPassword) {
-      setError("As senhas não coincidem");
-      return;
-    }
-
+  const handleLogin = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await window.electronAPI.register(email, password, name);
-      
+      const response = await window.electronAPI.login(email, password);
       if (response.success) {
-        setUser(response.user);
+        setUser(response.user); // Salva o usuário no Zustand
         setSuccess(true);
-        navigate("/home");
+        navigate("/uploadPage");
       } else {
-        setError(response.error || "Erro ao realizar registro");
+        setError(response.error || "Erro ao realizar login");
       }
     } catch (err: any) {
       setError(err.message || "Erro inesperado");
@@ -43,20 +36,18 @@ const useRegister = () => {
   };
 
   return {
-    name,
-    setName,
     email,
     password,
-    confirmPassword,
     loading,
     error,
     success,
-    handleRegister,
+    handleLogin,
     setEmail,
     setPassword,
-    setConfirmPassword,
+    setLoading,
     setError,
+    setSuccess,
   };
 };
 
-export default useRegister;
+export default useLogin;
