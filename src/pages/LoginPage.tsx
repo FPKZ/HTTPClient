@@ -2,8 +2,8 @@ import React from "react";
 import { Container, Button } from "react-bootstrap";
 import icons from "../assets/icons";
 import { ArrowRight } from "lucide-react";
-import useLogin from "../hooks/useLogin";
 import { useNavigate } from "react-router-dom";
+import useLogin from "../hooks/pages/useLogin";
 
 /**
  * Página de login
@@ -11,17 +11,22 @@ import { useNavigate } from "react-router-dom";
  */
 export default function LoginPage() {
   const { 
-    email, 
-    password, 
-    // loading, // available from hook if needed
-    error, 
-    success, 
-    handleLogin, 
-    setEmail, 
-    setPassword, 
-    // setLoading, // available from hook if needed
-    // setError, // available from hook if needed
-    // setSuccess // available from hook if needed
+    formValue,
+    setFormValue,
+    erros,
+    setErros,
+    validated,
+    setValidated,
+    handleChange,
+    validate,
+    resetForm,
+    loading,
+    error,
+    success,
+    handleLogin,
+    setLoading,
+    setError,
+    setSuccess,
   } = useLogin();
 
   const navigate = useNavigate();
@@ -53,8 +58,8 @@ export default function LoginPage() {
                     bg-[#181818]! hover:bg-[#121212]! focus:bg-[#121212]!
                     p-2 outline-none
                   "
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={formValue.email}
+                  onChange={handleChange}
                 />
               </div>
 
@@ -73,8 +78,8 @@ export default function LoginPage() {
                     bg-[#181818]! hover:bg-[#121212]! focus:bg-[#121212]!
                     p-2 outline-none
                   "
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formValue.password}
+                  onChange={handleChange}
                 />
               </div>
 
@@ -91,7 +96,7 @@ export default function LoginPage() {
                 Entrar
               </Button>
 
-              {error && <p className="text-red-500">{error}</p>}
+              {erros && <p className="text-red-500">{erros}</p>}
               {success && <p className="text-green-500">Login realizado com sucesso!</p>}
             </div>
             <div className="flex gap-2 p-2 justify-between text-[0.7rem] text-[#cecece]/70">
