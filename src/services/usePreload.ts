@@ -24,12 +24,36 @@ export default function usePreload(): void {
       }
     );
 
-    const removeUserListener = window.electronAPI.onUserChangerd((user: any) => {
+
+    const checkUser = async () => {
+      const user = await window.electronAPI.getUser();
       if (user) {
         setUser(user);
       } else {
         clearUser();
-        navigate("/login");
+        // Não navegar para login se estivermos em telas de sistema ou já no login
+        const systemRoutes = ["#/update", "#/action-logger", "#/login"];
+        if (!systemRoutes.includes(window.location.hash)) {
+          navigate("/login");
+        }
+      }
+    };
+    checkUser();
+
+    const removeUserListener = window.electronAPI.onUserChanged((user: any) => {
+      if (user) {
+        setUser(user);
+        // Se estivermos no login e o usuário logar, vai para a home
+        if (window.location.hash === "#/login" || window.location.hash === "#/register") {
+          navigate("/uploadPage");
+        }
+      } else {
+        clearUser();
+        // Não redirecionar para login se estiver em telas de sistema
+        const systemRoutes = ["#/update", "#/action-logger"];
+        if (!systemRoutes.includes(window.location.hash)) {
+          navigate("/login");
+        }
       }
     });
 

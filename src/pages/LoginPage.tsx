@@ -24,6 +24,7 @@ export default function LoginPage() {
     error,
     success,
     handleLogin,
+    handleSocialLogin,
     setLoading,
     setError,
     setSuccess,
@@ -96,8 +97,9 @@ export default function LoginPage() {
                 Entrar
               </Button>
 
-              {erros && <p className="text-red-500">{erros}</p>}
-              {success && <p className="text-green-500">Login realizado com sucesso!</p>}
+              {erros?.geral && <p className="text-red-500 text-sm m-0">{erros.geral}</p>}
+              {error && <p className="text-red-500 text-sm m-0">{error}</p>}
+              {success && <p className="text-green-500 text-sm m-0">Login realizado com sucesso!</p>}
             </div>
             <div className="flex gap-2 p-2 justify-between text-[0.7rem] text-[#cecece]/70">
               <div>
@@ -126,8 +128,8 @@ export default function LoginPage() {
             </div>
             <div className="flex flex-col items-center justify-between px-3 gap-3 text-zinc-900! font-bold">
               {[
-                { img: "google.svg", alt: "Google", size: "w-8 h-8", text: "Entrar com o Google", action: handleLogin },
-                { img: "/github-brands-solid-full(1).svg", alt: "GitHub", size: "w-8 h-8", text: "Entrar com o GitHub", action: handleLogin },
+                { img: "google.svg", alt: "Google", size: "w-8 h-8", text: "Entrar com o Google", action: () => handleSocialLogin("google") },
+                { img: "/github-brands-solid-full(1).svg", alt: "GitHub", size: "w-8 h-8", text: "Entrar com o GitHub", action: () => handleSocialLogin("github") },
               ].map((item, index) => (
                 <div
                   key={index}
@@ -158,7 +160,7 @@ export default function LoginPage() {
                   border-0 p-1.5 rounded-full!
                   cursor-pointer
                 "
-                onClick={handleLogin}
+                onClick={() => navigate("/uploadPage")}
               >
                 <img src="google.svg" alt="Google" className="w-8 h-8 invisible" />
                 Entrar sem conta

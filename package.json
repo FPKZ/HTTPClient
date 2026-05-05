@@ -97,6 +97,7 @@
     "drizzle-orm": "^0.45.2",
     "electron-context-menu": "^4.1.1",
     "electron-log": "^5.4.3",
+    "electron-store": "^11.0.2",
     "electron-updater": "^6.6.2",
     "events": "^3.3.0",
     "form-data": "^4.0.5",

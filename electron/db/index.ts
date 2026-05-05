@@ -8,15 +8,17 @@ class InstanceDB {
     private static db: BetterSQLite3Database<typeof schema>;
     private static path: string = "";
 
-    static init(path: string) {
+    static init(dbPath: string, migrationsPath: string) {
         if (!InstanceDB.db) {
-            const sqlite = new Database(path);
+            const sqlite = new Database(dbPath);
             sqlite.pragma('foreign_keys = ON');
             InstanceDB.db = drizzle(sqlite, { schema });
+            
+            console.log(`[InstanceDB] Inicializando migrações em: ${migrationsPath}`);
             migrate(InstanceDB.db, {
-                migrationsFolder: "./drizzle",
+                migrationsFolder: migrationsPath,
             });
-            InstanceDB.path = path;
+            InstanceDB.path = dbPath;
         }
     }
 

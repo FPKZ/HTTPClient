@@ -1,49 +1,69 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+const Store = require("electron-store");
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 
+// Adaptador para o Supabase usar o electron-store como "localStorage" no Processo Main
+const store = new (Store.default || Store)();
+const customStorage = {
+  getItem: (key: string) => store.get(key) as string,
+  setItem: (key: string, value: string) => store.set(key, value),
+  removeItem: (key: string) => store.delete(key),
+};
+
 class SupabaseService {
   private client: SupabaseClient | null = null;
   private isConfigured: boolean = false;
-  private userDataPath: string;
 
-  constructor(userDataPath: string) {
-    this.userDataPath = userDataPath;
+  constructor() {
     this.init();
   }
 
   init(): void {
     try {
-      // Prioriza a leitura do .env diretamente do diretório atual se disponível
+      console.log("[SupaService] Init...")
       const envPathRoot = path.join(process.cwd(), ".env");
+      console.log("[SupabaseService] Procurando .env em:", envPathRoot);
+      
       if (fs.existsSync(envPathRoot)) {
-        dotenv.config({ path: envPathRoot });
+        const result = dotenv.config({ path: envPathRoot });
+        if (result.error) console.error("[SupabaseService] Erro ao carregar .env:", result.error);
       } else {
-        dotenv.config(); // fallback
+        dotenv.config();
       }
 
-      const supabaseUrl = process.env.SUPABASE_URL;
-      const supabaseKey = process.env.SUPABASE_ANON_KEY;
+      let supabaseUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "").trim();
+      let supabaseKey = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "").trim();
+
+      // Remove aspas se existirem (ex: "url")
+      if (supabaseUrl.startsWith('"') && supabaseUrl.endsWith('"')) {
+        supabaseUrl = supabaseUrl.substring(1, supabaseUrl.length - 1);
+      }
+      if (supabaseKey.startsWith('"') && supabaseKey.endsWith('"')) {
+        supabaseKey = supabaseKey.substring(1, supabaseKey.length - 1);
+      }
+
+      console.log("[SupabaseService] URL carregada:", supabaseUrl ? "Sim" : "Não", `(Tamanho: ${supabaseUrl.length})`);
+      console.log("[SupabaseService] Key carregada:", supabaseKey ? "Sim" : "Não", `(Tamanho: ${supabaseKey.length})`);
 
       if (!supabaseUrl || !supabaseKey) {
-        console.warn(
-          "[SupabaseService] Variáveis SUPABASE_URL e SUPABASE_ANON_KEY não encontradas. Funcionalidade em nuvem desativada."
-        );
+        console.warn("[SupabaseService] Variáveis de ambiente não encontradas.");
         this.isConfigured = false;
         return;
       }
 
       this.client = createClient(supabaseUrl, supabaseKey, {
         auth: {
+          storage: customStorage,
+          autoRefreshToken: true,
           persistSession: true,
-          // Idealmente, poderíamos acoplar uma storage customizada pro electron (ex: via user-data),
-          // mas isso fica para o módulo avançado de Auth.
-        },
+          detectSessionInUrl: false // No Electron, nós tratamos a URL manualmente no UserService
+        }
       });
 
       this.isConfigured = true;
-      console.log("[SupabaseService] Cliente instanciado com sucesso.");
+      console.log("[SupabaseService] Cliente instanciado com sucesso e persistência ativada.");
     } catch (error) {
       console.error("[SupabaseService] Erro ao instanciar Supabase:", error);
       this.isConfigured = false;

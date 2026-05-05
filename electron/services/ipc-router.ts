@@ -158,7 +158,7 @@ class IpcRouter {
     // History
     ipcMain.handle("get-history", () => this.history.getHistory());
     ipcMain.handle("get-collection-by-id", (_event, { id, source }: { id: string; source: 'local' | 'supabase' }) =>
-      this.history.getCollectionById(id, source)
+      this.history.getCollectionById(id)
     );
     ipcMain.on("save-and-quit", async (_event, collectionData: any) => {
       if (collectionData && collectionData.name) {
@@ -205,11 +205,12 @@ class IpcRouter {
     });
 
     // User
-    ipcMain.handle("get-user", () => this.user.getUser());
-    ipcMain.handle("login", (_event, { email, password }) => this.user.login(email, password));
-    ipcMain.handle("logout", () => this.user.logout());
-    ipcMain.handle("register", (_event, { email, password }) => this.user.register(email, password));
-    ipcMain.handle("update", (_event, { user }) => this.user.update(user));
+    ipcMain.handle("auth:get-user", () => this.user.getCurrentUser());
+    ipcMain.handle("auth:login", (_event, { email, password }) => this.user.signInWithEmail(email, password));
+    ipcMain.handle("auth:logout", () => this.user.logout());
+    ipcMain.handle("auth:signup", (_event, params) => this.user.signUpWithEmail(params));
+    ipcMain.handle("auth:social-login", (_event, provider: 'google' | 'github') => this.user.signInWithOAuth(provider));
+    // ipcMain.handle("update", (_event, { user }) => this.user.update(user));
 
     // Export
     ipcMain.handle("save-file", async (_event, { content, defaultPath }: { content: any; defaultPath: string }) => {

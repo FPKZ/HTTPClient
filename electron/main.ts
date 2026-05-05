@@ -1,10 +1,13 @@
 import { app, dialog } from "electron";
 import path from "path";
 import log from "electron-log";
-import { fileURLToPath } from "url";
 
-// Polyfill para __dirname em ESM
+// Garante que o app seja instância única (essencial para Deep Linking)
+const gotTheLock = app.requestSingleInstanceLock();
 
+if (!gotTheLock) {
+  app.quit();
+}
 
 log.info("--- APP STARTING ---");
 
@@ -61,11 +64,15 @@ const translator = new PostmanTranslator();
 const axiosFormatter = new AxiosFormatter();
 const httpFormatter = new HttpFormatter();
 const exportService = new ExportService(storage);
-InstanceDB.init(path.join(userDataPath, "local.db"));
+const migrationsPath = isDev 
+  ? path.join(__dirname, "..", "drizzle") 
+  : path.join(process.resourcesPath, "drizzle");
+
+InstanceDB.init(path.join(userDataPath, "local.db"), migrationsPath);
 const db = InstanceDB.getDB();
 
 // 2. Instanciar Serviços de Negócio
-const supabaseService = new SupabaseService(userDataPath);
+const supabaseService = new SupabaseService();
 const userService = new UserService(supabaseService, db);
 const historyService = new HistoryService(db, userService);
 const networkService = new NetworkService();
@@ -126,28 +133,27 @@ app.whenReady().then(() => {
   // Inicializa o fluxo de atualização (que depois lança o app principal)
   // dialog.showMessageBox({ message: '1. App Ready. Checking updates...' }); // Debug
   try{
-    // actionLogger.log("Inicia o fluxo de atualização");
+    let appLaunched = false;
+    const launchApp = () => {
+      if (appLaunched) return;
+      appLaunched = true;
+      clearTimeout(launchTimer);
+      
+      actionLogger.log("Iniciando Sistema");
+      syncService.startBackgroundSync(60000); // 60s
+      windowManager.createMainWindow();
+    };
+
     windowManager.createUpdateWindow();
   
-    // Timeout de segurança global para garantir que o app abra
+    // Fallback de segurança (60s)
     const launchTimer = setTimeout(() => {
-      windowManager.createMainWindow();
-    }, 10000); // 10s se o auto-update travar
-  
-    // Action Logger Window (apenas em dev ou quando solicitado, mas aqui vamos deixar fixo para teste)
-    // if (isDev) {
-    //     windowManager.createActionLoggerWindow();
-    // }
+      log.warn("Auto-update fallback triggered after 60s");
+      launchApp();
+    }, 60000);
   
     autoUpdateService.init(windowManager, () => {
-      clearTimeout(launchTimer);
-      // dialog.showMessageBox({ message: '2. Launching Main Window...' }); // Debug
-      actionLogger.log("Iniciando Sistema");
-      
-      // Inicia Rotina de Sincronização Local-First
-      syncService.startBackgroundSync(30000); // 30s
-      
-      windowManager.createMainWindow();
+      launchApp();
     });
   } catch (error) {
     log.error("Erro ao iniciar o fluxo de atualização:", error);
@@ -169,3 +175,36 @@ app.on("activate", () => {
     windowManager.createMainWindow();
   }
 });
+
+// Registrar o protolo 
+if(process.defaultApp) {
+  if(process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('volt-app', process.execPath, [path.resolve(process.argv[1])])
+  }
+} else {
+  app.setAsDefaultProtocolClient('volt-app')
+}
+
+// Executar quando o app é aberto via link (Windows e Linux)
+app.on('second-instance', (event, commandLine, workingDirectory) => {
+  const url = commandLine.find(arg => arg.startsWith("volt-app://"));
+
+  const mainWin = windowManager.getMainWindow();
+  if (mainWin) {
+    if (mainWin.isMinimized()) mainWin.restore();
+    mainWin.focus();
+  }
+
+  if (url && url.includes("auth-callback")) {
+    userService.handleAuthCallback(url);
+  }
+})
+
+// Escutar no macOS
+app.on("open-url", (event, url) => {
+  event.preventDefault();
+
+  if (url.includes("auth-callback")) {
+    userService.handleAuthCallback(url);
+  }
+})

@@ -25,7 +25,7 @@ export class HistoryService {
    */
   async getHistory() {
     try {
-      const currentUser = this.userService?.getUser();
+      const currentUser = this.userService?.getCurrentUser();
       const ownerId = currentUser ? currentUser.id : null;
 
       // Busca as coleções (atualmente o ownerId está em workspaces ou profiles, 
@@ -195,7 +195,7 @@ export class HistoryService {
 
   async deleteAllHistory() {
     try {
-      const currentUser = this.userService?.getUser();
+      const currentUser = this.userService?.getCurrentUser();
       // Nota: No schema atual as coleções não têm owner_id direto. 
       // Se quiser deletar tudo do usuário, precisaria filtrar por workspace ou adicionar owner_id na coleção.
       await this.db.delete(schema.collections);

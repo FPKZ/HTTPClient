@@ -56,6 +56,31 @@ const useLogin = () => {
     }
   };
 
+  const handleSocialLogin = async (provider: "google" | "github") => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await window.electronAPI.socialLogin(provider);
+
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      if (result.user) {
+        setUser(result.user);
+        setSuccess(true);
+        navigate("/uploadPage");
+      }
+      // Se não houver user agora, não é erro. 
+      // O app vai esperar o deep link que será capturado pelo usePreload.
+    } catch (err: any) {
+      setError(err.message || "Erro de conexão");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     formValue,
     setFormValue,
@@ -70,6 +95,7 @@ const useLogin = () => {
     error,
     success,
     handleLogin,
+    handleSocialLogin,
     setLoading,
     setError,
     setSuccess,
