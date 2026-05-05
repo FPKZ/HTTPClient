@@ -1,49 +1,75 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useUserStore from "../../store/useUserStore";
-import useForm
+import { useForm } from "../useForm";
 
 /**
  * Hook de Login
  */
 
 const useLogin = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const setUser = useUserStore((state) => state.setUser);
 
+    const { 
+        formValue,
+        setFormValue,
+        erros,
+        setErros,
+        validated,
+        setValidated,
+        handleChange,
+        validate,
+        resetForm,
+    } = useForm({
+        email: "",
+        password: "",
+    },{
+        validators: {
+            email: (value: string) => !value.includes("@") ? "E-mail inválido" : null,
+            password: (value: string) => value.length < 6 ? "A senha deve ter no mínimo 6 caracteres" : null,
+        },
+    });
+
   const handleLogin = async () => {
     try {
+      if (!validate()) {
+        return;
+      }
       setLoading(true);
-      setError(null);
-      const response = await window.electronAPI.login(email, password);
+      const response = await window.electronAPI.login(formValue.email, formValue.password);
+      
       if (response.success) {
         setUser(response.user); // Salva o usuário no Zustand
         setSuccess(true);
         navigate("/uploadPage");
       } else {
-        setError(response.error || "Erro ao realizar login");
+        setErros({ geral: response.error || "Erro ao realizar login" });
       }
     } catch (err: any) {
-      setError(err.message || "Erro inesperado");
+      setErros({ geral: err.message || "Erro inesperado" });
     } finally {
       setLoading(false);
     }
   };
 
   return {
-    email,
-    password,
+    formValue,
+    setFormValue,
+    erros,
+    setErros,
+    validated,
+    setValidated,
+    handleChange,
+    validate,
+    resetForm,
     loading,
     error,
     success,
     handleLogin,
-    setEmail,
-    setPassword,
     setLoading,
     setError,
     setSuccess,
