@@ -5,6 +5,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { shell } from "electron";
 import http from "node:http";
 import SupabaseService from "./supabase-service";
+import { AppMessenger } from "./app-messenger";
 
 /**
  * UserService
@@ -29,10 +30,12 @@ export class UserService {
   private supabase: SupabaseClient | null;
   private db: BetterSQLite3Database<typeof schema>;
   private currentUser: User | null = null;
+  private messenger: AppMessenger;
 
-  constructor(supabaseService: SupabaseService, db: BetterSQLite3Database<typeof schema>) {
+  constructor(supabaseService: SupabaseService, db: BetterSQLite3Database<typeof schema>, messenger: AppMessenger) {
     this.supabase = supabaseService.getClient();
     this.db = db;
+    this.messenger = messenger;
   }
 
   /**
@@ -53,10 +56,10 @@ export class UserService {
     }
   }
 
-  async signInWithEmail(email: string, password: string, win: Electron.BrowserWindow) {
+  async signInWithEmail(email: string, password: string) {
     if (!this.supabase) return { success: false, error: "Serviço Cloud indisponível." };
     try {
-      win.webContents.send("auth:loading", true);
+      this.messenger.sendToMain("auth:loading", true);
       const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       const user = await this.persistUser(data.user);
@@ -64,7 +67,7 @@ export class UserService {
     } catch (err: any) {
       return { success: false, error: err.message };
     } finally {
-      win.webContents.send("auth:loading", false);
+      this.messenger.sendToMain("auth:loading", false);
     }
   }
 
@@ -84,7 +87,7 @@ export class UserService {
     }
   }
 
-  async signInWithOAuth(provider: 'google' | 'github', win: Electron.BrowserWindow) {
+  async signInWithOAuth(provider: 'google' | 'github') {
     try {
       if (!this.supabase) {
         console.error("[UserService] Supabase client não inicializado.");
@@ -92,7 +95,7 @@ export class UserService {
       }
       
       // Iniciar servidor local temporário para capturar o redirecionamento
-      win.webContents.send("auth:loading", true);
+      this.messenger.sendToMain("auth:loading", true);
       const port = 54321;
       const redirectUri = `http://localhost:${port}/auth-callback`;
       
@@ -275,7 +278,7 @@ export class UserService {
           res.end("OK");
           
           // Pequeno delay para garantir que o 'res' seja enviado antes de fechar o servidor
-          setTimeout(stopServer, 1000);
+          setTimeout(stopServerWithCleanup, 1000);
           return;
         }
 
@@ -286,7 +289,20 @@ export class UserService {
       server.listen(port);
       
       // Timeout de segurança: fecha o servidor após 5 minutos se nada acontecer
-      setTimeout(stopServer, 5 * 60 * 1000);
+      const timeoutId = setTimeout(() => {
+        if (server) {
+          stopServer();
+          this.messenger.sendToMain("auth:loading", false);
+          console.log("[UserService] Servidor local de autenticação encerrado por timeout.");
+        }
+      }, 5 * 60 * 1000);
+
+      // Limpar o timeout se o servidor for fechado antes
+      const originalStopServer = stopServer;
+      const stopServerWithCleanup = () => {
+        clearTimeout(timeoutId);
+        originalStopServer();
+      };
 
       console.log(`[UserService] Iniciando login social com: ${provider} via localhost:${port}`);
       const { data, error } = await this.supabase.auth.signInWithOAuth({
@@ -295,8 +311,9 @@ export class UserService {
       });
       
       if (error) {
-        stopServer();
+        stopServerWithCleanup();
         console.error("[UserService] Erro no signInWithOAuth:", error);
+        this.messenger.sendToMain("auth:loading", false);
         return { success: false, error: error.message };
       }
 
@@ -306,14 +323,13 @@ export class UserService {
         return { success: true };
       }
       
-      stopServer();
+      stopServerWithCleanup();
       console.warn("[UserService] Nenhuma URL retornada pelo Supabase.");
+      this.messenger.sendToMain("auth:loading", false);
       return { success: false, error: "Não foi possível gerar a URL de login." };
     } catch (error: any) {
       console.error("[UserService] Erro ao iniciar login social:", error);
       return { success: false, error: error.message };
-    } finally {
-      win.webContents.send("auth:loading", false);
     }
   }
 
@@ -330,16 +346,16 @@ export class UserService {
       if (error) throw error;
       if (data.user) {
         await this.persistUser(data.user);
-        console.log("[UserService] Login via Servidor Local concluído para:", data.user);
+        console.log("[UserService] Login via Servidor Local concluído para:", data.user.email);
         
         // Emite um evento ou foca a janela através do processo main (configurado no IpcRouter)
         // O main.ts ou IpcRouter deve escutar mudanças na sessão ou o callback aqui.
-        if (global.focusAppWindow) {
-          global.focusAppWindow();
-        }
+        this.messenger.focusMain();
       }
     } catch (error) {
       console.error("[UserService] Erro ao completar login OAuth:", error);
+    } finally {
+      this.messenger.sendToMain("auth:loading", false);
     }
   }
 

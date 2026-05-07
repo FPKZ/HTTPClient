@@ -2,7 +2,7 @@ import { ipcMain, dialog, net, BrowserWindow, Menu, WebContents } from "electron
 import fs from "fs";
 import path from "path";
 import log from "electron-log";
-import WindowManager from "./window-manager";
+import { IWindowManager } from "../interfaces/window-manager.interface";
 import HistoryService from "./history-service";
 import PostmanTranslator, { CollectionItem } from "../core/postman-translator";
 import { AxiosFormatter, HttpFormatter } from "../core/formatters";
@@ -10,6 +10,7 @@ import NetworkService from "./network-service";
 import ExportService from "./export-service";
 import DialogReact from "../utils/dialog-react";
 import UserService from "./user-service";
+import { AppMessenger } from "./app-messenger";
 
 /**
  * IpcRouter
@@ -17,7 +18,7 @@ import UserService from "./user-service";
  * Segue o OCP ao permitir delegar chamadas para diferentes serviços sem poluir o main.
  */
 class IpcRouter {
-  private win: WindowManager;
+  private win: IWindowManager;
   private history: HistoryService;
   private translator: PostmanTranslator;
   private formatters: { axios: AxiosFormatter; http: HttpFormatter };
@@ -26,10 +27,11 @@ class IpcRouter {
   private dialogReact: DialogReact;
   private actionLogger: any;
   private user: UserService;
+  private messenger: AppMessenger;
   private activeRequests: Map<string, AbortController> = new Map();
 
   constructor(
-    windowManager: WindowManager,
+    windowManager: IWindowManager,
     historyService: HistoryService,
     translator: PostmanTranslator,
     formatters: { axios: AxiosFormatter; http: HttpFormatter },
@@ -38,6 +40,7 @@ class IpcRouter {
     dialogReact: DialogReact,
     actionLogger: any,
     userService: UserService,
+    messenger: AppMessenger,
   ) {
     this.win = windowManager;
     this.history = historyService;
@@ -48,6 +51,7 @@ class IpcRouter {
     this.dialogReact = dialogReact;
     this.actionLogger = actionLogger;
     this.user = userService;
+    this.messenger = messenger;
   }
 
   register(): void {
@@ -76,10 +80,7 @@ class IpcRouter {
       const currentStatus = net.isOnline();
       if (currentStatus !== lastStatus) {
         lastStatus = currentStatus;
-        const mainWin = this.win.getMainWindow();
-        if (mainWin) {
-          mainWin.webContents.send("network-status", currentStatus);
-        }
+        this.messenger.sendToMain("network-status", currentStatus);
       }
     }, 5000); // Verifica a cada 5 segundos
 
@@ -206,10 +207,10 @@ class IpcRouter {
 
     // User
     ipcMain.handle("auth:get-user", () => this.user.getCurrentUser());
-    ipcMain.handle("auth:login", (_event, { email, password }) => this.user.signInWithEmail(email, password, this.win.getMainWindow()!));
+    ipcMain.handle("auth:login", (_event, { email, password }) => this.user.signInWithEmail(email, password));
     ipcMain.handle("auth:logout", () => this.user.logout());
     ipcMain.handle("auth:signup", (_event, params) => this.user.signUpWithEmail(params));
-    ipcMain.handle("auth:social-login", (_event, provider: 'google' | 'github') => this.user.signInWithOAuth(provider, this.win.getMainWindow()!));
+    ipcMain.handle("auth:social-login", (_event, provider: 'google' | 'github') => this.user.signInWithOAuth(provider));
     // ipcMain.handle("update", (_event, { user }) => this.user.update(user));
 
     // Export

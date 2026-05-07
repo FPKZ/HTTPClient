@@ -1,6 +1,7 @@
 import { autoUpdater, UpdateInfo } from "electron-updater";
 import log from "electron-log";
-import WindowManager from "./window-manager";
+import { IWindowManager } from "../interfaces/window-manager.interface";
+import { AppMessenger } from "./app-messenger";
 
 /**
  * AutoUpdateService
@@ -29,18 +30,15 @@ class AutoUpdateService {
     autoUpdater.logger.transports.file.level = "info";
   }
 
-  init(windowManager: WindowManager, onLaunchApp: () => void): void {
+  init(windowManager: IWindowManager, messenger: AppMessenger, onLaunchApp: () => void): void {
     if (!this.isDev) {
       autoUpdater.checkForUpdatesAndNotify();
     } else {
-      this._runUpdateSimulation(windowManager, onLaunchApp);
+      this._runUpdateSimulation(windowManager, messenger, onLaunchApp);
     }
 
     autoUpdater.on("update-available", (info: UpdateInfo) => {
-      const updateWindow = windowManager.getUpdateWindow();
-      if (updateWindow && !updateWindow.isDestroyed()) {
-        updateWindow.webContents.send("update-available");
-      }
+      messenger.sendToUpdate("update-available");
       log.info("⬇️ Atualização disponível:", info);
     });
 
@@ -50,17 +48,11 @@ class AutoUpdateService {
     });
 
     autoUpdater.on("download-progress", (progress) => {
-      const updateWindow = windowManager.getUpdateWindow();
-      if (updateWindow && !updateWindow.isDestroyed()) {
-        updateWindow.webContents.send("download-progress", progress.percent);
-      }
+      messenger.sendToUpdate("download-progress", progress.percent);
     });
 
     autoUpdater.on("update-downloaded", (info: UpdateInfo) => {
-      const updateWindow = windowManager.getUpdateWindow();
-      if (updateWindow && !updateWindow.isDestroyed()) {
-        updateWindow.webContents.send("update-downloaded");
-      }
+      messenger.sendToUpdate("update-downloaded");
       log.info("🔁 Atualização baixada:", info);
       this.actionLogger.logClear();
       setTimeout(() => autoUpdater.quitAndInstall(true, true), 2000);
@@ -72,23 +64,23 @@ class AutoUpdateService {
     });
   }
 
-  private _runUpdateSimulation(windowManager: WindowManager, onLaunchApp: () => void): void {
+  private _runUpdateSimulation(windowManager: IWindowManager, messenger: AppMessenger, onLaunchApp: () => void): void {
     const updateWindow = windowManager.getUpdateWindow();
     if (!updateWindow) return;
 
     updateWindow.webContents.on("did-finish-load", () => {
       setTimeout(() => {
         if (updateWindow.isDestroyed()) return;
-        updateWindow.webContents.send("update-available");
+        messenger.sendToUpdate("update-available");
 
         let percent = 0;
         const interval = setInterval(() => {
           percent += 10;
           if (updateWindow && !updateWindow.isDestroyed()) {
-            updateWindow.webContents.send("download-progress", percent);
+            messenger.sendToUpdate("download-progress", percent);
             if (percent >= 100) {
               clearInterval(interval);
-              updateWindow.webContents.send("update-downloaded");
+              messenger.sendToUpdate("update-downloaded");
               setTimeout(() => onLaunchApp(), 2000);
             }
           } else {

@@ -49,6 +49,7 @@ import UserService from "./services/user-service";
 import SupabaseService from "./services/supabase-service";
 import SyncService from "./services/sync-service";
 import WindowManager from "./services/window-manager";
+import AppMessenger from "./services/app-messenger";
 import AutoUpdateService from "./services/auto-update-service";
 import IpcRouter from "./services/ipc-router";
 import ExportService from "./services/export-service";
@@ -76,20 +77,16 @@ const migrationsPath = isDev
 InstanceDB.init(path.join(userDataPath, "local.db"), migrationsPath);
 const db = InstanceDB.getDB();
 
-// 2. Instanciar Serviços de Negócio
+const windowManager = new WindowManager(isDev, preloadPath, actionLogger);
+const appMessenger = new AppMessenger(windowManager);
+
+// Inicializa a sessão do usuário caso exista cache local / token válido
 const supabaseService = new SupabaseService();
-const userService = new UserService(supabaseService, db);
+const userService = new UserService(supabaseService, db, appMessenger);
 const historyService = new HistoryService(db, userService);
 const networkService = new NetworkService();
 const syncService = new SyncService(db, supabaseService);
-const windowManager = new WindowManager(isDev, preloadPath, actionLogger);
 
-// Global para permitir que serviços foquem o app (ex: após login OAuth)
-global.focusAppWindow = () => {
-  windowManager.focusMainWindow();
-};
-
-// Inicializa a sessão do usuário caso exista cache local / token válido
 userService.initSession().catch(err => console.error("Erro ao inicializar sessão:", err));
 
 const autoUpdateService = new AutoUpdateService(isDev, actionLogger);
@@ -109,6 +106,7 @@ const ipcRouter = new IpcRouter(
   dialogReact,
   actionLogger,
   userService,
+  appMessenger,
 );
 
 // app.disableHardwareAcceleration();
@@ -162,7 +160,7 @@ app.whenReady().then(() => {
       launchApp();
     }, 60000);
   
-    autoUpdateService.init(windowManager, () => {
+    autoUpdateService.init(windowManager, appMessenger, () => {
       launchApp();
     });
   } catch (error) {
