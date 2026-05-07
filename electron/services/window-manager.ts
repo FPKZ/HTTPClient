@@ -284,6 +284,13 @@ export default class WindowManager {
     return this.actionLoggerWindow;
   }
 
+  focusMainWindow(): void {
+    if (this.mainWindow) {
+      if (this.mainWindow.isMinimized()) this.mainWindow.restore();
+      this.mainWindow.focus();
+    }
+  }
+
   toggleDevTools(): void {
     const win = BrowserWindow.getFocusedWindow();
     if (win) {

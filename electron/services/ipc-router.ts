@@ -206,10 +206,10 @@ class IpcRouter {
 
     // User
     ipcMain.handle("auth:get-user", () => this.user.getCurrentUser());
-    ipcMain.handle("auth:login", (_event, { email, password }) => this.user.signInWithEmail(email, password));
+    ipcMain.handle("auth:login", (_event, { email, password }) => this.user.signInWithEmail(email, password, this.win.getMainWindow()!));
     ipcMain.handle("auth:logout", () => this.user.logout());
     ipcMain.handle("auth:signup", (_event, params) => this.user.signUpWithEmail(params));
-    ipcMain.handle("auth:social-login", (_event, provider: 'google' | 'github') => this.user.signInWithOAuth(provider));
+    ipcMain.handle("auth:social-login", (_event, provider: 'google' | 'github') => this.user.signInWithOAuth(provider, this.win.getMainWindow()!));
     // ipcMain.handle("update", (_event, { user }) => this.user.update(user));
 
     // Export

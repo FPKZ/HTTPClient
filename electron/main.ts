@@ -2,6 +2,11 @@ import { app, dialog } from "electron";
 import path from "path";
 import log from "electron-log";
 
+declare global {
+  var focusAppWindow: () => void;
+  var contextMenuBuilder: any;
+}
+
 // Garante que o app seja instância única (essencial para Deep Linking)
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -78,6 +83,11 @@ const historyService = new HistoryService(db, userService);
 const networkService = new NetworkService();
 const syncService = new SyncService(db, supabaseService);
 const windowManager = new WindowManager(isDev, preloadPath, actionLogger);
+
+// Global para permitir que serviços foquem o app (ex: após login OAuth)
+global.focusAppWindow = () => {
+  windowManager.focusMainWindow();
+};
 
 // Inicializa a sessão do usuário caso exista cache local / token válido
 userService.initSession().catch(err => console.error("Erro ao inicializar sessão:", err));

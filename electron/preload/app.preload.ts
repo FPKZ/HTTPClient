@@ -13,37 +13,40 @@ export const appPreload: AppAPI = {
     // --- Comunicação IPC Básica ---
     ipcRenderer: {
         on(channel: string, func: (...args: any[]) => void) {
-        const validChannels = [
-            "update-available",
-            "download-progress",
-            "update-downloaded",
-            "navigate-to",
-            "check-for-updates",
-            "show-dialog",
-            "log-error",
-            "new-action-log",
-            "conect",
-            "network-status",
-            "log",
-            "conversion-finished",
-            "menu-action",
-            "user-changed",
-            "request-save-session"
-        ];
-        if (validChannels.includes(channel)) {
-            const subscription = (_event: any, ...args: any[]) => func(...args);
-            ipcRenderer.on(channel, subscription);
-            return () => {
-            ipcRenderer.removeListener(channel, subscription);
-            };
-        }
-        return () => {};
-        },
-        send(channel: string, ...args: any[]) {
-        ipcRenderer.send(channel, ...args);
-        },
-        invoke(channel: string, ...args: any[]) {
-        return ipcRenderer.invoke(channel, ...args);
+            const validChannels = [
+                "update-available",
+                "download-progress",
+                "update-downloaded",
+                "navigate-to",
+                "check-for-updates",
+                "show-dialog",
+                "log-error",
+                "new-action-log",
+                "conect",
+                "network-status",
+                "log",
+                "conversion-finished",
+                "menu-action",
+                "user-changed",
+                "request-save-session",
+                "auth:loading",
+                "auth:error",
+                "auth:success"
+            ];
+            if (validChannels.includes(channel)) {
+                const subscription = (_event: any, ...args: any[]) => func(...args);
+                ipcRenderer.on(channel, subscription);
+                return () => {
+                ipcRenderer.removeListener(channel, subscription);
+                };
+            }
+            return () => {};
+            },
+            send(channel: string, ...args: any[]) {
+            ipcRenderer.send(channel, ...args);
+            },
+            invoke(channel: string, ...args: any[]) {
+            return ipcRenderer.invoke(channel, ...args);
         },
     },
 
