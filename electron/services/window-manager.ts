@@ -2,6 +2,7 @@ import { BrowserWindow, Menu, screen, dialog } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
 import log from "electron-log";
+import { IWindowManager } from "../interfaces/window-manager.interface";
 
 
 
@@ -12,7 +13,7 @@ const icon = path.join(__dirname, "../../assets/icon1.png");
  * Gerencia a criação e o ciclo de vida das janelas do app.
  * Isola a lógica de rotas, webPreferences e eventos de janela (minimize/maximize/close).
  */
-export default class WindowManager {
+export default class WindowManager implements IWindowManager {
   private isDev: boolean;
   private preloadPath: string;
   private actionLogger: any;
