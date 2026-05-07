@@ -85,14 +85,15 @@ export default function LoginPage() {
               </div>
 
               <Button
-                className="
+                className={`
                 bg-[#ffc107]/90!
                 hover:bg-[#ffc107]/60!
                 focus:bg-[#ffc107]/60!
                 text-zinc-900!
                 border-0 px-4 py-2 rounded mt-3
-              "
+              `}
                 onClick={handleLogin}
+                disabled={loading}
               >
                 Entrar
               </Button>

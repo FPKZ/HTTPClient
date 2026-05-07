@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useUserStore from "../../store/useUserStore";
 import { useForm } from "../useForm";
@@ -8,31 +8,31 @@ import { useForm } from "../useForm";
  */
 
 const useLogin = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<boolean>(false);
   const navigate = useNavigate();
   const setUser = useUserStore((state) => state.setUser);
 
-    const { 
-        formValue,
-        setFormValue,
-        erros,
-        setErros,
-        validated,
-        setValidated,
-        handleChange,
-        validate,
-        resetForm,
-    } = useForm({
-        email: "",
-        password: "",
-    },{
-        validators: {
-            email: (value: string) => !value.includes("@") ? "E-mail inválido" : null,
-            password: (value: string) => value.length < 6 ? "A senha deve ter no mínimo 6 caracteres" : null,
-        },
-    });
+  const { 
+      formValue,
+      setFormValue,
+      erros,
+      setErros,
+      validated,
+      setValidated,
+      handleChange,
+      validate,
+      resetForm,
+  } = useForm({
+      email: "",
+      password: "",
+  },{
+      validators: {
+          email: (value: string) => !value.includes("@") ? "E-mail inválido" : null,
+          password: (value: string) => value.length < 6 ? "A senha deve ter no mínimo 6 caracteres" : null,
+      },
+  });
 
   const handleLogin = async () => {
     try {
@@ -64,6 +64,7 @@ const useLogin = () => {
 
       if (result.error) {
         setError(result.error);
+        setLoading(false);
         return;
       }
 
@@ -71,16 +72,24 @@ const useLogin = () => {
         setUser(result.user);
         setSuccess(true);
         navigate("/uploadPage");
+        setLoading(false);
       }
-      // Se não houver user agora, não é erro. 
-      // O app vai esperar o deep link que será capturado pelo usePreload.
+      // Se for sucesso mas sem usuário (OAuth em progresso), NÃO setamos loading como false.
+      // O listener no useEffect (auth:loading) cuidará de setar como false quando o login terminar.
+      
     } catch (err: any) {
       setError(err.message || "Erro de conexão");
-    } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    const removeListener = window.electronAPI.ipcRenderer.on("auth:loading", (state: boolean) => {
+      setLoading(state);
+    }); 
+    return () => removeListener();
+  }, []);
+  console.log(loading)
   return {
     formValue,
     setFormValue,
