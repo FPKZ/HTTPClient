@@ -7,7 +7,7 @@ export interface IWindowManager {
   createMainWindow(): BrowserWindow;
   createUpdateWindow(): BrowserWindow;
   getActionLoggerWindow(): BrowserWindow | null;
-  createActionLoggerWindow(): void;
+  createActionLoggerWindow(): BrowserWindow | null;
   minimize(): void;
   maximize(): void;
   close(): void;

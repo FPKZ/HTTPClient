@@ -46,19 +46,20 @@ const useRegister = () => {
                 return;
             }
             setLoading(true);
-            const response = await window.electronAPI.register(formValue.email, formValue.password, formValue.name);
-            
+            console.log(formValue);
+            const response = await window.electronAPI.register({email: formValue.email, password: formValue.password, name: formValue.name});
+            console.log(response);
             if (response.success) {
                 setUser(response.user);
                 setSuccess(true);
-                navigate("/home");
+                // navigate("/home");
             } else {
                 setErros({ geral: response.error || "Erro ao realizar registro" });
             }
         } catch (err: any) {
             setErros({ geral: err.message || "Erro inesperado" });
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     };
 

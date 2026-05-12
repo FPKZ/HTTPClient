@@ -14,7 +14,7 @@ import { ArrowRight, LogOut } from "lucide-react";
 import { useQuickExit } from "../hooks/useQuickExit";
 import { useHistory } from "../hooks/useHistory";
 
-import img from "../assets/icon1.png";
+// import img from "../assets/icon1.png";
 
 /**
  * UploadPage (Refatorada)
@@ -40,7 +40,7 @@ function UploadPage() {
   useEffect(() => {
     if (window.electronAPI) {
       // Finalização da conversão
-      const unFinished = window.electronAPI.onFinished?.((result) => {
+      const unFinished = window.electronAPI.onFinished?.((result: any) => {
         if (result.success && result.results?.length > 0) {
           const data = result.results[0];
           // Carrega diretamente no store
@@ -56,7 +56,7 @@ function UploadPage() {
     }
   }, [navigate]);
 
-  const startConversion = (inputPath, isFile) => {
+  const startConversion = (inputPath: string | string[], isFile: boolean) => {
     window.electronAPI?.startConversion({ inputPath, isFile });
   };
 

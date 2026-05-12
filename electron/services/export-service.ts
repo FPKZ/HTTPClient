@@ -1,3 +1,4 @@
+import { IExportService } from "../interfaces/export-service.interface";
 import StorageProvider from "../utils/storage-provider";
 
 /**
@@ -5,7 +6,7 @@ import StorageProvider from "../utils/storage-provider";
  * Responsável exclusivamente por exportar dados para arquivos.
  * Segue o SRP ao isolar toda a complexidade de exportação.
  */
-class ExportService {
+class ExportService implements IExportService {
   private storage: StorageProvider;
 
   constructor(storageProvider: StorageProvider) {

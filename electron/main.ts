@@ -54,7 +54,7 @@ import AutoUpdateService from "./services/auto-update-service";
 import IpcRouter from "./services/ipc-router";
 import ExportService from "./services/export-service";
 import DialogReact from "./utils/dialog-react";
-import actionLogger from "./utils/action-logger";
+import ActionLogger from "./utils/action-logger";
 import { InstanceDB } from "./db/index";
 
 // Setup Global Constants
@@ -62,7 +62,8 @@ const isDev = !app.isPackaged;
 const preloadPath = path.join(__dirname, "preload.cjs");
 const userDataPath = app.getPath("userData");
 
-isDev ? actionLogger.logClear() : null;
+const actionLogger = new ActionLogger();
+if (isDev) actionLogger.logClear();
 
 // 1. Instanciar Provedores e Conversores (Infra e Core)
 const storage = new StorageProvider(userDataPath);
@@ -96,18 +97,18 @@ const contextMenuBuilder = new ContextMenuBuilder(windowManager, isDev);
 global.contextMenuBuilder = contextMenuBuilder;
 
 // 3. Orquestrar Inicialização do IpcRouter
-const ipcRouter = new IpcRouter(
+const ipcRouter = new IpcRouter({
   windowManager,
+  userService,
   historyService,
-  translator,
-  { axios: axiosFormatter, http: httpFormatter },
   networkService,
   exportService,
-  dialogReact,
+  messenger: appMessenger,
   actionLogger,
-  userService,
-  appMessenger,
-);
+  dialogReact,
+  translator,
+  formatters: { axios: axiosFormatter, http: httpFormatter },
+});
 
 // app.disableHardwareAcceleration();
 // --- Lifecycle do App ---

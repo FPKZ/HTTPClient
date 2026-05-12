@@ -12,7 +12,7 @@ const customStorage = {
   removeItem: (key: string) => store.delete(key),
 };
 
-class SupabaseService {
+export class SupabaseService {
   private client: SupabaseClient | null = null;
   private isConfigured: boolean = false;
 

@@ -60,7 +60,7 @@ export default function LoginPage() {
                     p-2 outline-none
                   "
                   value={formValue.email}
-                  onChange={handleChange}
+                  onChange={(e) => handleChange("email", e.target.value)}
                 />
               </div>
 
@@ -80,7 +80,7 @@ export default function LoginPage() {
                     p-2 outline-none
                   "
                   value={formValue.password}
-                  onChange={handleChange}
+                  onChange={(e) => handleChange("password", e.target.value)}
                 />
               </div>
 

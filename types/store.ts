@@ -1,3 +1,4 @@
+import { CollectionItem } from "./entities/collection";
 /**
  * store.ts
  * Definições de tipos para o estado global (Zustand)
@@ -18,14 +19,7 @@ export interface Environment {
   variables: Variable[];
 }
 
-export interface CollectionItem {
-  id: string;
-  type: "route" | "folder";
-  name: string;
-  description?: string;
-  request?: any; // Idealmente será RequestConfig
-  items?: CollectionItem[]; // Para pastas
-}
+
 
 export interface Collection {
   id: string | null;

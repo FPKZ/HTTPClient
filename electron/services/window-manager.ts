@@ -3,8 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import log from "electron-log";
 import { IWindowManager } from "../interfaces/window-manager.interface";
-
-
+import { IActionLogger } from "../interfaces/utils.interface";
 
 const icon = path.join(__dirname, "../../assets/icon1.png");
 
@@ -13,16 +12,16 @@ const icon = path.join(__dirname, "../../assets/icon1.png");
  * Gerencia a criação e o ciclo de vida das janelas do app.
  * Isola a lógica de rotas, webPreferences e eventos de janela (minimize/maximize/close).
  */
-export default class WindowManager implements IWindowManager {
+export class WindowManager implements IWindowManager {
   private isDev: boolean;
   private preloadPath: string;
-  private actionLogger: any;
+  private actionLogger: IActionLogger;
   private mainWindow: BrowserWindow | null = null;
   private updateWindow: BrowserWindow | null = null;
   private actionLoggerWindow: BrowserWindow | null = null;
   private _forceCloseFlag: boolean = false;
 
-  constructor(isDev: boolean, preloadPath: string, actionLogger: any) {
+  constructor(isDev: boolean, preloadPath: string, actionLogger: IActionLogger) {
     this.isDev = isDev;
     this.preloadPath = preloadPath;
     this.actionLogger = actionLogger;
@@ -299,3 +298,5 @@ export default class WindowManager implements IWindowManager {
     }
   }
 }
+
+export default WindowManager;

@@ -1,11 +1,13 @@
+import { WebContents } from "electron";
 import { IWindowManager } from "../interfaces/window-manager.interface";
+import { IAppMessenger } from "../interfaces/app-messenger.interface";
 
 /**
  * AppMessenger
  * Serviço responsável por enviar mensagens IPC do processo Main para as janelas do Renderer.
  * Evita que outros serviços dependam diretamente das instâncias de BrowserWindow ou do WindowManager completo.
  */
-export class AppMessenger {
+export class AppMessenger implements IAppMessenger {
   private windowManager: IWindowManager;
 
   constructor(windowManager: IWindowManager) {
@@ -29,6 +31,15 @@ export class AppMessenger {
     const win = this.windowManager.getUpdateWindow();
     if (win && !win.isDestroyed()) {
       win.webContents.send(channel, ...args);
+    }
+  }
+
+  /**
+   * Envia uma mensagem para uma janela específica via WebContents
+   */
+  sendToWindow(contents: WebContents | null, channel: string, ...args: any[]): void {
+    if (contents && !contents.isDestroyed()) {
+      contents.send(channel, ...args);
     }
   }
 

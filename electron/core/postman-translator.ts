@@ -59,7 +59,7 @@ export interface CollectionTemplate {
  * PostmanTranslator
  * Responsável por traduzir o formato Postman para o modelo unificado CollectionTemplate.
  */
-class PostmanTranslator {
+export class PostmanTranslator {
   translate(postmanJson: PostmanCollection): CollectionTemplate {
     if (!postmanJson || !postmanJson.info || !postmanJson.item) {
       throw new Error(

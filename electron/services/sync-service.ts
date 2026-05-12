@@ -10,7 +10,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
  * Refatorado para usar Drizzle ORM.
  */
 
-class SyncService {
+export class SyncService {
   private db: BetterSQLite3Database<typeof schema>;
   private supabaseService: SupabaseService;
   private syncInterval: NodeJS.Timeout | null = null;

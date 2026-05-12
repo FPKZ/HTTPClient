@@ -5,34 +5,21 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { shell } from "electron";
 import http from "node:http";
 import SupabaseService from "./supabase-service";
-import { AppMessenger } from "./app-messenger";
+import { IAppMessenger } from "../interfaces/app-messenger.interface";
+import { IUserService, User, CreateUserParams } from "../interfaces/user-service.interface";
 
 /**
  * UserService
  * Orquestra a autenticação e o perfil do usuário usando Drizzle e Supabase.
  */
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl?: string | null;
-  updatedAt: string;
-}
-
-interface CreateUserParams {
-  email: string;
-  password: string;
-  name: string;
-}
-
-export class UserService {
+export class UserService implements IUserService {
   private supabase: SupabaseClient | null;
   private db: BetterSQLite3Database<typeof schema>;
   private currentUser: User | null = null;
-  private messenger: AppMessenger;
+  private messenger: IAppMessenger;
 
-  constructor(supabaseService: SupabaseService, db: BetterSQLite3Database<typeof schema>, messenger: AppMessenger) {
+  constructor(supabaseService: SupabaseService, db: BetterSQLite3Database<typeof schema>, messenger: IAppMessenger) {
     this.supabase = supabaseService.getClient();
     this.db = db;
     this.messenger = messenger;
@@ -56,14 +43,22 @@ export class UserService {
     }
   }
 
-  async signInWithEmail(email: string, password: string) {
+  async signInWithEmail(email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
     if (!this.supabase) return { success: false, error: "Serviço Cloud indisponível." };
     try {
+      console.log(`
+          Email: ${email}
+          Senha: ${password}
+        `);
       this.messenger.sendToMain("auth:loading", true);
       const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
+      console.log(`
+          Data: ${JSON.stringify(data, null, 2)}
+          Error: ${JSON.stringify(error, null, 2)}
+        `);
       if (error) throw error;
-      const user = await this.persistUser(data.user);
-      return { success: true, user };
+      const user = await this.persistUser(data.user!);
+      return { success: true, user: user! };
     } catch (err: any) {
       return { success: false, error: err.message };
     } finally {
@@ -71,23 +66,32 @@ export class UserService {
     }
   }
 
-  async signUpWithEmail(params: CreateUserParams) {
+  async signUpWithEmail(params: CreateUserParams): Promise<{ success: boolean; user?: User; error?: string }> {
     if (!this.supabase) return { success: false, error: "Serviço Cloud indisponível." };
     try {
+      console.log(`
+          Email: ${params.email}
+          Senha: ${params.password}
+          Nome: ${params.name}
+        `);
       const { data, error } = await this.supabase.auth.signUp({
         email: params.email,
         password: params.password,
         options: { data: { name: params.name } }
       });
+      console.log(`
+          Data: ${JSON.stringify(data, null, 2)}
+          Error: ${JSON.stringify(error, null, 2)}
+        `);
       if (error) throw error;
-      const user = await this.persistUser(data.user);
-      return { success: true, user };
+      const user = await this.persistUser(data.user!);
+      return { success: true, user: user! };
     } catch (err: any) {
       return { success: false, error: err.message };
     }
   }
 
-  async signInWithOAuth(provider: 'google' | 'github') {
+  async signInWithOAuth(provider: 'google' | 'github'): Promise<{ success: boolean; error?: string }> {
     try {
       if (!this.supabase) {
         console.error("[UserService] Supabase client não inicializado.");
@@ -388,7 +392,7 @@ export class UserService {
     }
   }
 
-  async logout() {
+  async logout(): Promise<{ success: boolean }> {
     if (this.supabase) await this.supabase.auth.signOut();
     this.currentUser = null;
     return { success: true };

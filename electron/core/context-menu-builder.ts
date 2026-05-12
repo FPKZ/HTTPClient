@@ -1,12 +1,12 @@
 import contextMenu, { Options } from "electron-context-menu";
 import { BrowserWindow } from "electron";
-import WindowManager from "../services/window-manager";
+import { IWindowManager } from "../interfaces/window-manager.interface";
 
 class ContextMenuBuilder {
-  private windowManager: WindowManager;
+  private windowManager: IWindowManager;
   private isDev: boolean;
 
-  constructor(windowManager: WindowManager, isDev: boolean) {
+  constructor(windowManager: IWindowManager, isDev: boolean) {
     this.windowManager = windowManager;
     this.isDev = isDev;
   }

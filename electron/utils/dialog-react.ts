@@ -1,27 +1,17 @@
 import { ipcMain } from "electron";
-
-interface DialogOptions {
-  label: string;
-  value: any;
-  variant?: string;
-}
-
-interface DialogParams {
-  title?: string;
-  description?: string;
-  options?: DialogOptions[];
-}
+import { IDialogReact, DialogParams } from "../interfaces/utils.interface";
+import { IWindowManager } from "../interfaces/window-manager.interface";
 
 /**
  * Classe para gerenciar diálogos customizados via React no processo Main.
  */
-class DialogReact {
-  private windowManager: any;
+export class DialogReact implements IDialogReact {
+  private windowManager: IWindowManager;
 
   /**
-   * @param {WindowManager} windowManager - Instância do gerenciador de janelas
+   * @param {IWindowManager} windowManager - Instância do gerenciador de janelas
    */
-  constructor(windowManager: any) {
+  constructor(windowManager: IWindowManager) {
     this.windowManager = windowManager;
   }
 

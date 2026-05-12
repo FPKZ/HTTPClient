@@ -2,7 +2,8 @@ import { eq, and, notInArray, desc } from "drizzle-orm";
 import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import * as schema from "../db/schema";
 import { TreeParser } from "../utils/tree-parser";
-import UserService from "./user-service";
+import { IUserService } from "../interfaces/user-service.interface";
+import { IHistoryService, HistoryItem } from "../interfaces/history-service.interface";
 
 /**
  * HistoryService
@@ -11,11 +12,11 @@ import UserService from "./user-service";
  * e utilizando Injeção de Dependência para o banco de dados.
  */
 
-export class HistoryService {
+export class HistoryService implements IHistoryService {
   private db: BetterSQLite3Database<typeof schema>;
-  private userService: UserService;
+  private userService: IUserService;
 
-  constructor(db: BetterSQLite3Database<typeof schema>, userService: UserService) {
+  constructor(db: BetterSQLite3Database<typeof schema>, userService: IUserService) {
     this.db = db;
     this.userService = userService;
   }
@@ -23,7 +24,7 @@ export class HistoryService {
   /**
    * Retorna a lista resumida de coleções para o histórico da barra lateral.
    */
-  async getHistory() {
+  async getHistory(): Promise<HistoryItem[]> {
     try {
       const currentUser = this.userService?.getCurrentUser();
       const ownerId = currentUser ? currentUser.id : null;
@@ -42,7 +43,7 @@ export class HistoryService {
       return results.map(col => ({
         id: col.id,
         name: col.name,
-        updatedAt: col.updatedAt,
+        updatedAt: col.updatedAt!,
         sourceType: "native",
         file: `${col.id}.json`, // Compatibilidade com UI antiga
       }));
@@ -55,7 +56,7 @@ export class HistoryService {
   /**
    * Busca uma coleção completa e reconstrói sua árvore.
    */
-  async getCollectionById(id: string) {
+  async getCollectionById(id: string): Promise<any> {
     try {
       const collection = await this.db.query.collections.findFirst({
         where: eq(schema.collections.id, id),
@@ -100,7 +101,7 @@ export class HistoryService {
   /**
    * Salva uma coleção inteira desconstruindo-a em tabelas relacionais.
    */
-  async saveHistory(collectionData: any) {
+  async saveHistory(collectionData: any): Promise<{ success: boolean }> {
     const { id, name, items, environments, workspaceId } = collectionData;
     const collectionId = id;
 
@@ -179,7 +180,7 @@ export class HistoryService {
     }
   }
 
-  async deleteHistoryItem(id: string) {
+  async deleteHistoryItem(id: string): Promise<boolean> {
     try {
       this.db.transaction((tx) => {
         // O SQLite com FK Cascade deveria cuidar disso, 
@@ -193,7 +194,7 @@ export class HistoryService {
     }
   }
 
-  async deleteAllHistory() {
+  async deleteAllHistory(): Promise<boolean> {
     try {
       const currentUser = this.userService?.getCurrentUser();
       // Nota: No schema atual as coleções não têm owner_id direto. 

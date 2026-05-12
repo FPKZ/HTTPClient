@@ -1,4 +1,5 @@
 import { Menu } from "electron";
+import { IWindowManager } from "../interfaces/window-manager.interface";
 
 /**
  * MenuBuilder
@@ -6,7 +7,10 @@ import { Menu } from "electron";
  * Segue o SRP ao separar a definição visual do menu da lógica do app.
  */
 class MenuBuilder {
-  constructor(windowManager, isDev) {
+  private win: IWindowManager;
+  private isDev: boolean;
+
+  constructor(windowManager: IWindowManager, isDev: boolean) {
     this.win = windowManager;
     this.isDev = isDev;
   }

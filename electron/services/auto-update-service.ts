@@ -1,7 +1,8 @@
 import { autoUpdater, UpdateInfo } from "electron-updater";
 import log from "electron-log";
 import { IWindowManager } from "../interfaces/window-manager.interface";
-import { AppMessenger } from "./app-messenger";
+import { IAppMessenger } from "../interfaces/app-messenger.interface";
+import { IActionLogger } from "../interfaces/utils.interface";
 
 /**
  * AutoUpdateService
@@ -9,16 +10,11 @@ import { AppMessenger } from "./app-messenger";
  * Segue o SRP ao isolar os listeners do autoUpdater e a lógica de simulação.
  */
 
-interface ActionLogger {
-  log: (action: string, user?: string | null) => boolean;
-  logClear: () => boolean;
-}
-
-class AutoUpdateService {
+export class AutoUpdateService {
   private isDev: boolean;
-  private actionLogger: ActionLogger;
+  private actionLogger: IActionLogger;
 
-  constructor(isDev: boolean, actionLogger: ActionLogger) {
+  constructor(isDev: boolean, actionLogger: IActionLogger) {
     this.isDev = isDev;
     this.actionLogger = actionLogger;
     this.setupLogger();
@@ -30,7 +26,7 @@ class AutoUpdateService {
     autoUpdater.logger.transports.file.level = "info";
   }
 
-  init(windowManager: IWindowManager, messenger: AppMessenger, onLaunchApp: () => void): void {
+  init(windowManager: IWindowManager, messenger: IAppMessenger, onLaunchApp: () => void): void {
     if (!this.isDev) {
       autoUpdater.checkForUpdatesAndNotify();
     } else {
@@ -64,7 +60,7 @@ class AutoUpdateService {
     });
   }
 
-  private _runUpdateSimulation(windowManager: IWindowManager, messenger: AppMessenger, onLaunchApp: () => void): void {
+  private _runUpdateSimulation(windowManager: IWindowManager, messenger: IAppMessenger, onLaunchApp: () => void): void {
     const updateWindow = windowManager.getUpdateWindow();
     if (!updateWindow) return;
 

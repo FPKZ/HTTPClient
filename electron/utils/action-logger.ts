@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { app } from "electron";
+import { app, BrowserWindow } from "electron";
 import { Tail } from "tail";
+import { IActionLogger } from "../interfaces/utils.interface";
 
-class ActionLogger {
+export class ActionLogger implements IActionLogger {
   private tail: Tail | null = null;
   private logPath: string;
 
@@ -22,7 +23,7 @@ class ActionLogger {
   getIpAddress(): string[] {
     const interfaces = os.networkInterfaces();
     for (const name of Object.keys(interfaces)) {
-      for (const iface of interfaces[name]) {
+      for (const iface of interfaces[name]!) {
         // Skip internal (i.e. 127.0.0.1) and non-IPv4 addresses
         if (iface.family === "IPv4" && !iface.internal) {
           return [iface.address, iface.mac];
@@ -62,7 +63,7 @@ class ActionLogger {
     if (!fs.existsSync(this.logPath)) fs.writeFileSync(this.logPath, '');
   }
 
-  logRead(window: any): void {
+  logRead(window: BrowserWindow | null): void {
     this.ensureLogFileExists();
 
     this.logStop();
@@ -74,7 +75,7 @@ class ActionLogger {
           interval: 1000,
         },
         follow: true,
-      });
+      } as any);
 
       this.tail.on("line", (line) => {
         if(window && !window.isDestroyed()){
@@ -92,11 +93,11 @@ class ActionLogger {
 
     } catch (error) {
       console.error("Failed to read ActionLog:", error);
-      return null;
+      return;
     }
   }
 
-  logStop() {
+  logStop(): void {
     if(this.tail){
       try{
         this.tail.unwatch();
@@ -108,4 +109,4 @@ class ActionLogger {
   }
 }
 
-export default new ActionLogger();
+export default ActionLogger;

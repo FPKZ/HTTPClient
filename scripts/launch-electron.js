@@ -1,6 +1,5 @@
 import { spawn } from 'child_process';
 import electron from 'electron';
-import path from 'path';
 
 const child = spawn(electron, ['.'], {
   stdio: 'inherit',

@@ -124,6 +124,7 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
       const tab = tabs.find((t) => t.id === id);
       if (!tab) return;
 
+      if (!tab.screenKey) return;
       const routeExists = utils.findItemById(collection.items, tab.screenKey);
 
       if (!routeExists) {
@@ -241,7 +242,7 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
       } else {
         const targetItem = utils.findItemById(collection.items, targetId);
 
-        if (targetItem && (targetItem.type === "folder" || targetItem.items)) {
+        if (targetItem && targetItem.type === "folder") {
           updatedItems = utils.addItemToTree(collection.items, targetId, newItem);
         } else {
           const targetPath = utils.findItemPath(collection.items, targetId);

@@ -89,7 +89,7 @@ const useLogin = () => {
     }); 
     return () => removeListener();
   }, []);
-  console.log(loading)
+  
   return {
     formValue,
     setFormValue,

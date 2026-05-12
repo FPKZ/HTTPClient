@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import https from "https";
 import { Worker } from "worker_threads";
+import { INetworkService, NetworkRequestParams, NetworkResponse } from "../interfaces/network-service.interface";
 
 /**
  * NetworkService
@@ -11,42 +12,7 @@ import { Worker } from "worker_threads";
  * Segue o SRP ao isolar toda a complexidade de FormData e buffers de resposta.
  */
 
-interface NetworkRequestParams {
-  url: string;
-  method: string;
-  headers?: any;
-  body?: any;
-  bodyMode?: "none" | "raw" | "formdata" | "urlencoded" | "binary" | "stream" | "json";
-  timeout?: number;
-  streamPath?: string;
-  signal?: AbortSignal;
-  auth?: {
-    mode: "a1" | "basic" | "bearer" | "none";
-    a1?: {
-      pfxPath?: string;
-      pfxPassword?: string;
-    };
-  };
-}
-
-interface NetworkResponse {
-  status: number;
-  statusText: string;
-  headers: any;
-  data: any;
-  isImage?: boolean;
-  isPDF?: boolean;
-  isAudio?: boolean;
-  isVideo?: boolean;
-  isCancelled?: boolean;
-  isError?: boolean;
-  contentType: string;
-  url?: string;
-  responseTime: number;
-  responseSize: number;
-}
-
-class NetworkService {
+export class NetworkService implements INetworkService {
   private MAX_MEMORY_BUFFER: number;
   private DEFAULT_TIMEOUT: number;
   private WORKER_THRESHOLD: number;
@@ -92,7 +58,7 @@ class NetworkService {
     if (isFormData || hasFiles) {
       const form = new FormData();
       if (body && typeof body === "object") {
-        for (const [key, value] of Object.entries(body)) {
+        for (const [key, value] of Object.entries(body as any)) {
           if (this._isFileData(value)) {
             if (this._validateFilePath(value.src)) {
               form.append(key, fs.createReadStream(value.src));
