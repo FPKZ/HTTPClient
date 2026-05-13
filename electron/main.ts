@@ -47,6 +47,7 @@ import HistoryService from "./services/history-service";
 import NetworkService from "./services/network-service";
 import UserService from "./services/user-service";
 import SupabaseService from "./services/supabase-service";
+import { OAuthServer } from "./services/oauth-server";
 import SyncService from "./services/sync-service";
 import WindowManager from "./services/window-manager";
 import AppMessenger from "./services/app-messenger";
@@ -83,9 +84,10 @@ const appMessenger = new AppMessenger(windowManager);
 
 // Inicializa a sessão do usuário caso exista cache local / token válido
 const supabaseService = new SupabaseService();
-const userService = new UserService(supabaseService, db, appMessenger);
-const historyService = new HistoryService(db, userService);
 const networkService = new NetworkService();
+const oauthServer = new OAuthServer();
+const userService = new UserService(supabaseService, db, appMessenger, networkService, oauthServer);
+const historyService = new HistoryService(db, userService);
 const syncService = new SyncService(db, supabaseService);
 
 userService.initSession().catch(err => console.error("Erro ao inicializar sessão:", err));

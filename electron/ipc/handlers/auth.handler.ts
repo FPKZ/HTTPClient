@@ -16,5 +16,7 @@ export class AuthHandler extends BaseHandler {
     ipcMain.handle("auth:logout", () => this.user.logout());
     ipcMain.handle("auth:signup", (_event, params) => this.user.signUpWithEmail(params));
     ipcMain.handle("auth:social-login", (_event, provider: 'google' | 'github') => this.user.signInWithOAuth(provider));
+    ipcMain.handle("auth:cancel", () => this.user.cancelOAuth());
+    ipcMain.handle("auth:update-profile", (_event, params) => this.user.updateProfile(params));
   }
 }

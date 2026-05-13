@@ -25,6 +25,7 @@ export default function LoginPage() {
     success,
     handleLogin,
     handleSocialLogin,
+    handleCancelAuth,
     setLoading,
     setError,
     setSuccess,
@@ -35,6 +36,49 @@ export default function LoginPage() {
 
   return (
     <div className="d-flex flex-col h-100 position-relative overflow-hidden">
+      {/* Overlay de Loading para OAuth */}
+      {loading && (
+        <div className="position-absolute w-full h-full bg-[#000000]/80 z-50 flex flex-col items-center justify-center backdrop-blur-sm transition-all duration-300">
+          <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
+            {/* Ícone de Raio animado */}
+            <div className="relative">
+              <div className="w-20 h-20 bg-[#1E1E1E] rounded-2xl flex items-center justify-center shadow-2xl border border-gray-700 animate-pulse">
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 60 80"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M40 10L15 45H35L25 70L55 30H35L40 10Z" fill="#FFC107" />
+                </svg>
+              </div>
+              <div className="absolute -inset-1 bg-[#FFC107]/20 blur-lg rounded-2xl -z-10 animate-pulse"></div>
+            </div>
+
+            <div className="text-center flex flex-col gap-2">
+              <h2 className="text-[#FFC107] font-bold text-xl tracking-tight">Sincronizando conta...</h2>
+              <p className="text-[#cecece]/70 text-sm max-w-[18rem]">
+                Conclua a autenticação no seu navegador para continuar.
+              </p>
+            </div>
+
+            <button
+              onClick={handleCancelAuth}
+              className="
+                mt-4 px-6 py-2 rounded-full
+                bg-[#313131] hover:bg-[#414141] text-white
+                text-sm font-semibold transition-all duration-200
+                border border-[#414141] hover:border-[#515151]
+                shadow-lg active:scale-95
+              "
+            >
+              Cancelar Login
+            </button>
+          </div>
+        </div>
+      )}
+
       <Container
         fluid
         className="d-flex flex-col p-3 h-full mb-4"

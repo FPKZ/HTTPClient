@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Tab, Nav, Row, Col } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import useTabStore from "../store/useTabStore";
@@ -82,18 +82,18 @@ function UploadPage() {
                 {user ? (
                   <>
                     <div
-                      className={`w-30 h-30 rounded-full flex items-center justify-center ${!user.avatar && "bg-[#ffc107]"} overflow-hidden cursor-pointer`}
+                      className={`w-30 h-30 rounded-full flex items-center justify-center ${!user.avatarUrl && "bg-[#ffc107]"} overflow-hidden cursor-pointer`}
                       onClick={() => navigate("/login")}
                     >
-                      {user.avatar ? (
-                        <img src={user.avatar} alt="" className="w-full" />
+                      {user.avatarUrl ? (
+                        <img src={user.avatarUrl} alt="" className="w-full" />
                       ) : (
-                        <span className="text-[3rem] font-extrabold">{user.displayName ? user.displayName.substring(0, 2).toUpperCase() : "US"}</span>
+                        <span className="text-[3rem] font-extrabold">{user.name ? user.name.substring(0, 2).toUpperCase() : "US"}</span>
                       )}
                     </div>
                     <div className="flex flex-col items-center">
                       <span className="text-[1rem] font-extrabold">
-                        {user.displayName || "Usuário"}
+                        {user.name || "Usuário"}
                       </span>
                       <span className="text-[0.8rem] text-zinc-500">
                         {user.email}
@@ -158,7 +158,11 @@ function UploadPage() {
                   rounded cursor-pointer outline-none
                   group
                 "
-                onClick={() => navigate("/login")}
+                onClick={async () => {
+                  // Realiza o logout; useAuthGuard detecta user → null e redireciona
+                  await window.electronAPI.logout();
+                  useUserStore.getState().clearUser();
+                }}
               >
                 <span className="pt-0.5">Sair</span>
                 <LogOut size={15} className="stroke-3" />

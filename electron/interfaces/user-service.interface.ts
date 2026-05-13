@@ -18,6 +18,8 @@ export interface IUserService {
   signUpWithEmail(params: CreateUserParams): Promise<{ success: boolean; user?: User; error?: string }>;
   signInWithOAuth(provider: 'google' | 'github'): Promise<{ success: boolean; error?: string }>;
   handleAuthCallback(url: string): Promise<{ success: boolean; user?: any } | undefined>;
+  cancelOAuth(): void;
   logout(): Promise<{ success: boolean }>;
+  updateProfile(params: Partial<User>): Promise<{ success: boolean; user?: User; error?: string }>;
   getCurrentUser(): User | null;
 }

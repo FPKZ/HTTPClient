@@ -9,6 +9,8 @@ export const userPreload: UserAPI = {
   logout: () => ipcRenderer.invoke("auth:logout"),
   register: (params) => ipcRenderer.invoke("auth:signup", params),
   socialLogin: (provider: 'google' | 'github') => ipcRenderer.invoke("auth:social-login", provider),
+  cancelAuth: () => ipcRenderer.invoke("auth:cancel"),
+  updateProfile: (params) => ipcRenderer.invoke("auth:update-profile", params),
   onUserChanged: (callback) => {
     const subscription = (_event: any, user: any) => callback(user);
     ipcRenderer.on("user-changed", subscription);

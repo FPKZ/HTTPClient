@@ -1,12 +1,14 @@
 import { create } from "zustand";
+import type { User } from "../../types/entities/user";
 
 /**
- * Estado do Usuario
+ * Estado global do usuário autenticado.
+ * Tipagem com o tipo User canônico compartilhado com o backend.
  */
 
 interface UserState {
-  user: any | null;
-  setUser: (userData: any) => void;
+  user: User | null;
+  setUser: (userData: User) => void;
   clearUser: () => void;
 }
 

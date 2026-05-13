@@ -3,10 +3,11 @@ import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import * as schema from "../db/schema";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { shell } from "electron";
-import http from "node:http";
 import SupabaseService from "./supabase-service";
 import { IAppMessenger } from "../interfaces/app-messenger.interface";
 import { IUserService, User, CreateUserParams } from "../interfaces/user-service.interface";
+import { INetworkService } from "../interfaces/network-service.interface";
+import { IOAuthServer } from "../interfaces/oauth-server.interface";
 
 /**
  * UserService
@@ -18,11 +19,21 @@ export class UserService implements IUserService {
   private db: BetterSQLite3Database<typeof schema>;
   private currentUser: User | null = null;
   private messenger: IAppMessenger;
+  private network: INetworkService;
+  private oauthServer: IOAuthServer;
 
-  constructor(supabaseService: SupabaseService, db: BetterSQLite3Database<typeof schema>, messenger: IAppMessenger) {
+  constructor(
+    supabaseService: SupabaseService, 
+    db: BetterSQLite3Database<typeof schema>, 
+    messenger: IAppMessenger,
+    networkService: INetworkService,
+    oauthServer: IOAuthServer
+  ) {
     this.supabase = supabaseService.getClient();
     this.db = db;
     this.messenger = messenger;
+    this.network = networkService;
+    this.oauthServer = oauthServer;
   }
 
   /**
@@ -46,20 +57,14 @@ export class UserService implements IUserService {
   async signInWithEmail(email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
     if (!this.supabase) return { success: false, error: "Serviço Cloud indisponível." };
     try {
-      console.log(`
-          Email: ${email}
-          Senha: ${password}
-        `);
       this.messenger.sendToMain("auth:loading", true);
       const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
-      console.log(`
-          Data: ${JSON.stringify(data, null, 2)}
-          Error: ${JSON.stringify(error, null, 2)}
-        `);
       if (error) throw error;
       const user = await this.persistUser(data.user!);
+      this.messenger.sendToMain("auth:success", user);
       return { success: true, user: user! };
     } catch (err: any) {
+      this.messenger.sendToMain("auth:error", err.message);
       return { success: false, error: err.message };
     } finally {
       this.messenger.sendToMain("auth:loading", false);
@@ -69,20 +74,11 @@ export class UserService implements IUserService {
   async signUpWithEmail(params: CreateUserParams): Promise<{ success: boolean; user?: User; error?: string }> {
     if (!this.supabase) return { success: false, error: "Serviço Cloud indisponível." };
     try {
-      console.log(`
-          Email: ${params.email}
-          Senha: ${params.password}
-          Nome: ${params.name}
-        `);
       const { data, error } = await this.supabase.auth.signUp({
         email: params.email,
         password: params.password,
         options: { data: { name: params.name } }
       });
-      console.log(`
-          Data: ${JSON.stringify(data, null, 2)}
-          Error: ${JSON.stringify(error, null, 2)}
-        `);
       if (error) throw error;
       const user = await this.persistUser(data.user!);
       return { success: true, user: user! };
@@ -93,253 +89,58 @@ export class UserService implements IUserService {
 
   async signInWithOAuth(provider: 'google' | 'github'): Promise<{ success: boolean; error?: string }> {
     try {
-      if (!this.supabase) {
-        console.error("[UserService] Supabase client não inicializado.");
-        return { success: false, error: "Serviço Cloud indisponível." };
-      }
+      if (!this.supabase) return { success: false, error: "Serviço Cloud indisponível." };
       
       // Iniciar servidor local temporário para capturar o redirecionamento
       this.messenger.sendToMain("auth:loading", true);
       const port = 54321;
       const redirectUri = `http://localhost:${port}/auth-callback`;
       
-      let server: http.Server | null = null;
+      this.oauthServer.stop();
 
-      const stopServer = () => {
-        if (server) {
-          server.close();
-          server = null;
+      this.oauthServer.start({
+        port,
+        onTokensCaptured: async (access, refresh) => {
+          await this.completeOAuthLogin(access, refresh);
+        },
+        onError: (err) => {
+          this.messenger.sendToMain("auth:loading", false);
+          this.messenger.sendToMain("auth:error", err);
         }
-      };
-
-      server = http.createServer(async (req, res) => {
-        const url = new URL(req.url || "", `http://localhost:${port}`);
-        
-        if (url.pathname === '/auth-callback') {
-          // Envia página HTML para capturar o fragmento (#) que o servidor não recebe diretamente
-          res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-          res.end(`
-            <!DOCTYPE html>
-            <html lang="pt-br">
-              <head>
-                  <meta charset="UTF-8">
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <title>Volt Auth - Sincronizando</title>
-                  <style>
-                      :root {
-                          --bg-dark: #0f0f0f;
-                          --bg-panel: #181818;
-                          --volt-yellow: #f59e0b; /* Amarelo vibrante do Volt */
-                          --text-main: #e2e8f0;
-                          --text-dim: #94a3b8;
-                          --border: #2d2d2d;
-                      }
-
-                      * { margin: 0; padding: 0; box-box: border-box; }
-
-                      body {
-                          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-                          background-color: var(--bg-dark);
-                          color: var(--text-main);
-                          display: flex;
-                          align-items: center;
-                          justify-content: center;
-                          height: 100vh;
-                          overflow: hidden;
-                      }
-
-                      .container {
-                          text-align: center;
-                          padding: 2.5rem;
-                          background: var(--bg-panel);
-                          border: 1px solid var(--border);
-                          border-radius: 12px;
-                          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-                          max-width: 400px;
-                          width: 90%;
-                          position: relative;
-                      }
-
-                      /* Ícone de Raio estilizado (Volt) */
-                      .logo-icon {
-                          color: var(--volt-yellow);
-                          font-size: 3rem;
-                          margin-bottom: 1.5rem;
-                      }
-
-                      h1 {
-                          font-size: 1.25rem;
-                          font-weight: 600;
-                          margin-bottom: 0.75rem;
-                          letter-spacing: -0.025em;
-                      }
-
-                      p {
-                          color: var(--text-dim);
-                          font-size: 0.875rem;
-                          line-height: 1.5;
-                          margin-bottom: 2rem;
-                      }
-
-                      /* Barra de progresso animada */
-                      .loader-container {
-                          width: 100%;
-                          height: 4px;
-                          background: var(--border);
-                          border-radius: 2px;
-                          overflow: hidden;
-                      }
-
-                      .loader-bar {
-                          width: 30%;
-                          height: 100%;
-                          background: var(--volt-yellow);
-                          border-radius: 2px;
-                          animation: loading 1.5s infinite ease-in-out;
-                      }
-
-                      @keyframes loading {
-                          0% { transform: translateX(-100%); }
-                          100% { transform: translateX(400%); }
-                      }
-
-                      .status-tag {
-                          display: inline-block;
-                          font-family: 'JetBrains Mono', monospace;
-                          font-size: 10px;
-                          text-transform: uppercase;
-                          padding: 2px 8px;
-                          border-radius: 4px;
-                          background: #1e293b;
-                          color: var(--volt-yellow);
-                          margin-top: 2rem;
-                      }
-                  </style>
-              </head>
-              <body>
-
-                  <div class="container" id="card">
-                      <div class="logo-icon">
-                        <div
-                          class="w-24 h-24 bg-[#1E1E1E] rounded-2xl flex items-center justify-center shadow-lg border border-gray-700"
-                        >
-                          <svg
-                            width="48"
-                            height="48"
-                            viewBox="0 0 60 80"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M40 10L15 45H35L25 70L55 30H35L40 10Z" fill="#FFC107" />
-                          </svg>
-                        </div>
-                      </div>
-                      <h1 id="title">Login em processamento...</h1>
-                      <p id="desc">O <strong>Volt API Client</strong> está sincronizando sua conta com segurança. Esta janela fechará em instantes.</p>
-                      
-                      <div class="loader-container" id="loader">
-                          <div class="loader-bar"></div>
-                      </div>
-
-                      <div class="status-tag">Status: Handshaking</div>
-                  </div>
-
-                  <script>
-                      const hash = window.location.hash;
-                      if (hash) {
-                          // Simulando o capture para a interface
-                          fetch('/capture' + window.location.search + hash.replace('#', '?'))
-                              .then(() => {
-                                  document.getElementById('title').innerText = 'Autenticado!';
-                                  document.getElementById('desc').innerHTML = 'Sincronização concluída. Você já pode voltar para o <strong>Volt</strong>.';
-                                  document.getElementById('loader').style.display = 'none';
-                                  document.querySelector('.status-tag').innerText = 'Status: Success';
-                                  document.querySelector('.status-tag').style.color = '#10b981'; // Verde Sucesso
-                                  
-                                  setTimeout(() => window.close(), 2500);
-                              })
-                              .catch(err => {
-                                  document.getElementById('title').innerText = 'Ops, erro na captura';
-                                  document.getElementById('desc').innerText = 'Não foi possível comunicar com o app desktop.';
-                              });
-                      }
-                  </script>
-              </body>
-            </html>
-          `);
-          return;
-        }
-
-        if (url.pathname === '/capture') {
-          const accessToken = url.searchParams.get('access_token');
-          const refreshToken = url.searchParams.get('refresh_token');
-
-          if (accessToken && refreshToken) {
-            await this.completeOAuthLogin(accessToken, refreshToken);
-          }
-
-          res.writeHead(200, { "Content-Type": "text/plain" });
-          res.end("OK");
-          
-          // Pequeno delay para garantir que o 'res' seja enviado antes de fechar o servidor
-          setTimeout(stopServerWithCleanup, 1000);
-          return;
-        }
-
-        res.writeHead(404);
-        res.end();
       });
 
-      server.listen(port);
-      
-      // Timeout de segurança: fecha o servidor após 5 minutos se nada acontecer
-      const timeoutId = setTimeout(() => {
-        if (server) {
-          stopServer();
-          this.messenger.sendToMain("auth:loading", false);
-          console.log("[UserService] Servidor local de autenticação encerrado por timeout.");
-        }
-      }, 5 * 60 * 1000);
-
-      // Limpar o timeout se o servidor for fechado antes
-      const originalStopServer = stopServer;
-      const stopServerWithCleanup = () => {
-        clearTimeout(timeoutId);
-        originalStopServer();
-      };
-
-      console.log(`[UserService] Iniciando login social com: ${provider} via localhost:${port}`);
       const { data, error } = await this.supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo: redirectUri }
       });
-      
+
       if (error) {
-        stopServerWithCleanup();
-        console.error("[UserService] Erro no signInWithOAuth:", error);
+        this.oauthServer.stop();
         this.messenger.sendToMain("auth:loading", false);
         return { success: false, error: error.message };
       }
 
       if (data.url) {
-        console.log("[UserService] Abrindo URL de autenticação:", data.url);
         shell.openExternal(data.url);
         return { success: true };
       }
-      
-      stopServerWithCleanup();
-      console.warn("[UserService] Nenhuma URL retornada pelo Supabase.");
+
+      this.oauthServer.stop();
       this.messenger.sendToMain("auth:loading", false);
       return { success: false, error: "Não foi possível gerar a URL de login." };
     } catch (error: any) {
-      console.error("[UserService] Erro ao iniciar login social:", error);
+      this.oauthServer.stop();
+      this.messenger.sendToMain("auth:loading", false);
       return { success: false, error: error.message };
     }
   }
 
-  /**
-   * Completa o login OAuth usando os tokens capturados
-   */
+  cancelOAuth(): void {
+    this.oauthServer.stop();
+    this.messenger.sendToMain("auth:loading", false);
+    this.messenger.sendToMain("auth:error", "Login cancelado.");
+  }
+
   private async completeOAuthLogin(accessToken: string, refreshToken: string) {
     if (!this.supabase) return;
     try {
@@ -349,29 +150,24 @@ export class UserService implements IUserService {
       });
       if (error) throw error;
       if (data.user) {
-        await this.persistUser(data.user);
-        console.log("[UserService] Login via Servidor Local concluído para:", data.user.email);
-        
-        // Emite um evento ou foca a janela através do processo main (configurado no IpcRouter)
-        // O main.ts ou IpcRouter deve escutar mudanças na sessão ou o callback aqui.
+        const user = await this.persistUser(data.user);
+        this.messenger.sendToMain("auth:success", user);
         this.messenger.focusMain();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("[UserService] Erro ao completar login OAuth:", error);
+      this.messenger.sendToMain("auth:error", error.message);
     } finally {
       this.messenger.sendToMain("auth:loading", false);
     }
   }
 
-  /**
-   * Processa o retorno do Deep Linking (OAuth)
-   */
   async handleAuthCallback(url: string) {
     if (!this.supabase) return;
     try {
       const parsedUrl = new URL(url.replace('volt-app://', 'http://localhost/'));
       const hashParams = new URLSearchParams(parsedUrl.hash.substring(1));
-      
+
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
 
@@ -382,34 +178,127 @@ export class UserService implements IUserService {
         });
         if (error) throw error;
         if (data.user) {
-          await this.persistUser(data.user);
-          console.log("[UserService] Login OAuth concluído para:", data.user.email);
-          return { success: true, user: data.user };
+          const user = await this.persistUser(data.user);
+          this.messenger.sendToMain("auth:success", user);
+          this.messenger.focusMain();
+          return { success: true, user };
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("[UserService] Erro no callback de autenticação:", error);
+      this.messenger.sendToMain("auth:error", error.message);
     }
   }
 
   async logout(): Promise<{ success: boolean }> {
-    if (this.supabase) await this.supabase.auth.signOut();
+    if (this.supabase) {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      if (user) {
+        await this.db.delete(schema.profiles).where(eq(schema.profiles.id, user.id));
+      }
+      await this.supabase.auth.signOut();
+    }
     this.currentUser = null;
     return { success: true };
   }
 
-  private async persistUser(supabaseUser: any): Promise<User | null> {
-    if (!supabaseUser) return null;
-
-    const userData: User = {
-      id: supabaseUser.id,
-      name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
-      email: supabaseUser.email!,
-      avatarUrl: supabaseUser.user_metadata?.avatar_url || null,
-      updatedAt: new Date().toISOString(),
-    };
+  /**
+   * Atualiza o perfil do usuário na Nuvem (Supabase) e no Cache Local (SQLite)
+   */
+  async updateProfile(params: Partial<User>): Promise<{ success: boolean; user?: User; error?: string }> {
+    if (!this.supabase || !this.currentUser) return { success: false, error: "Usuário não autenticado." };
 
     try {
+      const updatedData = {
+        ...this.currentUser,
+        ...params,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // 1. Sincroniza com a Nuvem (Fonte da Verdade)
+      const { error: cloudError } = await this.supabase
+        .from('profiles')
+        .update({
+          name: updatedData.name,
+          avatar_url: updatedData.avatarUrl,
+          updated_at: updatedData.updatedAt
+        })
+        .eq('id', this.currentUser.id);
+
+      if (cloudError) throw cloudError;
+
+      // 2. Atualiza o Cache Local (Performance)
+      await this.db
+        .update(schema.profiles)
+        .set(updatedData)
+        .where(eq(schema.profiles.id, this.currentUser.id));
+
+      this.currentUser = updatedData;
+      this.messenger.sendToMain("auth:success", updatedData);
+      
+      return { success: true, user: updatedData };
+    } catch (err: any) {
+      console.error("[UserService] Erro ao sincronizar perfil com a nuvem:", err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  private async persistUser(supabaseUser: any): Promise<User | null> {
+    if (!supabaseUser || !this.supabase) return null;
+
+    try {
+      // 1. BUSCAR NA NUVEM: O Supabase é a fonte da verdade
+      const { data: cloudProfile, error: fetchError } = await this.supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', supabaseUser.id)
+        .single();
+
+      let userData: User;
+
+      if (cloudProfile) {
+        // PERFIL JÁ EXISTE: Ignoramos os dados frescos do Google/GitHub e usamos o da nuvem
+        userData = {
+          id: cloudProfile.id,
+          name: cloudProfile.name,
+          email: supabaseUser.email!,
+          avatarUrl: cloudProfile.avatar_url,
+          updatedAt: cloudProfile.updated_at,
+        };
+        console.log("[UserService] Perfil recuperado da nuvem.");
+      } else {
+        // PRIMEIRO LOGIN: Criamos o perfil na nuvem com dados do Provedor
+        const avatarUrl = supabaseUser.user_metadata?.avatar_url || null;
+        let localAvatarUrl = avatarUrl;
+
+        if (avatarUrl && avatarUrl.startsWith('http')) {
+          const base64Avatar = await this.downloadAvatarAsBase64(avatarUrl);
+          if (base64Avatar) localAvatarUrl = base64Avatar;
+        }
+
+        userData = {
+          id: supabaseUser.id,
+          name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
+          email: supabaseUser.email!,
+          avatarUrl: localAvatarUrl,
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Salva na nuvem pela primeira vez
+        const { error: insertError } = await this.supabase
+          .from('profiles')
+          .insert({
+            id: userData.id,
+            name: userData.name,
+            email: userData.email,
+            avatar_url: userData.avatarUrl,
+            updated_at: userData.updatedAt
+          });
+
+        if (insertError) console.error("[UserService] Erro ao criar perfil na nuvem:", insertError);
+      }
+
+      // 2. ESPELHAR NO CACHE LOCAL (SQLite)
       await this.db
         .insert(schema.profiles)
         .values(userData)
@@ -421,8 +310,26 @@ export class UserService implements IUserService {
       this.currentUser = userData;
       return userData;
     } catch (error) {
-      console.error("[UserService] Erro ao persistir usuário no SQLite:", error);
-      return userData; // Retorna o objeto mesmo se falhar a persistência local
+      console.error("[UserService] Erro crítico na persistência Online-First:", error);
+      return null;
+    }
+  }
+
+  private async downloadAvatarAsBase64(url: string): Promise<string | null> {
+    try {
+      const response = await this.network.execute({
+        url,
+        method: 'GET',
+        bodyMode: 'binary'
+      });
+
+      if (response.isImage && typeof response.data === 'string') {
+        return `data:${response.contentType};base64,${response.data}`;
+      }
+      return null;
+    } catch (error) {
+      console.error("[UserService] Erro ao baixar avatar via NetworkService:", error);
+      return null;
     }
   }
 
