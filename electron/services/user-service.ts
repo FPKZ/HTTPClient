@@ -215,19 +215,19 @@ export class UserService implements IUserService {
         updatedAt: new Date().toISOString(),
       };
 
-      // 1. Sincroniza com a Nuvem (Fonte da Verdade)
+      // 1. Sincroniza com a Nuvem (Apenas a URL, nunca Base64)
       const { error: cloudError } = await this.supabase
         .from('profiles')
         .update({
           name: updatedData.name,
-          avatar_url: updatedData.avatarUrl,
+          avatar_url: params.avatarUrl || updatedData.avatarUrl, // Mantém a URL/Link
           updated_at: updatedData.updatedAt
         })
         .eq('id', this.currentUser.id);
 
       if (cloudError) throw cloudError;
 
-      // 2. Atualiza o Cache Local (Performance)
+      // 2. Atualiza o Cache Local (Pode ser Base64 para Offline)
       await this.db
         .update(schema.profiles)
         .set(updatedData)
@@ -247,7 +247,7 @@ export class UserService implements IUserService {
     if (!supabaseUser || !this.supabase) return null;
 
     try {
-      // 1. BUSCAR NA NUVEM: O Supabase é a fonte da verdade
+      // 1. BUSCAR NA NUVEM
       const { data: cloudProfile, error: fetchError } = await this.supabase
         .from('profiles')
         .select('*')
@@ -257,22 +257,28 @@ export class UserService implements IUserService {
       let userData: User;
 
       if (cloudProfile) {
-        // PERFIL JÁ EXISTE: Ignoramos os dados frescos do Google/GitHub e usamos o da nuvem
+        // PERFIL EXISTE NA NUVEM: Baixamos a imagem para o cache local (Base64)
+        let localAvatar = cloudProfile.avatar_url;
+        if (localAvatar && localAvatar.startsWith('http')) {
+          const base64 = await this.downloadAvatarAsBase64(localAvatar);
+          if (base64) localAvatar = base64;
+        }
+
         userData = {
           id: cloudProfile.id,
           name: cloudProfile.name,
           email: supabaseUser.email!,
-          avatarUrl: cloudProfile.avatar_url,
+          avatarUrl: localAvatar, // Base64 para o SQLite
           updatedAt: cloudProfile.updated_at,
         };
-        console.log("[UserService] Perfil recuperado da nuvem.");
       } else {
-        // PRIMEIRO LOGIN: Criamos o perfil na nuvem com dados do Provedor
-        const avatarUrl = supabaseUser.user_metadata?.avatar_url || null;
-        let localAvatarUrl = avatarUrl;
+        // NOVO USUÁRIO: Criamos o perfil
+        const remoteAvatarUrl = supabaseUser.user_metadata?.avatar_url || null;
+        let localAvatarUrl = remoteAvatarUrl;
 
-        if (avatarUrl && avatarUrl.startsWith('http')) {
-          const base64Avatar = await this.downloadAvatarAsBase64(avatarUrl);
+        // Converte para Base64 apenas para o cache local
+        if (remoteAvatarUrl && remoteAvatarUrl.startsWith('http')) {
+          const base64Avatar = await this.downloadAvatarAsBase64(remoteAvatarUrl);
           if (base64Avatar) localAvatarUrl = base64Avatar;
         }
 
@@ -280,25 +286,23 @@ export class UserService implements IUserService {
           id: supabaseUser.id,
           name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name || supabaseUser.email?.split('@')[0] || 'Usuário',
           email: supabaseUser.email!,
-          avatarUrl: localAvatarUrl,
+          avatarUrl: localAvatarUrl, // Base64 para o SQLite
           updatedAt: new Date().toISOString(),
         };
 
-        // Salva na nuvem pela primeira vez
-        const { error: insertError } = await this.supabase
+        // Salva na NUVEM (apenas a URL original)
+        await this.supabase
           .from('profiles')
           .insert({
             id: userData.id,
             name: userData.name,
             email: userData.email,
-            avatar_url: userData.avatarUrl,
+            avatar_url: remoteAvatarUrl, // LINK original
             updated_at: userData.updatedAt
           });
-
-        if (insertError) console.error("[UserService] Erro ao criar perfil na nuvem:", insertError);
       }
 
-      // 2. ESPELHAR NO CACHE LOCAL (SQLite)
+      // 2. ESPELHAR NO CACHE LOCAL (Sempre Base64 se disponível)
       await this.db
         .insert(schema.profiles)
         .values(userData)
@@ -310,7 +314,7 @@ export class UserService implements IUserService {
       this.currentUser = userData;
       return userData;
     } catch (error) {
-      console.error("[UserService] Erro crítico na persistência Online-First:", error);
+      console.error("[UserService] Erro crítico na persistência Cloud-First:", error);
       return null;
     }
   }
