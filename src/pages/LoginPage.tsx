@@ -42,7 +42,7 @@ export default function LoginPage() {
           <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
             {/* Ícone de Raio animado */}
             <div className="relative">
-              <div className="w-20 h-20 bg-[#1E1E1E] rounded-2xl flex items-center justify-center shadow-2xl border border-gray-700 animate-pulse">
+              <div className="w-20 h-20 bg-[#1E1E1E] rounded-2xl flex items-center justify-center shadow-2xl border border-gray-700! animate-pulse">
                 <svg
                   width="40"
                   height="40"
@@ -69,7 +69,7 @@ export default function LoginPage() {
                 mt-4 px-6 py-2 rounded-full
                 bg-[#313131] hover:bg-[#414141] text-white
                 text-sm font-semibold transition-all duration-200
-                border border-[#414141] hover:border-[#515151]
+                border border-[#414141]! hover:border-[#515151]!
                 shadow-lg active:scale-95
               "
             >

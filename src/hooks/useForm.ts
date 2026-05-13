@@ -29,7 +29,7 @@ import { useState } from "react";
  */
 export function useForm(initialState: any, config = {}) {
   const [formValue, setFormValue] = useState(initialState);
-  const [erros, setErros] = useState({});
+  const [erros, setErros] = useState<any>({});
   const [validated, setValidated] = useState(false);
 
   const { transformers = {}, validators = {} }: any = config;
@@ -39,7 +39,7 @@ export function useForm(initialState: any, config = {}) {
    * @param {string} name - O nome do campo do state.
    * @param {any} rawValue - O valor do campo a ser processado.
    */
-  const setFieldValue = (name, rawValue) => {
+  const setFieldValue = (name: string, rawValue: any) => {
     let newValue = rawValue;
 
     // Aplica transformações (como máscaras) se existirem para o campo
@@ -50,14 +50,14 @@ export function useForm(initialState: any, config = {}) {
       newValue = newValue.trim();
     }
 
-    setFormValue((prev) => ({
+    setFormValue((prev: any) => ({
       ...prev,
       [name]: newValue,
     }));
 
     // Limpa o erro do campo ao interagir (opcional, melhora UX)
     if (erros[name]) {
-      setErros((prevErrs) => {
+      setErros((prevErrs: any) => {
         const newErrs = { ...prevErrs };
         delete newErrs[name];
         return newErrs;
@@ -71,12 +71,12 @@ export function useForm(initialState: any, config = {}) {
    * @param {Event|string} e - Evento de mudança do input ou string do nome do campo.
    * @param {any} [manualValue] - O valor a ser setado caso o primeiro seja string.
    */
-  const handleChange = (e, manualValue) => {
+  const handleChange = (e: Event | string, manualValue?: any) => {
     if (typeof e === "string") {
       return setFieldValue(e, manualValue);
     }
 
-    const { name, value, type, files } = e.target;
+    const { name, value, type, files }: any = e.target;
     const newValue = type === "file" ? files[0] : value;
     
     setFieldValue(name, newValue);
@@ -86,11 +86,11 @@ export function useForm(initialState: any, config = {}) {
    * Executa validações configuradas.
    * @returns {boolean} Se o formulário é válido.
    */
-  const validate = () => {
-    let newErrors = {};
+  const validate = (): boolean => {
+    let newErrors: any = {};
 
     // Validação baseada na config de validators
-    Object.keys(validators).forEach((field) => {
+    Object.keys(validators).forEach((field: string) => {
       const value = formValue[field];
       const error = validators[field](value, formValue);
       if (error) {
