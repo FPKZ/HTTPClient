@@ -4,6 +4,7 @@ import icons from "../assets/icons";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useLogin from "../hooks/pages/useLogin";
+import ButtonAuth from "../components/ui/ButtonAuth";
 
 /**
  * Página de login
@@ -175,44 +176,20 @@ export default function LoginPage() {
               {[
                 { img: "google.svg", alt: "Google", size: "w-8 h-8", text: "Entrar com o Google", action: () => handleSocialLogin("google") },
                 { img: "/github-brands-solid-full(1).svg", alt: "GitHub", size: "w-8 h-8", text: "Entrar com o GitHub", action: () => handleSocialLogin("github") },
+                { text: "Entrar sem conta", action: () => navigate("/uploadPage") }
               ].map((item, index) => (
-                <div
+                <ButtonAuth.Root
                   key={index}
-                  className="
-                  w-full p-1.5
-                  flex items-center justify-between gap-2 bg-white!
-                  cursor-pointer rounded-full
-                  active:opacity-100 hover:opacity-80 focus:opacity-80 transition-opacity duration-200"
+                  bg={item.alt ? "white" : "default"}
+                  color={item.alt ? "white" : "default"}
+                  hover={item.alt ? "whiteActive" : "defaultActive"}
+                  className="justify-between"
                   onClick={item.action}
                 >
-                  <img
-                    src={item.img}
-                    alt={item.alt}
-                    className={item.size}
-                  />
-                  <p className="m-0 text-sm">{item.text}</p>
-                  <div className="w-8 h-8 flex items-center justify-center">
-                    <ArrowRight size={16} strokeWidth={4} />
-                  </div>
-                </div>
+                  <ButtonAuth.Icon img={item.img} alt={item.alt} invisible={item.img ? false : true}/>
+                  <ButtonAuth.Content>{item.text}</ButtonAuth.Content>
+                </ButtonAuth.Root>
               ))}
-              <div
-                className="
-                  w-full flex items-center justify-between
-                  bg-zinc-900! hover:bg-zinc-800! focus:bg-zinc-800! transition-colors duration-200
-                  text-zinc-100!
-                  text-sm! font-bold!
-                  border-0 p-1.5 rounded-full!
-                  cursor-pointer
-                "
-                onClick={() => navigate("/uploadPage")}
-              >
-                <img src="google.svg" alt="Google" className="w-8 h-8 invisible" />
-                Entrar sem conta
-                <div className="w-8 h-8 flex items-center justify-center">
-                  <ArrowRight size={16} strokeWidth={4} />
-                </div>
-              </div>
             </div>
           </div>
         </div>
