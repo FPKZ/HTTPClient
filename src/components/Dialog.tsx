@@ -1,6 +1,6 @@
 import React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import useDialogStore from "../store/useDialogStore";
+import useDialogStore from "@/core/store/useDialogStore";
 import { X } from "lucide-react";
 
 export default function Dialog() {

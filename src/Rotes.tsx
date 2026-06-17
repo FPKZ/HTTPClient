@@ -1,21 +1,23 @@
 import React from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import useTabStore from "./store/useTabStore";
-import { useAuthGuard } from "./hooks/useAuthGuard";
+import useTabStore from "@/core/store/useTabStore";
+import { useAuthGuard } from "@/core/hooks/useAuthGuard";
 
 // Rotas
-import UpdatePage from "./pages/UpdatePage";
-import ResizableDemo from "./pages/ResizableDemo";
-import Layout from "./pages/layout";
-import LoginPage from "./pages/LoginPage";
-import Home from "./pages/Home";
-import UploadPage from "./pages/UploadPage";
-import RegisterPage from "./pages/RegisterPage";
-import RecuperarSenha from "./pages/RecuperarSenha";
+import UpdatePage from "@/pages/update";
+import ResizableDemo from "@/pages/(sistem)/(protected)/demo";
+import Layout from "@/pages/(sistem)";
+import LoginPage from "@/pages/(auth)/login";
+import Home from "@/pages/(sistem)/(protected)/home";
+import UploadPage from "@/pages/(sistem)/(public)/upload";
+import RegisterPage from "@/pages/(auth)/cadastro";
+import RecuperarSenha from "@/pages/(auth)/recuperar-senha";
+import Perfil from "@/pages/(sistem)/(protected)/perfil";
 
 // Guards
-import GuestRoute from "./components/routes/GuestRoute";
+import GuestRoute from "@/components/routes/GuestRoute";
+import UserRedrect from "@/components/routes/UserRedrect";
 
 export default function Rotes() {
   const location = useLocation();
@@ -23,10 +25,10 @@ export default function Rotes() {
 
   // Orquestra redirecionamentos de auth e sincronização IPC → Zustand
   useAuthGuard();
-
+  const paths = ['/home', '/demo', '/perfil'];
   useEffect(() => {
     // A coleção só deve existir na memória enquanto estivermos na página Home.
-    if (location.pathname !== "/home") {
+    if (!paths.includes(location.pathname)) {
       resetCollection();
     }
   }, [location.pathname, resetCollection]);
@@ -47,6 +49,10 @@ export default function Rotes() {
         <Route path="/" element={<UploadPage />} />
         <Route path="/uploadPage" element={<UploadPage />} />
         <Route path="/demo" element={<ResizableDemo />} />
+        <Route element={<UserRedrect />} >
+          <Route path="/perfil" element={<Perfil />} />
+        </Route>
+
       </Route>
 
       {/* Rotas SEM Layout */}

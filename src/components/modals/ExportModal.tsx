@@ -11,9 +11,9 @@ import {
   Square,
   MinusSquare,
 } from "lucide-react";
-import useTabStore from "../../store/useTabStore";
-import useModalStore from "../../store/useModalStore";
-import { collectRouteIds, getMethodColor } from "../../utils/collectionUtils";
+import useTabStore from "@/core/store/useTabStore";
+import useModalStore from "@/core/store/useModalStore";
+import { collectRouteIds, getMethodColor } from "@/utils/collectionUtils";
 
 export default function ExportModal() {
   const isOpen = useModalStore((state) => state.isExportModalOpen);

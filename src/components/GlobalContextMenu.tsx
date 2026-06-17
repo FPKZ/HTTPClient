@@ -9,10 +9,10 @@ import {
   Zap,
   Terminal,
 } from "lucide-react";
-import { monacoRegistry } from "../lib/monacoRegistry";
-import { cn } from "../lib/utils";
-import { useGlobalContextMenu } from "../hooks/useGlobalContextMenu";
-import { electronService } from "../services/electronService";
+import { monacoRegistry } from "@/lib/monacoRegistry";
+import { cn } from "@/lib/utils";
+import { useGlobalContextMenu } from "@/core/hooks/useGlobalContextMenu";
+import { electronService } from "@/core/services/electronService";
 
 /**
  * GlobalContextMenu

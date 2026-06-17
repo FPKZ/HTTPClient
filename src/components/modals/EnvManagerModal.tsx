@@ -16,7 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import useTabStore from "../../store/useTabStore";
+import useTabStore from "@/core/store/useTabStore";
 
 interface EnvManagerModalProps {
   open: boolean;

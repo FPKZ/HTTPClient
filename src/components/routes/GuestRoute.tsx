@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import useUserStore from "../../store/useUserStore";
+import useUserStore from "@/core/store/useUserStore";
 
 /**
  * GuestRoute

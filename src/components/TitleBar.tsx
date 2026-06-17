@@ -4,12 +4,13 @@ import React from "react";
 import { useLocation } from "react-router-dom";
 // import { DropdownMenuComponent } from "./DropdownMenu";
 import ModalUser from "./ui/ModalUser";
-// import { useMenuGeral } from "../hooks/useMenuGeral";
+// import { useMenuGeral } from "@/core/hooks/useMenuGeral";
 import Workspaces from "./modals/Workspaces";
-// import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
-import useTabStore from "../store/useTabStore";
+// import { useKeyboardShortcuts } from "@/core/hooks/useKeyboardShortcuts";
+import useTabStore from "@/core/store/useTabStore";
 import icons from "../assets/icons";
-import useDialogStore from "../store/useDialogStore";
+import useDialogStore from "@/core/store/useDialogStore";
+import useUserStore from "@/core/store/useUserStore";
 
 interface ActionButtonsProps {
   handleMinimize: () => void;
@@ -73,6 +74,7 @@ interface TitleBarContentProps {
 }
 
 function TitleBarContent({ activeTab }: TitleBarContentProps) {
+  const user = useUserStore((state) => state.user);
   return (
     <div className="flex w-100 items-center align-center justify-between mx-2 px-0">
       <div className="ps-3 h-100 flex items-center justify-center border-l-2 border-zinc-700">
@@ -97,7 +99,11 @@ function TitleBarContent({ activeTab }: TitleBarContentProps) {
       <ModalUser>
         <div className="h-100 flex items-center px-2 no-drag">
           <div className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer bg-[#ffc107] hover:bg-[#ffc107]/80 transition-colors">
-            <span className="text-[0.6rem] font-extrabold">LF</span>
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt="User Avatar" className="w-full h-full rounded-full" />
+            ) : (
+              <span className="text-[0.6rem] font-extrabold">{user?.name ? user.name.substring(0, 2).toUpperCase() : "US"}</span>
+            )}
           </div>
         </div>
       </ModalUser>

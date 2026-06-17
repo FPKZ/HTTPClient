@@ -1,9 +1,9 @@
 import React from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { LogOut } from "lucide-react";
-import { useMenuGeral } from "../../hooks/useMenuGeral";
+import { useMenuGeral } from "@/core/hooks/useMenuGeral";
 import { MenuItem } from "../DropdownMenu";
-import useUserStore from "../../store/useUserStore";
+import useUserStore from "@/core/store/useUserStore";
 
 interface ModalUserProps {
   children: React.ReactNode;
@@ -20,9 +20,13 @@ export default function ModalUser({ children }: ModalUserProps) {
         <DropdownMenu.Content className="min-w-[180px] bg-zinc-900 border border-zinc-700! p-2 rounded-sm shadow-2xl z-50!">
           <div className="flex flex-col items-center gap-2 p-1 my-2">
             <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#ffc107]">
-              <span className="text-[1rem] font-extrabold">
-                {user?.name ? user.name.substring(0, 2).toUpperCase() : "US"}
-              </span>
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="User Avatar" className="w-full h-full rounded-full" />
+              ) : (
+                <span className="text-[1rem] font-extrabold">
+                  {user?.name ? user.name.substring(0, 2).toUpperCase() : "US"}
+                </span>
+              )}
             </div>
             <div className="text-[0.8rem] text-zinc-300">
               <p className="font-bold m-0">{user?.name || "Usuário"}</p>

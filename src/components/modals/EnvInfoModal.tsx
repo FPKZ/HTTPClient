@@ -1,7 +1,7 @@
 import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Info, Code, Zap } from "lucide-react";
-import useModalStore from "../../store/useModalStore";
+import useModalStore from "@/core/store/useModalStore";
 
 export default function EnvInfoModal() {
   const isEnvInfoOpen = useModalStore((state) => state.isEnvInfoOpen);

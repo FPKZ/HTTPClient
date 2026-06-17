@@ -1,10 +1,10 @@
 import React from "react";
-import Rotes from "./Rotes";
+import Rotes from "@/Rotes";
 
 // Components
-import Dialog from "./components/Dialog";
-import GlobalContextMenu from "./components/GlobalContextMenu";
-import usePreload from "./services/usePreload";
+import Dialog from "@/components/Dialog";
+import GlobalContextMenu from "@/components/GlobalContextMenu";
+import usePreload from "@/core/services/usePreload";
 
 function App() {
   usePreload();

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import useTabStore from "../../store/useTabStore";
-import useModalStore from "../../store/useModalStore";
-import { useNewCollection } from "../../hooks/useNewCollection";
+import useTabStore from "@/core/store/useTabStore";
+import useModalStore from "@/core/store/useModalStore";
+import { useNewCollection } from "@/core/hooks/useNewCollection";
 
 interface NovaCollectionModalProps {
   children?: React.ReactNode;

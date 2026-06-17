@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useHistory } from "@/hooks/useHistory";
+import { useHistory } from "@/core/hooks/useHistory";
 
 interface WorkspaceMember {
   id: number;
