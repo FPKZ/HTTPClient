@@ -17,7 +17,7 @@ export default function ModalUser({ children }: ModalUserProps) {
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>{children}</DropdownMenu.Trigger>
       <DropdownMenu.Portal>
-        <DropdownMenu.Content className="min-w-[180px] bg-zinc-900 border border-zinc-700! p-2 rounded-sm shadow-2xl z-50!">
+        <DropdownMenu.Content className="min-w-45 bg-zinc-900 border border-zinc-700! p-2 m-2 rounded-sm shadow-2xl z-50!">
           <div className="flex flex-col items-center gap-2 p-1 my-2">
             <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#ffc107]">
               {user?.avatarUrl ? (

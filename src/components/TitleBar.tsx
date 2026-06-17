@@ -69,47 +69,6 @@ function ActionButtons({
   );
 }
 
-interface TitleBarContentProps {
-  activeTab: any;
-}
-
-function TitleBarContent({ activeTab }: TitleBarContentProps) {
-  const user = useUserStore((state) => state.user);
-  return (
-    <div className="flex w-100 items-center align-center justify-between mx-2 px-0">
-      <div className="ps-3 h-100 flex items-center justify-center border-l-2 border-zinc-700">
-        <Workspaces>
-          <div
-            className="
-                px-2 py-1 flex items-center justify-center 
-                bg-amber-100/10
-                rounded-full
-                no-drag
-              "
-          >
-            <span className="text-[0.7rem] font-bold m-0">Workspaces</span>
-          </div>
-        </Workspaces>
-      </div>
-
-      <div className="w-100 text-center text-[0.7rem] font-bold m-0 truncate">
-        {activeTab?.title || ""}
-      </div>
-
-      <ModalUser>
-        <div className="h-100 flex items-center px-2 no-drag">
-          <div className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer bg-[#ffc107] hover:bg-[#ffc107]/80 transition-colors">
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="User Avatar" className="w-full h-full rounded-full" />
-            ) : (
-              <span className="text-[0.6rem] font-extrabold">{user?.name ? user.name.substring(0, 2).toUpperCase() : "US"}</span>
-            )}
-          </div>
-        </div>
-      </ModalUser>
-    </div>
-  );
-}
 
 export default function TitleBar() {
   // const { templete, devTemplete, isDev } = useMenuGeral();
@@ -174,14 +133,13 @@ export default function TitleBar() {
   return (
     <div
       className="titlebar titlebar-drag-region d-flex justify-content-between align-items-center"
-      style={{ backgroundColor: "#1e1e1e", height: "40px", color: "white" }}
+      style={{ backgroundColor: "#1e1e1e", height: "35px", color: "white" }}
     >
       <div className="titlebar-left d-flex align-items-center gap-2 ms-2">
         {/* <img src={icon} alt="Icon" style={{ width: "20px", height: "20px" }} /> */}
         {/* <span className="fw-bold">HTTPClient</span> */}
         {fullLogo({ width: "78", height: "50" })}
       </div>
-      {location.pathname === "/home" && <TitleBarContent activeTab={activeTab} />}
 
       <ActionButtons
         handleMinimize={handleMinimize}

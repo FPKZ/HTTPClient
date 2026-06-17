@@ -21,6 +21,9 @@ import useDialogStore from "@/core/store/useDialogStore";
 // Modals
 import NovaCollectionModal from "@/components/modals/NovaCollectionModal";
 import ExportModal from "@/components/modals/ExportModal";
+import { Bell, Settings } from "lucide-react";
+import ModalUser from "@/components/ui/ModalUser";
+import useUserStore from "@/core/store/useUserStore";
 
 /**
  * Home Page (Refatorada com Sistema de Abas)
@@ -42,6 +45,10 @@ export default function Home() {
   const setCodeSnippetsIsOpen = useInterfaceStore(
     (state) => state.setCodeSnippetsIsOpen,
   );
+
+  const user = useUserStore((state) => state.user);
+
+  const activeTab = useTabStore((state) => state.getActiveTab());
 
   const [isOnline, setIsOnline] = useState(false);
 
@@ -102,6 +109,31 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-full bg-zinc-950">
+      <div className="w-full flex items-center justify-between gap-3 p-2.5 bg-zinc-600/20 border-b border-zinc-700">
+        <div className="flex items-center gap-1">
+          <span className="text-zinc-500 font-bold uppercase tracking-wider text-center justify-center align-center items-center">WORKSPACE:</span>
+        </div>
+        <div className="w-100 text-center text-[0.7rem] font-bold m-0 truncate">
+          {activeTab?.title || ""}
+        </div>
+        <div>
+          <div className="flex items-center gap-1">
+            {/* <Settings /> */}
+            <Bell fill="white" size={18} />
+            <ModalUser>
+              <div className="h-100 flex items-center px-2 no-drag">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer bg-[#ffc107] hover:bg-[#ffc107]/80 transition-colors">
+                  {user?.avatarUrl ? (
+                    <img src={user.avatarUrl} alt="User Avatar" className="w-full h-full rounded-full" />
+                  ) : (
+                    <span className="text-[0.6rem] font-extrabold">{user?.name ? user.name.substring(0, 2).toUpperCase() : "US"}</span>
+                  )}
+                </div>
+              </div>
+            </ModalUser>
+          </div>
+        </div>
+      </div>
       <PanelGroup orientation="horizontal">
         {/* Sidebar Esquerda */}
         {sideBarIsOpen && (
