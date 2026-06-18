@@ -2,7 +2,8 @@ import React from "react";
 import { useNewCollection } from "./useNewCollection";
 import useTabStore from "@/core/store/useTabStore";
 import useModalStore from "@/core/store/useModalStore";
-import { Plus, FileDown, LogIn, User, SquareTerminal } from "lucide-react";
+import useInterfaceStore from "@/core/store/useInterfaceStore";
+import { Plus, FileDown, LogIn, User, SquareTerminal, Braces, ChevronRight, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useUserStore from "@/core/store/useUserStore";
 
@@ -17,6 +18,17 @@ export function useMenuGeral() {
   const user = useUserStore((state) => state.user);
   const isDev = (window as any).electronAPI?.isDev;
   const navigate = useNavigate();
+
+  const responseIsOpen = useInterfaceStore((state) => state.responseIsOpen);
+  const codeSnippetsIsOpen = useInterfaceStore((state) => state.codeSnippetsIsOpen);
+  const setResponseIsOpen = useInterfaceStore(
+    (state) => state.setResponseIsOpen,
+  );
+  const setCodeSnippetsIsOpen = useInterfaceStore(
+    (state) => state.setCodeSnippetsIsOpen,
+  );
+
+  const isActiveTab = useInterfaceStore((state) => state.isActiveTab);
 
   const handleExportCollection = () => {
     setExportModalOpen(true, "json");
@@ -52,7 +64,7 @@ export function useMenuGeral() {
       width="16px"
       height="16px"
       xmlSpace="preserve"
-    >
+      >
       <g fill="#29B6F6" data-iconcolor="HTTP">
         <path d="M467,73.56H45c-24.813,0-45,20.187-45,45v274.881c0,24.813,20.187,45,45,45h422c24.813,0,45-20.187,45-45V118.56 C512,93.746,491.813,73.56,467,73.56z M482,393.441c0,8.271-6.729,15-15,15H45c-8.271,0-15-6.729-15-15V177.965h452V393.441z M482,147.965H30V118.56c0-8.271,6.729-15,15-15h422c8.271,0,15,6.729,15,15V147.965z" />
         <path d="M171.741,217.264c-26.749,0-48.512,21.763-48.512,48.512v65.461c0,8.284,6.716,15,15,15s15-6.716,15-15v-28.435h37.023 v28.435c0,8.284,6.716,15,15,15s15-6.716,15-15v-65.461C220.253,239.027,198.49,217.264,171.741,217.264z M190.253,272.803H153.23 v-7.026h-0.001c0-10.208,8.305-18.512,18.512-18.512c10.207,0,18.512,8.304,18.512,18.512V272.803z" />
@@ -60,14 +72,23 @@ export function useMenuGeral() {
           d="M295.255,217.264H256c-8.284,0-15,6.716-15,15v98.973c0,8.284,6.716,15,15,15s15-6.716,15-15v-28.435h24.255
           c23.583,0,42.77-19.187,42.77-42.77C338.025,236.45,318.838,217.264,295.255,217.264z M295.255,272.803H271v-25.538h24.255
           c7.041,0,12.77,5.729,12.77,12.77C308.025,267.077,302.296,272.803,295.255,272.803z"
-        />
+          />
         <path
           d="M373.771,217.264c-8.284,0-15,6.716-15,15v98.973c0,8.284,6.716,15,15,15s15-6.716,15-15v-98.973
           C388.771,223.98,382.055,217.264,373.771,217.264z"
-        />
+          />
       </g>
     </svg>
   );
+  
+  const devTemplete = [
+    {
+      icon: <SquareTerminal size={14} />,
+      label: "Desenvolvedor",
+      shortcut: "Ctrl+Shift+I",
+      onClick: () => (window as any).electronAPI.toggleDevTools(),
+    },
+  ];
 
   const userLogin = [
     {
@@ -77,7 +98,18 @@ export function useMenuGeral() {
     },
   ];
 
-  const menuCollections = [
+  const userMenu = user ? [
+    {
+      separator: true,
+    },
+    {
+      icon: <User size={14} />,
+      label: "Perfil",
+      onClick: () => navigate("/perfil"),
+    },
+  ] : userLogin;
+
+  const fileMenu = [
     {
       icon: <Plus size={14} />,
       label: "Nova Coleção",
@@ -87,6 +119,7 @@ export function useMenuGeral() {
     {
       icon: <FileDown size={14} />,
       label: "Exportar Como",
+      disabled: !collection.id,
       subMenu: [
         {
           icon: iconJSON,
@@ -100,41 +133,34 @@ export function useMenuGeral() {
         },
       ],
     },
-  ];
+  ]
 
-  const userMenu = [
+  const viewMenu = [
     {
-      icon: <User size={14} />,
-      label: "Perfil",
-      onClick: () => navigate("/perfil"),
+      icon: <ChevronRight size={14} />,
+      label: "Output",
+      disabled: !isActiveTab(),
+      onClick: () => setResponseIsOpen(),
+      checked: responseIsOpen ? <Check size={14} strokeWidth={3}/> : null
     },
-  ];
+    {
+      icon: <Braces size={14} />,
+      label: "Code Snippets",
+      disabled: !isActiveTab(),
+      onClick: () => setCodeSnippetsIsOpen(),
+      checked: codeSnippetsIsOpen ? <Check size={14} strokeWidth={3}/> : null
+    }
+  ]
 
   const templete: any[] = [
-    ...(user ? userMenu : userLogin),
-    ...(collection.id ? [
-      {
-        separator: true,
-      },
-    ] : []),
-    ...(collection.id ? menuCollections : []),
-    ...(user ? [
-      {
-        separator: true,
-      },
-    ] : []),
+    
   ];
 
-  const devTemplete = [
-    {
-      icon: <SquareTerminal size={14} />,
-      label: "Desenvolvedor",
-      shortcut: "Ctrl+Shift+I",
-      onClick: () => (window as any).electronAPI.toggleDevTools(),
-    },
-  ];
 
   return {
+    userMenu,
+    fileMenu,
+    viewMenu,
     templete,
     devTemplete,
     isDev,

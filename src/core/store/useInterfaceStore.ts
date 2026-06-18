@@ -13,6 +13,7 @@ interface InterfaceState {
   setResponseIsOpen: () => void;
   codeSnippetsIsOpen: boolean;
   setCodeSnippetsIsOpen: () => void;
+  isActiveTab: () => boolean;
 }
 
 const useInterfaceStore = create<InterfaceState>((set) => ({
@@ -23,9 +24,11 @@ const useInterfaceStore = create<InterfaceState>((set) => ({
   setResponseIsOpen: () =>
     set((state) => ({ responseIsOpen: isActiveTab() ? !state.responseIsOpen : false })),
 
-  codeSnippetsIsOpen: false,
+  codeSnippetsIsOpen: true,
   setCodeSnippetsIsOpen: () =>
     set((state) => ({ codeSnippetsIsOpen: isActiveTab() ? !state.codeSnippetsIsOpen : false })),
+
+  isActiveTab: isActiveTab
 }));
 
 export default useInterfaceStore;

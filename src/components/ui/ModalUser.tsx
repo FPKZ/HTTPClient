@@ -10,9 +10,9 @@ interface ModalUserProps {
 }
 
 export default function ModalUser({ children }: ModalUserProps) {
-  const { templete } = useMenuGeral();
+  const { userMenu } = useMenuGeral();
   const user = useUserStore((state) => state.user);
-  
+  // console.log(user)
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>{children}</DropdownMenu.Trigger>
@@ -32,29 +32,40 @@ export default function ModalUser({ children }: ModalUserProps) {
               <p className="font-bold m-0">{user?.name || "Usuário"}</p>
             </div>
           </div>
-          {templete.map((item, index) => (
+          {userMenu.map((item, index) => (
             <MenuItem
               key={index}
               item={item}
               index={index}
             />
           ))}
-
-          <DropdownMenu.Item
-            className="
-                p-1 mt-2 flex items-center justify-center gap-2
-                text-[0.8rem] font-bold text-red-500 
-                data-highlighted:text-zinc-100 data-highlighted:font-extrabold
-                data-highlighted:bg-red-500/90! 
-                rounded cursor-pointer outline-none
-                group
-                transition-all duration-200 ease-in-out
-            "
-            onClick={() => {}}
-          >
-            Sair
-            <LogOut size={13} className="stroke-3 group-hover:stroke-4" />
-          </DropdownMenu.Item>
+          <MenuItem 
+            item={{
+              separator: true,
+            }}
+            index={100}
+          />
+          {user && (
+            <DropdownMenu.Item
+              className="
+                  p-1 mt-2 flex items-center justify-center gap-2
+                  text-[0.8rem] font-bold text-red-500 
+                  data-highlighted:text-zinc-100 data-highlighted:font-extrabold
+                  data-highlighted:bg-red-500/90! 
+                  rounded cursor-pointer outline-none
+                  group
+                  transition-all duration-200 ease-in-out
+              "
+              onClick={async () => {
+                // Realiza o logout; useAuthGuard detecta user → null e redireciona
+                await window.electronAPI.logout();
+                useUserStore.getState().clearUser();
+              }}
+            >
+              Sair
+              <LogOut size={13} className="stroke-3 group-hover:stroke-4" />
+            </DropdownMenu.Item>
+          )}
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>

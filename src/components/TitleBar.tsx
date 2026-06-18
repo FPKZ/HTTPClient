@@ -1,17 +1,17 @@
 import React from "react";
-// import icon from "../assets/icon1.png";
-// import { Menu, Plus, Settings, SquareTerminal, FileDown } from "lucide-react";
 import { useLocation } from "react-router-dom";
-// import { DropdownMenuComponent } from "./DropdownMenu";
 import ModalUser from "./ui/ModalUser";
-// import { useMenuGeral } from "@/core/hooks/useMenuGeral";
 import Workspaces from "./modals/Workspaces";
-// import { useKeyboardShortcuts } from "@/core/hooks/useKeyboardShortcuts";
-import useTabStore from "@/core/store/useTabStore";
 import icons from "../assets/icons";
+import * as Dropdown from "@radix-ui/react-dropdown-menu";
+import {DropdownMenuComponent, MenuItem } from "./DropdownMenu";
+import { Bell } from "lucide-react";
+
+import { useMenuGeral } from "@/core/hooks/useMenuGeral";
 import useDialogStore from "@/core/store/useDialogStore";
 import useUserStore from "@/core/store/useUserStore";
-import { Bell } from "lucide-react";
+import useTabStore from "@/core/store/useTabStore";
+import useInterfaceStore from "@/core/store/useInterfaceStore";
 
 interface ActionButtonsProps {
   handleMinimize: () => void;
@@ -77,6 +77,18 @@ interface TitleBarContentProps {
 function TitleBarContent({ activeTab }: TitleBarContentProps) {
   const user = useUserStore((state) => state.user);
   
+  const {fileMenu, isDev, viewMenu} = useMenuGeral();
+
+  // Controla qual menu está aberto (menubar behavior)
+  const [openMenu, setOpenMenu] = React.useState<string | null>(null);
+
+  const menu = {
+    "File": fileMenu,
+    // "Edit": [],
+    "View": viewMenu,
+    // "History": [],
+    // "Settings": [],
+  }
   return (
     // Alterado de 'flex' para 'grid grid-cols-3' e adicionado 'w-full' (o correto no Tailwind é w-full e não w-100)
     <div className="grid grid-cols-3 w-full items-center mx-2 px-0">
@@ -84,19 +96,75 @@ function TitleBarContent({ activeTab }: TitleBarContentProps) {
       {/* 1. LADO ESQUERDO: Alinhado à esquerda por padrão */}
       <div className="flex items-center justify-start gap-4">
         <div>
-          <ul className="flex items-center p-0 m-0 text-[0.8rem] font-semibold font-[system-ui] no-drag">
-            {["Arquivo", "Editar", "View", "History", "Settings"].map((item) => (
-              <li key={item} className="cursor-pointer hover:bg-[#2c2c2c] rounded transition-colors duration-200 py-1 px-2">
-                {item}
-              </li>
+          <ul className="flex items-center p-0 m-0 text-[0.8rem] font-[system-ui] no-drag">
+            {Object.entries(menu).map(([key, value]) => (
+              <Dropdown.Root
+                key={key}
+                open={openMenu === key}
+                onOpenChange={(isOpen) => setOpenMenu(isOpen ? key : null)}
+                modal={false}
+              >
+                <Dropdown.Trigger asChild>
+                  <li
+                    className="
+                      py-1 px-2
+                      cursor-pointer 
+                      text-zinc-400 hover:text-white data-[state=open]:text-white!
+                      hover:bg-[#2c2c2c] data-[state=open]:bg-[#2c2c2c]
+                      rounded 
+                      transition-all duration-200
+                    "
+                    onPointerDown={() => {
+                      // onPointerDown dispara ANTES do Radix interceptar o evento,
+                      // garantindo a troca imediata entre menus ao clicar
+                      if (openMenu !== null && openMenu !== key) {
+                        setOpenMenu(key);
+                      }
+                    }}
+                    onMouseEnter={() => {
+                      // Troca ao passar o mouse quando qualquer menu está aberto
+                      if (openMenu !== null && openMenu !== key) {
+                        setOpenMenu(key);
+                      }
+                    }}
+                  >
+                    {key}
+                  </li>
+                </Dropdown.Trigger>
+                <Dropdown.Content
+                  align="start"       // "start" | "center" | "end" → alinhamento horizontal em relação ao trigger
+                  side="bottom"       // "top" | "right" | "bottom" | "left" → lado onde abre
+                  sideOffset={0}      // px de distância do trigger
+                  alignOffset={0}     // px de deslocamento no eixo de alinhamento
+                  avoidCollisions     // (boolean) evita sair da viewport
+                  collisionPadding={8}// margem de segurança com as bordas da tela
+                  className="min-w-55 bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.1)] p-1 rounded-sm z-60!"
+                >
+                  {
+                    value?.map((item, index) => (
+                      <MenuItem 
+                        item={item}
+                        index={index}
+                        size="md"
+                        variant="default"
+                        classNames={{
+                          item: "text-[0.7rem]! bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.2)] border-0",
+                          subTrigger: "text-[0.7rem]! bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.2)] border-0",
+                          subContent: "text-[0.7rem]! bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.2)] border-0",
+                        }}
+                      />
+                    ))
+                  }
+                </Dropdown.Content>
+              </Dropdown.Root>
             ))}
           </ul>
         </div>
       </div>
 
       {/* 2. CENTRO: justify-self-center garante o alinhamento perfeito no meio do pai */}
-      <div className="justify-self-center max-w-full text-center text-[0.7rem] font-bold m-0 truncate">
-        {activeTab?.title || "Título Padrão"}
+      <div className="justify-self-center max-w-full text-center text-[0.7rem] m-0 truncate">
+        {activeTab?.title || ""}
       </div>
 
       {/* 3. LADO DIREITO: justify-self-end joga todo o bloco para a extremidade direita */}
