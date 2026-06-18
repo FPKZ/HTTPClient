@@ -24,6 +24,7 @@ import ExportModal from "@/components/modals/ExportModal";
 import { Bell, Settings } from "lucide-react";
 import ModalUser from "@/components/ui/ModalUser";
 import useUserStore from "@/core/store/useUserStore";
+import Workspaces from "@/components/modals/Workspaces";
 
 /**
  * Home Page (Refatorada com Sistema de Abas)
@@ -109,16 +110,26 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-full bg-zinc-950">
-      <div className="w-full flex items-center justify-between gap-3 p-2.5 bg-zinc-600/20 border-b border-zinc-700">
+      {/* <div className="w-full flex items-center justify-between gap-3 p-2.5 bg-zinc-600/20 border-b border-zinc-700">
         <div className="flex items-center gap-1">
-          <span className="text-zinc-500 font-bold uppercase tracking-wider text-center justify-center align-center items-center">WORKSPACE:</span>
+          <Workspaces>
+            <div
+              className="
+                  px-2 py-1 flex items-center justify-center 
+                  bg-amber-100/10
+                  rounded-full
+                  no-drag
+                "
+            >
+              <span className="text-[0.7rem] font-bold m-0">Workspaces</span>
+            </div>
+          </Workspaces>
         </div>
         <div className="w-100 text-center text-[0.7rem] font-bold m-0 truncate">
           {activeTab?.title || ""}
         </div>
         <div>
           <div className="flex items-center gap-1">
-            {/* <Settings /> */}
             <Bell fill="white" size={18} />
             <ModalUser>
               <div className="h-100 flex items-center px-2 no-drag">
@@ -133,7 +144,7 @@ export default function Home() {
             </ModalUser>
           </div>
         </div>
-      </div>
+      </div> */}
       <PanelGroup orientation="horizontal">
         {/* Sidebar Esquerda */}
         {sideBarIsOpen && (

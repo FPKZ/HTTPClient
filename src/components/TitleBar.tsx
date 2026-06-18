@@ -11,6 +11,7 @@ import useTabStore from "@/core/store/useTabStore";
 import icons from "../assets/icons";
 import useDialogStore from "@/core/store/useDialogStore";
 import useUserStore from "@/core/store/useUserStore";
+import { Bell } from "lucide-react";
 
 interface ActionButtonsProps {
   handleMinimize: () => void;
@@ -31,7 +32,7 @@ function ActionButtons({
         title="Minimizar"
       >
         <svg width="12" height="12" viewBox="0 0 12 12">
-          <rect fill="currentColor" width="10" height="2" x="1" y="6"></rect>
+          <rect fill="currentColor" width="10" height="1.5" x="1" y="6"></rect>
         </svg>
       </button>
       <button
@@ -47,7 +48,7 @@ function ActionButtons({
             y="1.5"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="1.5"
           ></rect>
         </svg>
       </button>
@@ -60,7 +61,7 @@ function ActionButtons({
           <path
             d="M2 2l8 8M10 2l-8 8"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="1.5"
             fill="none"
           ></path>
         </svg>
@@ -69,6 +70,57 @@ function ActionButtons({
   );
 }
 
+interface TitleBarContentProps {
+  activeTab: any;
+}
+
+function TitleBarContent({ activeTab }: TitleBarContentProps) {
+  const user = useUserStore((state) => state.user);
+  
+  return (
+    // Alterado de 'flex' para 'grid grid-cols-3' e adicionado 'w-full' (o correto no Tailwind é w-full e não w-100)
+    <div className="grid grid-cols-3 w-full items-center mx-2 px-0">
+      
+      {/* 1. LADO ESQUERDO: Alinhado à esquerda por padrão */}
+      <div className="flex items-center justify-start gap-4">
+        <div>
+          <ul className="flex items-center p-0 m-0 text-[0.8rem] font-semibold font-[system-ui] no-drag">
+            {["Arquivo", "Editar", "View", "History", "Settings"].map((item) => (
+              <li key={item} className="cursor-pointer hover:bg-[#2c2c2c] rounded transition-colors duration-200 py-1 px-2">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* 2. CENTRO: justify-self-center garante o alinhamento perfeito no meio do pai */}
+      <div className="justify-self-center max-w-full text-center text-[0.7rem] font-bold m-0 truncate">
+        {activeTab?.title || "Título Padrão"}
+      </div>
+
+      {/* 3. LADO DIREITO: justify-self-end joga todo o bloco para a extremidade direita */}
+      <div className="justify-self-end">
+        <div className="flex items-center gap-1">
+          {/* <Settings /> */}
+          <Bell fill="white" size={18} />
+          <ModalUser>
+            <div className="h-full flex items-center px-2 no-drag">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer bg-[#ffc107] hover:bg-[#ffc107]/80 transition-colors">
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt="User Avatar" className="w-full h-full rounded-full" />
+                ) : (
+                  <span className="text-[0.6rem] font-extrabold">{user?.name ? user.name.substring(0, 2).toUpperCase() : "US"}</span>
+                )}
+              </div>
+            </div>
+          </ModalUser>
+        </div>
+      </div>
+
+    </div>
+  );
+}
 
 export default function TitleBar() {
   // const { templete, devTemplete, isDev } = useMenuGeral();
@@ -140,6 +192,8 @@ export default function TitleBar() {
         {/* <span className="fw-bold">HTTPClient</span> */}
         {fullLogo({ width: "78", height: "50" })}
       </div>
+
+      <TitleBarContent activeTab={activeTab} />
 
       <ActionButtons
         handleMinimize={handleMinimize}
