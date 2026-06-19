@@ -1,10 +1,10 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ModalUser from "./ui/ModalUser";
 import Workspaces from "./modals/Workspaces";
 import icons from "../assets/icons";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
-import {DropdownMenuComponent, MenuItem } from "./DropdownMenu";
+import { MenuItem } from "./DropdownMenu";
 import { Bell } from "lucide-react";
 
 import { useMenuGeral } from "@/core/hooks/useMenuGeral";
@@ -70,13 +70,11 @@ function ActionButtons({
   );
 }
 
-interface TitleBarContentProps {
-  activeTab: any;
-}
-
-function TitleBarContent({ activeTab }: TitleBarContentProps) {
+function TitleBarContent() {
   const user = useUserStore((state) => state.user);
-  
+  const activeTab = useTabStore((state) => state.getActiveTab());
+  const collectionName = useTabStore((state) => state.collection.name);
+
   const {fileMenu, isDev, viewMenu} = useMenuGeral();
 
   // Controla qual menu está aberto (menubar behavior)
@@ -163,8 +161,8 @@ function TitleBarContent({ activeTab }: TitleBarContentProps) {
       </div>
 
       {/* 2. CENTRO: justify-self-center garante o alinhamento perfeito no meio do pai */}
-      <div className="justify-self-center max-w-full text-center text-[0.7rem] m-0 truncate">
-        {activeTab?.title || ""}
+      <div className="justify-self-center max-w-full text-zinc-400 text-center text-[0.7rem] m-0 truncate tracking-wider">
+        {collectionName && `${collectionName}${activeTab?.title ? ` - ${activeTab.title}` : ""}`}
       </div>
 
       {/* 3. LADO DIREITO: justify-self-end joga todo o bloco para a extremidade direita */}
@@ -194,8 +192,9 @@ export default function TitleBar() {
   // const { templete, devTemplete, isDev } = useMenuGeral();
   const { fullLogo } = icons();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const activeTab = useTabStore((state) => state.getActiveTab());
+  
   const deleteActiveTab = useTabStore((state) => state.deleteActiveTab);
   const getCollectionForExport = useTabStore(
     (state) => state.getCollectionForExport
@@ -255,13 +254,13 @@ export default function TitleBar() {
       className="titlebar titlebar-drag-region flex justify-between items-center"
       style={{ backgroundColor: "#1e1e1e", height: "35px", color: "white" }}
     >
-      <div className="titlebar-left flex items-center gap-2 ml-2">
+      <div className="titlebar-left flex items-center gap-2 ml-2 no-drag cursor-pointer" onClick={() => navigate("/")}>
         {/* <img src={icon} alt="Icon" style={{ width: "20px", height: "20px" }} /> */}
         {/* <span className="fw-bold">HTTPClient</span> */}
         {fullLogo({ width: "78", height: "50" })}
       </div>
 
-      <TitleBarContent activeTab={activeTab} />
+      <TitleBarContent />
 
       <ActionButtons
         handleMinimize={handleMinimize}

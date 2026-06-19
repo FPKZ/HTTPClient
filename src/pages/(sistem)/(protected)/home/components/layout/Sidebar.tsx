@@ -8,13 +8,16 @@ import {
   MoreVertical,
   Edit2,
   Settings,
+  Menu,
+  EllipsisVertical,
 } from "lucide-react";
 import { TreeFolder } from "./TreeFolder";
 import { useNavigate } from "react-router-dom";
 import NovoItemModal from "@/components/modals/NovoItemModal";
 import { useHistory } from "@/core/hooks/useHistory";
 import ContextMenu from "@/components/ContextMenu";
-import { DropdownMenuComponent } from "@/components/DropdownMenu";
+import * as Dropdown from "@radix-ui/react-dropdown-menu";
+import { MenuItem } from "@/components/DropdownMenu";
 import EditCollectionModal from "@/components/modals/EditCollectionModal";
 // import EnvInfoModal from "@/components/modals/EnvInfoModal";
 import EnvManagerModal from "@/components/modals/EnvManagerModal";
@@ -97,7 +100,7 @@ const SidebarHeader = () => {
 
   return (
     <div>
-      <div className="p-2 justify-between items-center flex">
+      {/* <div className="p-2 justify-between items-center flex">
         <button
           className="flex items-center gap-2 p-2 rounded hover:bg-zinc-700 text-zinc-300 text-[0.75rem]! font-semibold transition-colors"
           onClick={handleSaveExt}
@@ -124,9 +127,9 @@ const SidebarHeader = () => {
             },
           ]}
         />
-      </div>
+      </div> */}
 
-      <div className="p-3 pt-0 border-b border-zinc-700">
+      {/* <div className="p-3 pt-0 border-b border-zinc-700">
         <h2
           className="text-lg! font-bold text-white flex-1 mb-0 cursor-pointer hover:text-yellow-500 transition-colors"
           onClick={() => setIsEditingName(true)}
@@ -136,6 +139,15 @@ const SidebarHeader = () => {
         <p className="text-[0.7rem]! text-gray-500 mt-1 mb-0 truncate opacity-80">
           {collectionDesc || "Nenhuma descrição"}
         </p>
+      </div> */}
+
+      <div className="flex flex-col gap-3 p-3">
+        <div className="flex-1 p-3 bg-zinc-800/50 rounded-lg">
+          <span className="text-[0.7rem]! font-bold text-zinc-300 uppercase">Collections</span>
+        </div>
+        <div className="flex-1 p-3 bg-zinc-800/50 rounded-lg">
+          <span className="text-[0.7rem]! font-bold text-zinc-300 uppercase">Workspaces</span>
+        </div>
       </div>
 
       <div className="px-2 py-2 border-b border-zinc-700 flex items-center justify-between group/env">
@@ -235,13 +247,13 @@ const SidebarTree = React.memo(() => {
     () => [
       {
         label: "Nova Pasta",
-        icon: <Plus className="w-4 h-4" />, // Placeholder icon mapping if FolderPlus is missing
+        icon: <FolderPlus size={14} />, // Placeholder icon mapping if FolderPlus is missing
         onClick: () =>
           setModalConfig({ open: true, type: "folder", targetId: null }),
       },
       {
         label: "Nova Rota",
-        icon: <Plus className="w-4 h-4" />, // Placeholder icon mapping if FilePlus is missing
+        icon: <FilePlus size={14} />, // Placeholder icon mapping if FilePlus is missing
         onClick: () =>
           setModalConfig({ open: true, type: "file", targetId: null }),
       },
@@ -257,24 +269,38 @@ const SidebarTree = React.memo(() => {
             <span className="text-xs font-semibold text-gray-500 uppercase truncate">
               {collectionName}
             </span>
-            <div className="w-fit flex">
-              <NovoItemModal onAdd={handleAddFolder}>
-                <button
-                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
-                  title="Nova Pasta"
-                >
-                  <FolderPlus size={14} />
-                </button>
-              </NovoItemModal>
-              <NovoItemModal onAdd={handleAddRoute}>
-                <button
-                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
-                  title="Nova Rota"
-                >
-                  <FilePlus size={14} />
-                </button>
-              </NovoItemModal>
-            </div>
+            <Dropdown.Root>
+              <Dropdown.Trigger asChild>
+                <EllipsisVertical size={16} className="text-gray-400 hover:text-white cursor-pointer" />
+                {/* <div className="w-fit flex">
+                  <NovoItemModal onAdd={handleAddFolder}>
+                    <button
+                      className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
+                      title="Nova Pasta"
+                    >
+                      <FolderPlus size={14} />
+                    </button>
+                  </NovoItemModal>
+                  <NovoItemModal onAdd={handleAddRoute}>
+                    <button
+                      className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
+                      title="Nova Rota"
+                    >
+                      <FilePlus size={14} />
+                    </button>
+                  </NovoItemModal>
+                </div> */}
+              </Dropdown.Trigger>
+              <Dropdown.Content className="min-w-55 bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.1)] p-1 rounded-sm z-60!">
+                {rootContextMenuItems.map((item, index) => (
+                  <MenuItem
+                    key={index}
+                    index={index}
+                    item={item}
+                  />
+                ))}
+              </Dropdown.Content>
+            </Dropdown.Root>
           </div>
 
           {collectionItems.length === 0 ? (
