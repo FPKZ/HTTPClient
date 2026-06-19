@@ -135,7 +135,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
 
   const commonItemClasses = styles.item({
     className: cn(
-      item?.disabled && "opacity-50 cursor-not-allowed",
+      item?.disabled && "opacity-50 cursor-not-allowed pointer-events-none",
       localClassNames.item,
       item.className
     )
@@ -143,7 +143,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
 
   const subTriggerClasses = styles.subTrigger({
     className: cn(
-      item?.disabled && "opacity-50 cursor-not-allowed",
+      item?.disabled && "opacity-50 cursor-not-allowed pointer-events-none",
       localClassNames.subTrigger,
       item.className
     )
@@ -220,7 +220,11 @@ export const MenuItem: React.FC<MenuItemProps> = ({
     <DropdownMenu.Item
       key={index}
       disabled={item?.disabled}
-      onClick={item.onClick}
+      onSelect={(e) => {
+        if (item.onClick) {
+          item.onClick(e);
+        }
+      }}
       className={commonItemClasses}
     >
       {itemContent}
