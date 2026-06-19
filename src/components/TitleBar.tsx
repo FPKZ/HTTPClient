@@ -25,10 +25,10 @@ function ActionButtons({
   handleClose,
 }: ActionButtonsProps) {
   return (
-    <div className="window-controls d-flex no-drag h-100">
+    <div className="window-controls flex no-drag h-full">
       <button
         onClick={handleMinimize}
-        className="btn-control h-100 text-zinc-400 hover:text-zinc-100 transition-colors duration-200"
+        className="btn-control h-full text-zinc-400 hover:text-zinc-100 transition-colors duration-200"
         title="Minimizar"
       >
         <svg width="12" height="12" viewBox="0 0 12 12">
@@ -37,7 +37,7 @@ function ActionButtons({
       </button>
       <button
         onClick={handleMaximize}
-        className="btn-control h-100 text-zinc-400 hover:text-zinc-100 transition-colors duration-200"
+        className="btn-control h-full text-zinc-400 hover:text-zinc-100 transition-colors duration-200"
         title="Maximizar"
       >
         <svg width="12" height="12" viewBox="0 0 12 12">
@@ -54,7 +54,7 @@ function ActionButtons({
       </button>
       <button
         onClick={handleClose}
-        className="btn-control h-100 text-zinc-400 hover:text-zinc-100 hover:bg-red-500! transition-colors duration-200"
+        className="btn-control h-full text-zinc-400 hover:text-zinc-100 hover:bg-red-500 transition-colors duration-200"
         title="Fechar"
       >
         <svg width="12" height="12" viewBox="0 0 12 12">
@@ -252,10 +252,10 @@ export default function TitleBar() {
 
   return (
     <div
-      className="titlebar titlebar-drag-region d-flex justify-content-between align-items-center"
+      className="titlebar titlebar-drag-region flex justify-between items-center"
       style={{ backgroundColor: "#1e1e1e", height: "35px", color: "white" }}
     >
-      <div className="titlebar-left d-flex align-items-center gap-2 ms-2">
+      <div className="titlebar-left flex items-center gap-2 ml-2">
         {/* <img src={icon} alt="Icon" style={{ width: "20px", height: "20px" }} /> */}
         {/* <span className="fw-bold">HTTPClient</span> */}
         {fullLogo({ width: "78", height: "50" })}

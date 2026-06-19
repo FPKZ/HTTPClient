@@ -199,7 +199,7 @@ export default function ResultRequestLog({ logs, activeView }: ResultRequestLogP
 
   return (
     <div
-      className="flex-1 w-100 h-full p-0 m-0 overflow-y-auto"
+      className="flex-1 w-full h-full p-0 m-0 overflow-y-auto"
       style={{
         fontFamily: "'Fira Code', monospace",
       }}

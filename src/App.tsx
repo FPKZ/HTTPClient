@@ -10,7 +10,7 @@ function App() {
   usePreload();
   
   return (
-    <div className="d-flex flex-column h-screen">
+    <div className="flex flex-col h-screen">
       <GlobalContextMenu>
         <Dialog />
         <Rotes />

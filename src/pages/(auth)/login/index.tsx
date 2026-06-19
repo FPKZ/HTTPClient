@@ -1,5 +1,4 @@
 import React from "react";
-import { Container, Button } from "react-bootstrap";
 import icons from "@/assets/icons";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -36,14 +35,14 @@ export default function LoginPage() {
   const { fullLogo } = icons();
 
   return (
-    <div className="d-flex flex-col h-100 position-relative overflow-hidden">
+    <div className="flex flex-col h-full relative overflow-hidden">
       {/* Overlay de Loading para OAuth */}
       {loading && (
-        <div className="position-absolute w-full h-full bg-[#000000]/80 z-50 flex flex-col items-center justify-center backdrop-blur-sm transition-all duration-300">
+        <div className="absolute w-full h-full bg-[#000000]/80 z-50 flex flex-col items-center justify-center backdrop-blur-sm transition-all duration-300">
           <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
             {/* Ícone de Raio animado */}
             <div className="relative">
-              <div className="w-20 h-20 bg-[#1E1E1E] rounded-2xl flex items-center justify-center shadow-2xl border border-gray-700! animate-pulse">
+              <div className="w-20 h-20 bg-[#1E1E1E] rounded-2xl flex items-center justify-center shadow-2xl border border-gray-700 animate-pulse">
                 <svg
                   width="40"
                   height="40"
@@ -70,7 +69,7 @@ export default function LoginPage() {
                 mt-4 px-6 py-2 rounded-full
                 bg-[#313131] hover:bg-[#414141] text-white
                 text-sm font-semibold transition-all duration-200
-                border border-[#414141]! hover:border-[#515151]!
+                border border-[#414141] hover:border-[#515151]
                 shadow-lg active:scale-95
               "
             >
@@ -80,19 +79,18 @@ export default function LoginPage() {
         </div>
       )}
 
-      <Container
-        fluid
-        className="d-flex flex-col p-3 h-full mb-4"
+      <div
+        className="flex flex-col p-3 h-full mb-4 mx-auto w-full"
         style={{ overflow: "hidden", maxWidth: "27rem" }}
       >
         <div className="my-auto w-full flex flex-col min-h-0 max-h-full">
           <div className="flex shrink-0 flex-col justify-center gap-2 text-sm">
             <div className="flex justify-center mb-4">{fullLogo()}</div>
-            <div className="flex flex-col gap-2 border border-[#313131]! bg-[#1b1b1b]! shadow-sm p-10 rounded-lg">
+            <div className="flex flex-col gap-2 border border-[#313131] bg-[#1b1b1b] shadow-sm p-10 rounded-lg">
               <div className="flex flex-col gap-1 group/input">
                 <label
                   htmlFor="email"
-                  className="text-[#cecece]/70 transition-colors duration-200 group-focus-within/input:text-[#ffffff]!"
+                  className="text-[#cecece]/70 transition-colors duration-200 group-focus-within/input:text-[#ffffff]"
                 >
                   Email
                 </label>
@@ -100,8 +98,8 @@ export default function LoginPage() {
                   type="email"
                   id="email"
                   className="
-                    rounded border border-[#313131]!
-                    bg-[#181818]! hover:bg-[#121212]! focus:bg-[#121212]!
+                    rounded border border-[#313131]
+                    bg-[#181818] hover:bg-[#121212] focus:bg-[#121212]
                     p-2 outline-none
                   "
                   value={formValue.email}
@@ -112,7 +110,7 @@ export default function LoginPage() {
               <div className="flex flex-col gap-1 group/input">
                 <label
                   htmlFor="password"
-                  className="text-[#cecece]/70 transition-colors duration-200 group-focus-within/input:text-[#ffffff]!"
+                  className="text-[#cecece]/70 transition-colors duration-200 group-focus-within/input:text-[#ffffff]"
                 >
                   Senha
                 </label>
@@ -120,8 +118,8 @@ export default function LoginPage() {
                   type="password"
                   id="password"
                   className="
-                    rounded border border-[#313131]!
-                    bg-[#181818]! hover:bg-[#121212]! focus:bg-[#121212]!
+                    rounded border border-[#313131]
+                    bg-[#181818] hover:bg-[#121212] focus:bg-[#121212]
                     p-2 outline-none
                   "
                   value={formValue.password}
@@ -129,19 +127,22 @@ export default function LoginPage() {
                 />
               </div>
 
-              <Button
+              <button
                 className={`
-                bg-[#ffc107]/90!
-                hover:bg-[#ffc107]/60!
-                focus:bg-[#ffc107]/60!
-                text-zinc-900!
+                bg-[#ffc107]/90
+                hover:bg-[#ffc107]/60
+                focus:bg-[#ffc107]/60
+                text-zinc-900
+                font-semibold
                 border-0 px-4 py-2 rounded mt-3
+                cursor-pointer transition-colors
+                disabled:opacity-50 disabled:cursor-not-allowed
               `}
                 onClick={handleLogin}
                 disabled={loading}
               >
                 Entrar
-              </Button>
+              </button>
 
               {erros?.geral && <p className="text-red-500 text-sm m-0">{erros.geral}</p>}
               {error && <p className="text-red-500 text-sm m-0">{error}</p>}
@@ -151,7 +152,7 @@ export default function LoginPage() {
               <div>
                 <p className="m-0">
                   Não tem uma conta?{" "}
-                  <a onClick={() => navigate('/register')} className="link-warning cursor-pointer">
+                  <a onClick={() => navigate('/register')} className="text-amber-400 hover:text-amber-300 cursor-pointer">
                     Cadastre-se
                   </a>
                 </p>
@@ -159,7 +160,7 @@ export default function LoginPage() {
               <div>
                 <p className="m-0">
                   Esqueceu sua senha?{" "}
-                  <a className="link-warning cursor-pointer">
+                  <a className="text-amber-400 hover:text-amber-300 cursor-pointer">
                     Recuperar senha
                   </a>
                 </p>
@@ -167,12 +168,12 @@ export default function LoginPage() {
             </div>
             <div className="flex justify-center pt-2 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-px bg-[#313131]!"></div>
+                <div className="w-10 h-px bg-[#313131]"></div>
                 <p className="m-0 text-xs text-[#cecece]">ou</p>
-                <div className="w-10 h-px bg-[#313131]!"></div>
+                <div className="w-10 h-px bg-[#313131]"></div>
               </div>
             </div>
-            <div className="flex flex-col items-center justify-between px-3 gap-3 text-zinc-900! font-bold">
+            <div className="flex flex-col items-center justify-between px-3 gap-3 text-zinc-900 font-bold">
               {[
                 { img: "google.svg", alt: "Google", size: "w-8 h-8", text: "Entrar com o Google", action: () => handleSocialLogin("google") },
                 { img: "/github-brands-solid-full(1).svg", alt: "GitHub", size: "w-8 h-8", text: "Entrar com o GitHub", action: () => handleSocialLogin("github") },
@@ -193,9 +194,9 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-      </Container>
+      </div>
 
-      <div className="position-absolute bottom-0 end-0 px-2">
+      <div className="absolute bottom-0 right-0 px-2">
         <span
           className="text-xs text-[#cecece] cursor-pointer"
           onClick={() => (window as any).electronAPI?.openActionLogger()}

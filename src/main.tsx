@@ -6,7 +6,7 @@ import process from "process";
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "bootstrap/dist/css/bootstrap.min.css"; // Imported here to avoid CSS order issues
+
 import App from "@/App";
 import "@/index.css";
 import { HashRouter } from "react-router-dom";

@@ -1,5 +1,4 @@
-import React, { useEffect } from "react";
-import { Tab, Nav, Row, Col } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useTabStore from "@/core/store/useTabStore";
 import useUserStore from "@/core/store/useUserStore";
@@ -19,11 +18,12 @@ import { useHistory } from "@/core/hooks/useHistory";
 /**
  * UploadPage (Refatorada)
  * SRP: Focada no carregamento de novos arquivos e visualização do histórico.
+ * Removido react-bootstrap (Tab, Nav, Row, Col) — substituído por abas nativas + grid Tailwind.
  */
 function UploadPage() {
   const user = useUserStore((state) => state.user);
-
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<"history" | "settings">("history");
 
   const {
     history,
@@ -67,14 +67,12 @@ function UploadPage() {
   };
 
   return (
-    <div className="d-flex h-100 position-relative overflow-hidden">
-      <Row className="w-full m-0 h-100">
-        <Col
-          xs={5}
-          md={4}
-          lg={3}
-          className="flex flex-col h-100 border-r border-[#313131] position-relative p-0 transition-all duration-300"
-        >
+    <div className="flex h-full relative overflow-hidden">
+      {/* Grid de 2 colunas: sidebar esquerda + área central */}
+      <div className="flex w-full h-full">
+
+        {/* Coluna Esquerda — Sidebar */}
+        <div className="w-[30%] max-w-[280px] min-w-[200px] flex flex-col h-full border-r border-[#313131] relative transition-all duration-300">
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             <div className="flex flex-col">
               <div className="flex flex-col items-center justify-center my-4 gap-2">
@@ -113,10 +111,10 @@ function UploadPage() {
                       <div
                         className="
                           flex items-center justify-between w-full p-1
-                          bg-[#ffb117]/90! hover:bg-zinc-900!
-                          border border-[#ffb117]/90! hover:border-zinc-700/60!
+                          bg-[#ffb117]/90 hover:bg-zinc-900
+                          border border-[#ffb117]/90 hover:border-zinc-700/60
                           rounded 
-                          font-bold hover:text-zinc-200!
+                          font-bold hover:text-zinc-200
                           cursor-pointer transition-colors duration-200
                         "
                         onClick={() => navigate("/login")}
@@ -132,7 +130,7 @@ function UploadPage() {
 
               <div className="flex flex-col px-3 gap-2.5">
                 <NovaCollectionModal>
-                  <div className="flex w-full h-full py-2 px-4 rounded items-center justify-center cursor-pointer bg-[#1b1b1b] border border-[#313131]! hover:bg-[#292929] active:bg-[#1d1d1d] transition-colors text-gray-300 font-bold">
+                  <div className="flex w-full h-full py-2 px-4 rounded items-center justify-center cursor-pointer bg-[#1b1b1b] border border-[#313131] hover:bg-[#292929] active:bg-[#1d1d1d] transition-colors text-gray-300 font-bold">
                     Nova Coleção
                   </div>
                 </NovaCollectionModal>
@@ -140,7 +138,7 @@ function UploadPage() {
                   onImport={(path) => startConversion(path, true)}
                   onFolderSelect={handleFolderSelect}
                 >
-                  <div className="flex w-full h-full py-2 px-4 rounded items-center justify-center cursor-pointer bg-[#1b1b1b] border border-[#313131]! hover:bg-[#292929] active:bg-[#1d1d1d] transition-colors text-gray-300 font-bold">
+                  <div className="flex w-full h-full py-2 px-4 rounded items-center justify-center cursor-pointer bg-[#1b1b1b] border border-[#313131] hover:bg-[#292929] active:bg-[#1d1d1d] transition-colors text-gray-300 font-bold">
                     Importar Coleção
                   </div>
                 </ImportCollectionModal>
@@ -168,56 +166,66 @@ function UploadPage() {
               </div>
             </div>
           )}
-        </Col>
+        </div>
 
-        <Col className="flex flex-col p-4 justify-center">
-          <Tab.Container id="left-tabs-example" defaultActiveKey="history">
-            <div className="flex w-full justify-center text-xs">
-              {user && (
-                <Nav variant="underline" className="flex custom-tabs">
-                  <Nav.Item>
-                    <Nav.Link eventKey="history">Dispositivo</Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link eventKey="settings">Onedrive</Nav.Link>
-                  </Nav.Item>
-                </Nav>
-              )}
+        {/* Coluna Direita — Conteúdo Principal com Abas */}
+        <div className="flex flex-col flex-1 p-4 justify-center">
+          {/* Abas (nativas — sem Bootstrap) */}
+          {user && (
+            <div className="flex w-full justify-center text-xs mb-2">
+              <div className="flex custom-tabs">
+                {(["history", "settings"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`
+                      px-4 py-2 font-bold border-b-2 transition-all duration-200 cursor-pointer bg-transparent border-x-0 border-t-0
+                      ${activeTab === tab
+                        ? "text-white border-b-[#ffc107]"
+                        : "text-zinc-400 border-b-transparent hover:text-zinc-200"
+                      }
+                    `}
+                  >
+                    {tab === "history" ? "Dispositivo" : "Onedrive"}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex w-full h-full px-12 py-4 justify-center">
-              <Tab.Content className="flex w-full h-full justify-center">
-                <Tab.Pane
-                  eventKey="history"
-                  className="flex w-full h-full justify-center"
-                >
-                  <div className="flex-1 min-h-0">
-                    <HistoryList
-                      history={history}
-                      onLoad={handleLoadHistory}
-                      onDelete={handleDeleteHistoryItem}
-                      onAllDelete={handleDeleteAllHistory}
-                    />
-                  </div>
-                </Tab.Pane>
-                <Tab.Pane eventKey="settings">s{/* <Sonnet /> */}</Tab.Pane>
-              </Tab.Content>
+          )}
+
+          {/* Conteúdo das Abas */}
+          <div className="flex w-full h-full px-12 py-4 justify-center">
+            <div className="flex w-full h-full justify-center">
+              {/* Aba: Dispositivo (history) */}
+              <div className={`flex w-full h-full justify-center ${activeTab === "history" ? "block" : "hidden"}`}>
+                <div className="flex-1 min-h-0">
+                  <HistoryList
+                    history={history}
+                    onLoad={handleLoadHistory}
+                    onDelete={handleDeleteHistoryItem}
+                    onAllDelete={handleDeleteAllHistory}
+                  />
+                </div>
+              </div>
+
+              {/* Aba: Onedrive (settings) */}
+              <div className={`flex w-full h-full justify-center ${activeTab === "settings" ? "block" : "hidden"}`}>
+                s{/* <Sonnet /> */}
+              </div>
             </div>
-          </Tab.Container>
-        </Col>
-      </Row>
+          </div>
+        </div>
+      </div>
 
-
-
-      <Row className="w-full position-absolute bottom-0 end-0 px-2">
-        <Col className="w-full text-end">
-          <span
-            className="text-xs text-[#cecece]"
-            onClick={() => navigate("/login")}
-          >
-            {import.meta.env.VITE_APP_VERSION}
-          </span>
-        </Col>
-      </Row>
+      {/* Versão no canto inferior direito */}
+      <div className="absolute bottom-0 right-0 px-2">
+        <span
+          className="text-xs text-[#cecece]"
+          onClick={() => navigate("/login")}
+        >
+          {import.meta.env.VITE_APP_VERSION}
+        </span>
+      </div>
     </div>
   );
 }

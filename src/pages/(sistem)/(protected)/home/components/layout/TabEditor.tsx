@@ -1,5 +1,4 @@
 import React from "react";
-import { Tab as BSTab, Nav } from "react-bootstrap";
 import { Save, Play } from "lucide-react";
 import useTabStore from "@/core/store/useTabStore";
 import RequestEditor from "../collections/RequestEditor";
@@ -19,6 +18,7 @@ import { Tab } from "@/core/store";
 /**
  * TabEditor
  * Editor da aba ativa com painel de requisição e console de logs.
+ * Substituído BSTab.Container/Nav do react-bootstrap por abas nativas com estado React.
  */
 export default function TabEditor() {
   const activeTab = useTabStore((state) => state.getActiveTab());
@@ -111,139 +111,132 @@ export default function TabEditor() {
           id={`request-panel-${activeTab.id}`}
           className="flex flex-col h-full overflow-hidden"
         >
-          <BSTab.Container
-            activeKey={activeSection}
-            onSelect={(k) =>
-              updateTabUiState(activeTab.id, { activeSection: k || "" })
-            }
-          >
-            {/* Parte Superior: URL + Navegação das Abas */}
-            <div className="sticky top-0 z-20 flex-none border-b border-zinc-700 bg-[#18181b] shadow-md">
-              <div className="p-2 py-2 flex items-center gap-3">
-                {/* Método HTTP */}
-                <select
-                  value={telaData.request.method || "GET"}
-                  onChange={(e) =>
-                    handleInputChange("method", null, e.target.value)
-                  }
-                  className={`bg-zinc-800 text-[0.9rem]! px-2 py-2.5 rounded border border-zinc-600! focus:outline-none focus:border-yellow-500 font-semibold ${getMethodColor(
-                    telaData.request.method,
-                  )}`}
-                >
-                  <option className={getMethodColor("GET")} value="GET">GET</option>
-                  <option className={getMethodColor("POST")} value="POST">POST</option>
-                  <option className={getMethodColor("PUT")} value="PUT">PUT</option>
-                  <option className={getMethodColor("DELETE")} value="DELETE">DELETE</option>
-                  <option className={getMethodColor("PATCH")} value="PATCH">PATCH</option>
-                </select>
+          {/* Parte Superior: URL + Navegação das Abas */}
+          <div className="sticky top-0 z-20 flex-none border-b border-zinc-700 bg-[#18181b] shadow-md">
+            <div className="p-2 py-2 flex items-center gap-3">
+              {/* Método HTTP */}
+              <select
+                value={telaData.request.method || "GET"}
+                onChange={(e) =>
+                  handleInputChange("method", null, e.target.value)
+                }
+                className={`bg-zinc-800 text-[0.9rem] px-2 py-2.5 rounded border border-zinc-600 focus:outline-none focus:border-yellow-500 font-semibold ${getMethodColor(
+                  telaData.request.method,
+                )}`}
+              >
+                <option className={getMethodColor("GET")} value="GET">GET</option>
+                <option className={getMethodColor("POST")} value="POST">POST</option>
+                <option className={getMethodColor("PUT")} value="PUT">PUT</option>
+                <option className={getMethodColor("DELETE")} value="DELETE">DELETE</option>
+                <option className={getMethodColor("PATCH")} value="PATCH">PATCH</option>
+              </select>
 
-                {/* URL */}
-                <input
-                  type="text"
-                  value={telaData.request.url || ""}
-                  onChange={(e) =>
-                    handleInputChange("url", null, e.target.value)
-                  }
-                  placeholder="https://api.exemplo.com/endpoint"
-                  className="flex-1 bg-zinc-800 text-white px-3 py-2 rounded border border-zinc-600! focus:outline-none focus:border-yellow-500"
-                />
+              {/* URL */}
+              <input
+                type="text"
+                value={telaData.request.url || ""}
+                onChange={(e) =>
+                  handleInputChange("url", null, e.target.value)
+                }
+                placeholder="https://api.exemplo.com/endpoint"
+                className="flex-1 bg-zinc-800 text-white px-3 py-2 rounded border border-zinc-600 focus:outline-none focus:border-yellow-500"
+              />
 
-                {/* Botão Executar / Cancelar */}
-                <div className="flex items-center gap-1">
-                  {isExecuting ? (
-                    <button
-                      title="Cancelar requisição"
-                      onClick={() => cancelRequest(isExecuting as string)}
-                      className="p-2.5 bg-red-600 hover:bg-red-700 text-white rounded font-bold transition-colors animate-pulse"
-                    >
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    </button>
-                  ) : (
-                    <button
-                      title="Executar requisição"
-                      onClick={handleExecute}
-                      className="p-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold transition-colors"
-                    >
-                      <Play size={16} />
-                    </button>
-                  )}
-
-                  {/* Botão Salvar */}
+              {/* Botão Executar / Cancelar */}
+              <div className="flex items-center gap-1">
+                {isExecuting ? (
                   <button
-                    onClick={handleSave}
-                    disabled={!activeTab.isDirty || !!isExecuting}
-                    className={`
-                      p-2.5 rounded font-bold transition-colors flex items-center gap-2
-                      ${
-                        activeTab.isDirty
-                          ? "bg-green-600 hover:bg-green-700 text-white"
-                          : "bg-zinc-700 text-gray-500"
-                      }
-                    `}
-                    title={
-                      activeTab.isDirty
-                        ? "Salvar mudanças na coleção"
-                        : "Nenhuma mudança para salvar"
-                    }
+                    title="Cancelar requisição"
+                    onClick={() => cancelRequest(isExecuting as string)}
+                    className="p-2.5 bg-red-600 hover:bg-red-700 text-white rounded font-bold transition-colors animate-pulse"
                   >
-                    <Save size={16} />
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   </button>
-                </div>
-              </div>
-
-              {/* Sub-Navegação (Headers, Body, etc) */}
-              <Nav className="border-none px-0 flex-row">
-                {Object.entries(telaData.request).map(([subKey, subValue]) => {
-                  if (subKey === "url" || subKey === "method" || !subValue)
-                    return null;
-                  const isActive = activeSection === subKey;
-
-                  return (
-                    <Nav.Item key={subKey}>
-                      <Nav.Link
-                        eventKey={subKey}
-                        style={{
-                          backgroundColor: isActive ? "#141414" : "transparent",
-                        }}
-                        className={`px-3 py-1 font-bold uppercase transition-colors cursor-pointer no-underline! ${
-                          isActive
-                            ? "text-yellow-500!"
-                            : "text-gray-500! hover:text-gray-300!"
-                        }`}
-                      >
-                        <small style={{ fontSize: "0.65rem" }}>{subKey}</small>
-                      </Nav.Link>
-                    </Nav.Item>
-                  );
-                })}
-              </Nav>
-            </div>
-
-            {/* Parte Central: Conteúdo do Editor (Headers, Body, Auth...) */}
-            <div className="flex-1 bg-[#141414] min-h-0 flex flex-col overflow-hidden">
-              <BSTab.Content className="mt-0 flex-1 flex flex-col min-h-0">
-                {Object.entries(telaData.request).map(([subKey, subValue]) => (
-                  <BSTab.Pane
-                    key={subKey}
-                    eventKey={subKey}
-                    className="p-3 pb-1 flex-1 flex flex-col min-h-0"
+                ) : (
+                  <button
+                    title="Executar requisição"
+                    onClick={handleExecute}
+                    className="p-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold transition-colors"
                   >
-                    <RequestEditor
-                      subKey={subKey}
-                      subValue={subValue}
-                      requestId={activeTab.id}
-                      index={0}
-                      onInputChange={(_idx, sectionKey, fieldKey, value) => {
-                        handleInputChange(sectionKey, fieldKey, value);
-                      }}
-                      onSelectFile={handleSelectFile}
-                      onRun={handleExecute}
-                    />
-                  </BSTab.Pane>
-                ))}
-              </BSTab.Content>
+                    <Play size={16} />
+                  </button>
+                )}
+
+                {/* Botão Salvar */}
+                <button
+                  onClick={handleSave}
+                  disabled={!activeTab.isDirty || !!isExecuting}
+                  className={`
+                    p-2.5 rounded font-bold transition-colors flex items-center gap-2
+                    ${
+                      activeTab.isDirty
+                        ? "bg-green-600 hover:bg-green-700 text-white"
+                        : "bg-zinc-700 text-gray-500"
+                    }
+                  `}
+                  title={
+                    activeTab.isDirty
+                      ? "Salvar mudanças na coleção"
+                      : "Nenhuma mudança para salvar"
+                  }
+                >
+                  <Save size={16} />
+                </button>
+              </div>
             </div>
-          </BSTab.Container>
+
+            {/* Sub-Navegação nativa (Headers, Body, etc) */}
+            <div className="flex flex-row border-none px-0">
+              {Object.entries(telaData.request).map(([subKey, subValue]) => {
+                if (subKey === "url" || subKey === "method" || !subValue)
+                  return null;
+                const isActive = activeSection === subKey;
+
+                return (
+                  <button
+                    key={subKey}
+                    onClick={() => updateTabUiState(activeTab.id, { activeSection: subKey })}
+                    style={{
+                      backgroundColor: isActive ? "#141414" : "transparent",
+                    }}
+                    className={`px-3 py-1 font-bold uppercase transition-colors cursor-pointer border-0 ${
+                      isActive
+                        ? "text-yellow-500"
+                        : "text-gray-500 hover:text-gray-300"
+                    }`}
+                  >
+                    <small style={{ fontSize: "0.65rem" }}>{subKey}</small>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Parte Central: Conteúdo do Editor (Headers, Body, Auth...) */}
+          <div className="flex-1 bg-[#141414] min-h-0 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col min-h-0">
+              {Object.entries(telaData.request).map(([subKey, subValue]) => (
+                <div
+                  key={subKey}
+                  className={`p-3 pb-1 flex-1 flex flex-col min-h-0 ${
+                    activeSection === subKey ? "block" : "hidden"
+                  }`}
+                >
+                  <RequestEditor
+                    subKey={subKey}
+                    subValue={subValue}
+                    requestId={activeTab.id}
+                    index={0}
+                    onInputChange={(_idx, sectionKey, fieldKey, value) => {
+                      handleInputChange(sectionKey, fieldKey, value);
+                    }}
+                    onSelectFile={handleSelectFile}
+                    onRun={handleExecute}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </Panel>
         {(responseIsOpen || codeSnippetsIsOpen) && (
           <>

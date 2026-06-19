@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Button } from 'react-bootstrap';
 
 /**
  * DropZone
@@ -41,8 +40,8 @@ const DropZone = ({ onFileDrop, onFolderSelect }: DropZoneProps) => {
   return (
     <div
       id="drop-zone"
-      className={`d-flex flex-column justify-content-center align-items-center text-center p-5 border rounded transition-all ${
-        isHovering ? 'bg-[#131313] border-primary' : 'bg-[#1b1b1b] border-[#313131]!'
+      className={`flex flex-col justify-center items-center text-center p-5 border rounded transition-all ${
+        isHovering ? 'bg-[#131313] border-blue-500' : 'bg-[#1b1b1b] border-[#313131]'
       }`}
       style={{ borderStyle: 'dashed'}}
       onDragOver={handleDragOver}
@@ -50,10 +49,13 @@ const DropZone = ({ onFileDrop, onFolderSelect }: DropZoneProps) => {
       onDrop={handleDrop}
     >
       <p className="mb-2 text-gray-300">Arraste arquivos .json aqui</p>
-      <p className="text-secondary mb-3 text-sm">ou</p>
-      <Button variant="primary" onClick={onFolderSelect}>
+      <p className="text-zinc-500 mb-3 text-sm">ou</p>
+      <button
+        onClick={onFolderSelect}
+        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded transition-colors cursor-pointer"
+      >
         Selecionar arquivo .json
-      </Button>
+      </button>
     </div>
   );
 };

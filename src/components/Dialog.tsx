@@ -19,7 +19,7 @@ export default function Dialog() {
             <DialogPrimitive.Title className="text-lg! font-bold text-white">
               {title}
             </DialogPrimitive.Title>
-            <DialogPrimitive.Close className="flex position-absolute top-5 right-5 items-center justify-center text-zinc-400 hover:text-white transition-colors focus:outline-none">
+            <DialogPrimitive.Close className="flex absolute top-5 right-5 items-center justify-center text-zinc-400 hover:text-white transition-colors focus:outline-none">
               <X size={20} />
             </DialogPrimitive.Close>
           </div>

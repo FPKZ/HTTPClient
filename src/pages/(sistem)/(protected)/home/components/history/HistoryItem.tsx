@@ -24,9 +24,9 @@ export default function HistoryItem({ item, onLoad, onDelete }: HistoryItemProps
   return (
     <div
       onClick={() => onLoad(item)}
-      className="d-flex items-center justify-between rounded-1 p-2 bg-zinc-900/50 hover:bg-zinc-800 cursor-pointer transition-colors"
+      className="flex items-center justify-between rounded-sm p-2 bg-zinc-900/50 hover:bg-zinc-800 cursor-pointer transition-colors"
     >
-      <div className="d-flex flex-column">
+      <div className="flex flex-col">
         <span className="text-zinc-200 font-medium" style={{ fontSize: '0.8rem' }}>
           {item.name}
         </span>
@@ -34,7 +34,7 @@ export default function HistoryItem({ item, onLoad, onDelete }: HistoryItemProps
           {new Date(item.updatedAt).toLocaleString('pt-BR')} • {item.description || item.descricao || item.sourceType}
         </small>
       </div>
-      <div className="d-flex items-center gap-3">
+      <div className="flex items-center gap-3">
         <div className="text-zinc-600 hover:text-yellow-500 transition-colors">
           <small style={{ fontSize: '0.6rem' }}>ABRIR</small>
         </div>

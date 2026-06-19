@@ -1,5 +1,4 @@
 import React from "react";
-import { Container, Button } from "react-bootstrap";
 import icons from "@/assets/icons";
 import { ArrowRight } from "lucide-react";
 import useRegister from "@/core/hooks/useRegister";
@@ -30,20 +29,19 @@ export default function RegisterPage() {
     const { fullLogo } = icons();
 
     return (
-        <div className="d-flex flex-col h-100 position-relative overflow-hidden">
-            <Container
-                fluid
-                className="d-flex flex-col p-3 h-full mb-4"
+        <div className="flex flex-col h-full relative overflow-hidden">
+            <div
+                className="flex flex-col p-3 h-full mb-4 mx-auto w-full"
                 style={{ overflow: "hidden", maxWidth: "27rem" }}
             >
                 <div className="my-auto w-full flex flex-col min-h-0 max-h-full">
                 <div className="flex shrink-0 flex-col justify-center gap-2 text-sm">
                     <div className="flex justify-center mb-4">{fullLogo()}</div>
-                    <div className="flex flex-col gap-2 border border-[#313131]! bg-[#1b1b1b]! shadow-sm p-10 rounded-lg">
+                    <div className="flex flex-col gap-2 border border-[#313131] bg-[#1b1b1b] shadow-sm p-10 rounded-lg">
                     <div className="flex flex-col gap-1 group/input">
                         <label
                         htmlFor="name"
-                        className="text-[#cecece]/70 transition-colors duration-200 group-focus-within/input:text-[#ffffff]!"
+                        className="text-[#cecece]/70 transition-colors duration-200 group-focus-within/input:text-[#ffffff]"
                         >
                         Nome
                         </label>
@@ -52,8 +50,8 @@ export default function RegisterPage() {
                         id="name"
                         placeholder="João..."
                         className="
-                            rounded border border-[#313131]!
-                            bg-[#181818]! hover:bg-[#121212]! focus:bg-[#121212]!
+                            rounded border border-[#313131]
+                            bg-[#181818] hover:bg-[#121212] focus:bg-[#121212]
                             p-2 outline-none
                         "
                         value={formValue.name}
@@ -63,7 +61,7 @@ export default function RegisterPage() {
                     <div className="flex flex-col gap-1 group/input">
                         <label
                         htmlFor="email"
-                        className="text-[#cecece]/70 transition-colors duration-200 group-focus-within/input:text-[#ffffff]!"
+                        className="text-[#cecece]/70 transition-colors duration-200 group-focus-within/input:text-[#ffffff]"
                         >
                         Email
                         </label>
@@ -72,8 +70,8 @@ export default function RegisterPage() {
                         id="email"
                         placeholder="exemple@gmail.com"
                         className="
-                            rounded border border-[#313131]!
-                            bg-[#181818]! hover:bg-[#121212]! focus:bg-[#121212]!
+                            rounded border border-[#313131]
+                            bg-[#181818] hover:bg-[#121212] focus:bg-[#121212]
                             p-2 outline-none
                         "
                         value={formValue.email}
@@ -101,18 +99,20 @@ export default function RegisterPage() {
                         // error={erros.senha}
                     />
 
-                    <Button
+                    <button
                         className="
-                        bg-[#ffc107]/90!
-                        hover:bg-[#ffc107]/60!
-                        focus:bg-[#ffc107]/60!
-                        text-zinc-900!
+                        bg-[#ffc107]/90
+                        hover:bg-[#ffc107]/60
+                        focus:bg-[#ffc107]/60
+                        text-zinc-900
+                        font-semibold
                         border-0 px-4 py-2 rounded mt-3
+                        cursor-pointer transition-colors
                     "
                         onClick={handleRegister}
                     >
                         Registrar
-                    </Button>
+                    </button>
 
                     {/* {erros && <p className="text-red-500">{erros}</p>} */}
                     {success && <p className="text-green-500">Login realizado com sucesso!</p>}
@@ -121,7 +121,7 @@ export default function RegisterPage() {
                     <div>
                         <p className="m-0">
                         Já possui uma conta?{" "}
-                        <a onClick={() => navigate("/login")} className="link-warning cursor-pointer">
+                        <a onClick={() => navigate("/login")} className="text-amber-400 hover:text-amber-300 cursor-pointer">
                             Faça login
                         </a>
                         </p>
@@ -129,9 +129,9 @@ export default function RegisterPage() {
                     </div>
                 </div>
                 </div>
-            </Container>
+            </div>
 
-            <div className="position-absolute bottom-0 end-0 px-2">
+            <div className="absolute bottom-0 right-0 px-2">
                 <span
                 className="text-xs text-[#cecece] cursor-pointer"
                 onClick={() => (window as any).electronAPI?.openActionLogger()}
@@ -139,6 +139,6 @@ export default function RegisterPage() {
                 {(import.meta as any).env.VITE_APP_VERSION}
                 </span>
             </div>
-            </div>
+        </div>
     );
 }

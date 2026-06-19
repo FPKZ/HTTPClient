@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Spinner } from "react-bootstrap";
 import { Progress } from "@/components/ui/progress";
 import icons from "@/assets/icons";
 
@@ -43,24 +42,15 @@ export default function UpdatePage() {
   }, []);
 
   return (
-    <div className="d-flex flex-column justify-content-center align-items-center h-100 bg-[#1e1e1e]">
+    <div className="flex flex-col justify-center items-center h-full bg-[#1e1e1e]">
       <div
-        className="position-relative d-flex justify-content-center align-items-center mb-4"
+        className="relative flex justify-center items-center mb-4"
         style={{ width: "120px", height: "120px" }}
       >
         {status === "downloading" && (
-          <Spinner
-            animation="border"
-            variant="light"
-            className="position-absolute"
-            style={{
-              width: "100%",
-              height: "100%",
-              borderWidth: "5px",
-              borderRadius: "50%",
-              opacity: 0.5,
-              animationDuration: "2s", // Mais lento e suave
-            }}
+          <div
+            className="absolute inset-0 border-[5px] border-white border-t-transparent rounded-full animate-spin opacity-50"
+            style={{ animationDuration: "2s" }}
           />
         )}
         <div className="animate-pulse">
@@ -69,7 +59,7 @@ export default function UpdatePage() {
       </div>
 
       {status === "downloading" && (
-        <div className="w-full max-w-[200px]">
+        <div className="w-full max-w-50">
           <Progress
             value={progress}
             className="h-1"

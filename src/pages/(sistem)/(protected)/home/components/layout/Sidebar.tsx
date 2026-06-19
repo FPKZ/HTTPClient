@@ -186,6 +186,7 @@ const SidebarHeader = () => {
  */
 const SidebarTree = React.memo(() => {
   const collectionItems = useTabStore((state) => state.collection.items);
+  const collectionName = useTabStore((state) => state.collection.name);
   const addRoute = useTabStore((state) => state.addRoute);
   const addFolder = useTabStore((state) => state.addFolder);
   const renameItem = useTabStore((state) => state.renameItem);
@@ -251,12 +252,12 @@ const SidebarTree = React.memo(() => {
   return (
     <ContextMenu items={rootContextMenuItems}>
       <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="p-2 h-full">
+        <div className="p-2 h-full bg-zinc-950/40">
           <div className="flex items-center justify-between px-2 py-1 mb-2">
-            <span className="text-xs font-semibold text-gray-500 uppercase">
-              Coleção
+            <span className="text-xs font-semibold text-gray-500 uppercase truncate">
+              {collectionName}
             </span>
-            <div>
+            <div className="w-fit flex">
               <NovoItemModal onAdd={handleAddFolder}>
                 <button
                   className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"

@@ -1,5 +1,4 @@
 import React from "react";
-import { Nav, Button } from "react-bootstrap";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CollectionsTabsProps {
@@ -30,22 +29,21 @@ export default function CollectionsTabs({
   scrollRight,
 }: CollectionsTabsProps) {
   return (
-    <div className="d-flex align-items-end position-relative">
+    <div className="flex items-end relative">
       {canScrollLeft && (
-        <Button
-          variant="link"
+        <button
           onClick={scrollLeft}
-          className="h-100 text-white bg-[#1e1e1ede]! rounded-0 px-1 z-10 position-absolute left-0"
+          className="h-full text-white bg-[#1e1e1ede] rounded-none px-1 z-10 absolute left-0 border-0 cursor-pointer"
         >
           <ChevronLeft size={20} />
-        </Button>
+        </button>
       )}
 
-      <div className="flex-grow-1 overflow-hidden">
-        <Nav
+      <div className="grow overflow-hidden">
+        <nav
           ref={scrollRef as any}
           onScroll={onScroll}
-          className="border-none pl-1 flex-nowrap overflow-x-auto whitespace-nowrap"
+          className="flex border-none pl-1 flex-nowrap overflow-x-auto whitespace-nowrap"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {rota.map(([key, data]) => {
@@ -63,37 +61,35 @@ export default function CollectionsTabs({
             const colorClass = methodColors[method] || "text-gray-400";
 
             return (
-              <Nav.Item key={key}>
-                <Nav.Link
-                  eventKey={key}
-                  className={`px-3 py-1 mr-1 font-bold tracking-wide uppercase rounded-t-lg transition-colors border-0 cursor-pointer no-underline! d-flex align-items-center gap-2 ${
+              <div key={key} className="shrink-0">
+                <button
+                  className={`px-3 py-1 mr-1 font-bold tracking-wide uppercase rounded-t-lg transition-colors border-0 cursor-pointer no-underline flex items-center gap-2 ${
                     isActive
-                      ? "bg-zinc-800! text-yellow-500!"
-                      : "bg-transparent! text-gray-500! hover:text-gray-300!"
+                      ? "bg-zinc-800 text-yellow-500"
+                      : "bg-transparent text-gray-500 hover:text-gray-300"
                   }`}
                   onClick={() => onSelect(key)}
                 >
                   <span className={`${colorClass} font-black`} style={{ fontSize: "0.6rem", minWidth: "35px" }}>
                     {method}
                   </span>
-                  <small style={{ fontSize: "0.7rem", maxWidth: "200px" }} className="text-truncate">
+                  <small style={{ fontSize: "0.7rem", maxWidth: "200px" }} className="truncate block">
                     {key.replace(/^\[.*?\]\s*/, "")}
                   </small>
-                </Nav.Link>
-              </Nav.Item>
+                </button>
+              </div>
             );
           })}
-        </Nav>
+        </nav>
       </div>
 
       {canScrollRight && (
-        <Button
-          variant="link"
+        <button
           onClick={scrollRight}
-          className="h-100 text-white bg-[#1e1e1ede]! rounded-0 px-1 z-10 position-absolute right-0"
+          className="h-full text-white bg-[#1e1e1ede] rounded-none px-1 z-10 absolute right-0 border-0 cursor-pointer"
         >
           <ChevronRight size={20} />
-        </Button>
+        </button>
       )}
     </div>
   );

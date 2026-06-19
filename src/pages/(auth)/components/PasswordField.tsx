@@ -1,11 +1,10 @@
 import React from "react";
-import { Form } from "react-bootstrap";
 import { unstable_PasswordToggleField as PasswordToggleField } from "radix-ui";
 import { EyeClosedIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 
 /**
  * Componente de campo de senha padronizado com funcionalidade de alternar visibilidade.
- * Utiliza Radix UI para acessibilidade e Bootstrap para estilização básica.
+ * Utiliza Radix UI para acessibilidade e Tailwind CSS para estilização.
  */
 const PasswordField: React.FC<{
     label?: string; 
@@ -31,10 +30,10 @@ const PasswordField: React.FC<{
   ...props 
 }: any) => {
   return (
-    <Form.Group controlId={id || name} className="mb-3">
-      {label && <Form.Label>{label}</Form.Label>}
-      <div className="position-relative d-flex align-items-center">
-        <PasswordToggleField.Root className="w-100 position-relative">
+    <div id={id || name} className="mb-3">
+      {label && <label htmlFor={id || name} className="block mb-1 text-sm text-[#cecece]/70">{label}</label>}
+      <div className="relative flex items-center">
+        <PasswordToggleField.Root className="w-full relative">
           <PasswordToggleField.Input 
             {...props}
             name={name}
@@ -42,9 +41,9 @@ const PasswordField: React.FC<{
             onChange={onChange}
             placeholder={placeholder}
             className={`
-              rounded border border-[#313131]!
-              bg-[#181818]! hover:bg-[#121212]! focus:bg-[#121212]!
-              w-100 p-2 outline-none ${isInvalid ? 'is-invalid' : ''} ${className || ''}
+              rounded border border-[#313131]
+              bg-[#181818] hover:bg-[#121212] focus:bg-[#121212]
+              w-full p-2 outline-none ${isInvalid ? 'border-red-500' : ''} ${className || ''}
             `}
             style={{ 
               paddingRight: '45px',
@@ -52,7 +51,7 @@ const PasswordField: React.FC<{
             }}
           />
           <PasswordToggleField.Toggle 
-            className="position-absolute end-0 top-50 translate-middle-y border-0 bg-transparent! px-3 d-flex align-items-center justify-content-center text-secondary hover:text-primary"
+            className="absolute right-0 top-1/2 -translate-y-1/2 border-0 bg-transparent px-3 flex items-center justify-center text-zinc-500 hover:text-white"
             style={{ 
               cursor: 'pointer', 
               zIndex: 10,
@@ -61,7 +60,7 @@ const PasswordField: React.FC<{
               height: '100%'
             }}
             type="button"
-            tabIndex="-1" // Evita que o tab pare no botão de olho se desejado, mas Radix geralmente cuida disso
+            tabIndex={-1}
           >
             <PasswordToggleField.Icon
               visible={<EyeOpenIcon width={20} height={20} />}
@@ -71,11 +70,11 @@ const PasswordField: React.FC<{
         </PasswordToggleField.Root>
       </div>
       {isInvalid && (
-        <Form.Control.Feedback type="invalid" style={{ display: 'block' }}>
+        <span className="text-red-500 text-xs mt-1 block">
           {error}
-        </Form.Control.Feedback>
+        </span>
       )}
-    </Form.Group>
+    </div>
   );
 };
 

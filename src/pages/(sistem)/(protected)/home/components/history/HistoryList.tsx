@@ -38,7 +38,7 @@ export default function HistoryList({ history, onLoad, onDelete, onAllDelete }: 
           <Trash2 size={14} />
         </button>
       </div>
-      <div className="flex-1 overflow-auto d-flex flex-column gap-2">
+      <div className="flex-1 overflow-auto flex flex-col gap-2">
         {history.map((item) => (
           <HistoryItem
             key={item.id}
