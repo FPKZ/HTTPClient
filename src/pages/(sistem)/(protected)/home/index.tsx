@@ -110,41 +110,6 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-full bg-zinc-950">
-      {/* <div className="w-full flex items-center justify-between gap-3 p-2.5 bg-zinc-600/20 border-b border-zinc-700">
-        <div className="flex items-center gap-1">
-          <Workspaces>
-            <div
-              className="
-                  px-2 py-1 flex items-center justify-center 
-                  bg-amber-100/10
-                  rounded-full
-                  no-drag
-                "
-            >
-              <span className="text-[0.7rem] font-bold m-0">Workspaces</span>
-            </div>
-          </Workspaces>
-        </div>
-        <div className="w-100 text-center text-[0.7rem] font-bold m-0 truncate">
-          {activeTab?.title || ""}
-        </div>
-        <div>
-          <div className="flex items-center gap-1">
-            <Bell fill="white" size={18} />
-            <ModalUser>
-              <div className="h-100 flex items-center px-2 no-drag">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer bg-[#ffc107] hover:bg-[#ffc107]/80 transition-colors">
-                  {user?.avatarUrl ? (
-                    <img src={user.avatarUrl} alt="User Avatar" className="w-full h-full rounded-full" />
-                  ) : (
-                    <span className="text-[0.6rem] font-extrabold">{user?.name ? user.name.substring(0, 2).toUpperCase() : "US"}</span>
-                  )}
-                </div>
-              </div>
-            </ModalUser>
-          </div>
-        </div>
-      </div> */}
       <PanelGroup orientation="horizontal">
         {/* Sidebar Esquerda */}
         {sideBarIsOpen && (
