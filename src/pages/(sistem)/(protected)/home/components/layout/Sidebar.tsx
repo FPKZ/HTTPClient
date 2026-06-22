@@ -271,7 +271,9 @@ const SidebarTree = React.memo(() => {
             </span>
             <Dropdown.Root>
               <Dropdown.Trigger asChild>
-                <EllipsisVertical size={16} className="text-gray-400 hover:text-white cursor-pointer" />
+                <div className="p-1 hover:bg-zinc-800/40 group data-[state=open]:bg-zinc-800/40 rounded cursor-pointer transition-colors duration-200">
+                  <EllipsisVertical size={16} className="text-gray-400" />
+                </div>
                 {/* <div className="w-fit flex">
                   <NovoItemModal onAdd={handleAddFolder}>
                     <button
@@ -291,7 +293,12 @@ const SidebarTree = React.memo(() => {
                   </NovoItemModal>
                 </div> */}
               </Dropdown.Trigger>
-              <Dropdown.Content className="min-w-55 bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.1)] p-1 rounded-sm z-60!">
+              <Dropdown.Content
+                sideOffset={10}
+                side="bottom"
+                align="start"
+                className="min-w-55 bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.1)] p-1 rounded-sm z-60!"
+              >
                 {rootContextMenuItems.map((item, index) => (
                   <MenuItem
                     key={index}

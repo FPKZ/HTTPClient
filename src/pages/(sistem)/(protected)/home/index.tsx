@@ -21,10 +21,7 @@ import useDialogStore from "@/core/store/useDialogStore";
 // Modals
 import NovaCollectionModal from "@/components/modals/NovaCollectionModal";
 import ExportModal from "@/components/modals/ExportModal";
-import { Bell, Settings } from "lucide-react";
-import ModalUser from "@/components/ui/ModalUser";
 import useUserStore from "@/core/store/useUserStore";
-import Workspaces from "@/components/modals/Workspaces";
 
 /**
  * Home Page (Refatorada com Sistema de Abas)
@@ -40,16 +37,6 @@ export default function Home() {
   const activeTabId = useTabStore((state) => state.activeTabId);
 
   const sideBarIsOpen = useInterfaceStore((state) => state.sideBarIsOpen);
-  const setResponseIsOpen = useInterfaceStore(
-    (state) => state.setResponseIsOpen,
-  );
-  const setCodeSnippetsIsOpen = useInterfaceStore(
-    (state) => state.setCodeSnippetsIsOpen,
-  );
-
-  const user = useUserStore((state) => state.user);
-
-  const activeTab = useTabStore((state) => state.getActiveTab());
 
   const [isOnline, setIsOnline] = useState(false);
 
@@ -138,20 +125,8 @@ export default function Home() {
             {isOnline ? "online" : "offline"}
           </span>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setResponseIsOpen()}
-            className="hover:text-zinc-200"
-          >
-            RESPONSE
-          </button>
-          <div className="w-[0.1rem] h-full bg-zinc-600"></div>
-          <button
-            onClick={() => setCodeSnippetsIsOpen()}
-            className="hover:text-zinc-200"
-          >
-            CODE SNIPPETS
-          </button>
+        <div className="text-xs text-[#cecece]">
+          {import.meta.env.VITE_APP_VERSION}
         </div>
       </div>
       <NovaCollectionModal />

@@ -5,7 +5,7 @@ import Workspaces from "./modals/Workspaces";
 import icons from "../assets/icons";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import { MenuItem } from "./DropdownMenu";
-import { Bell } from "lucide-react";
+import { Bell, ChevronDown, User } from "lucide-react";
 
 import { useMenuGeral } from "@/core/hooks/useMenuGeral";
 import useDialogStore from "@/core/store/useDialogStore";
@@ -71,6 +71,7 @@ function ActionButtons({
 }
 
 function TitleBarContent() {
+  const location = useLocation();
   const user = useUserStore((state) => state.user);
   const activeTab = useTabStore((state) => state.getActiveTab());
   const collectionName = useTabStore((state) => state.collection.name);
@@ -162,23 +163,42 @@ function TitleBarContent() {
 
       {/* 2. CENTRO: justify-self-center garante o alinhamento perfeito no meio do pai */}
       <div className="justify-self-center max-w-full text-zinc-400 text-center text-[0.7rem] m-0 truncate tracking-wider">
-        {collectionName && `${collectionName}${activeTab?.title ? ` - ${activeTab.title}` : ""}`}
+        {location.pathname === "/home" ?
+          (collectionName && `${collectionName}${activeTab?.title ? ` - ${activeTab.title}` : ""}`)
+          : ""
+        }
       </div>
 
       {/* 3. LADO DIREITO: justify-self-end joga todo o bloco para a extremidade direita */}
       <div className="justify-self-end">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          <Workspaces>
+            <div
+              className="
+                  px-2 py-1 flex items-center justify-center 
+                  bg-amber-100/10
+                  rounded-full
+                  no-drag
+                "
+            >
+              <span className="text-[0.7rem] font-bold m-0">Workspaces</span>
+            </div>
+          </Workspaces>
+          <div className="h-5 w-0.5 bg-zinc-700" />
           {/* <Settings /> */}
-          <Bell fill="white" size={18} />
+          {user &&
+            <Bell fill="white" size={18} />
+          }
           <ModalUser>
-            <div className="h-full flex items-center px-2 no-drag">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer bg-[#ffc107] hover:bg-[#ffc107]/80 transition-colors">
+            <div className="h-full flex items-center px-1 py-1 gap-0.5 hover:bg-zinc-800 rounded transition-all duration-300 cursor-pointer no-drag">
+              <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#ffc107]">
                 {user?.avatarUrl ? (
                   <img src={user.avatarUrl} alt="User Avatar" className="w-full h-full rounded-full" />
                 ) : (
-                  <span className="text-[0.6rem] font-extrabold">{user?.name ? user.name.substring(0, 2).toUpperCase() : "US"}</span>
+                  <span className="text-[0.6rem] font-extrabold">{user?.name ? user.name.substring(0, 2).toUpperCase() : <User size={14} strokeWidth={3} />}</span>
                 )}
               </div>
+              <ChevronDown size={14} strokeWidth={2} />
             </div>
           </ModalUser>
         </div>
