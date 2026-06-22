@@ -134,7 +134,7 @@ app.whenReady().then(() => {
     ) {
       dialog.showErrorBox(
         "Erro de Interface",
-        `A interface do app parou de responder (${details.reason}). Tente reiniciar o aplicativo.`,
+        `A interface do app parou de responder (${details.reason}). Tente reiniciar o aplicativo. \n\n Código de erro: ${details.exitCode}.`,
       );
     }
   });
