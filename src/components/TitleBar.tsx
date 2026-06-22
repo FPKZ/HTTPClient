@@ -176,12 +176,13 @@ function TitleBarContent() {
             <div
               className="
                   px-2 py-1 flex items-center justify-center 
-                  bg-amber-100/10
+                  border
                   rounded-full
+                  text-zinc-400 text-xs font-semibold
                   no-drag
                 "
             >
-              <span className="text-[0.7rem] font-bold m-0">Workspaces</span>
+              <span className="m-0 truncate max-w-60">Workspace: {collectionName}</span>
             </div>
           </Workspaces>
           <div className="h-5 w-0.5 bg-zinc-700" />

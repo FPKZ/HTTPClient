@@ -67,16 +67,15 @@ function UploadPage() {
   };
 
   return (
-    <div className="flex h-full relative overflow-hidden">
+    <div className="flex w-full h-full relative overflow-hidden">
       {/* Grid de 2 colunas: sidebar esquerda + área central */}
       <div className="flex w-full h-full">
 
         {/* Coluna Esquerda — Sidebar */}
-        <div className="w-[30%] max-w-[280px] min-w-[200px] flex flex-col h-full border-r border-[#313131] relative transition-all duration-300">
+        {/* <div className="w-[30%] max-w-[280px] min-w-[200px] flex flex-col h-full border-r border-[#313131] relative transition-all duration-300">
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             <div className="flex flex-col">
-              <div className="flex flex-col items-center justify-center my-4 gap-2">
-                {/* {fullLogo()} */}
+              <div className="flex flex-col items-center justify-center my-4 gap-2"> 
                 {user ? (
                   <>
                     <div
@@ -166,7 +165,7 @@ function UploadPage() {
               </div>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Coluna Direita — Conteúdo Principal com Abas */}
         <div className="flex flex-col flex-1 p-4 justify-center">

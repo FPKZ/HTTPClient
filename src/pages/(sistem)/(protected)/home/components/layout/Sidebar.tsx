@@ -141,16 +141,7 @@ const SidebarHeader = () => {
         </p>
       </div> */}
 
-      <div className="flex flex-col gap-3 p-3">
-        <div className="flex-1 p-3 bg-zinc-800/50 rounded-lg">
-          <span className="text-[0.7rem]! font-bold text-zinc-300 uppercase">Collections</span>
-        </div>
-        <div className="flex-1 p-3 bg-zinc-800/50 rounded-lg">
-          <span className="text-[0.7rem]! font-bold text-zinc-300 uppercase">Workspaces</span>
-        </div>
-      </div>
-
-      <div className="px-2 py-2 border-b border-zinc-700 flex items-center justify-between group/env">
+      <div className="px-2 py-2 flex items-center justify-between group/env">
         <div className="flex items-center gap-2 overflow-hidden">
           <Settings 
             size={14} 
@@ -265,7 +256,7 @@ const SidebarTree = React.memo(() => {
     <ContextMenu items={rootContextMenuItems}>
       <div className="flex-1 overflow-y-auto min-h-0">
         <div className="p-2 h-full bg-zinc-950/40">
-          <div className="flex items-center justify-between px-2 py-1 mb-2">
+          <div className="flex items-center justify-between px-0 py-1 mb-2">
             <span className="text-xs font-semibold text-gray-500 uppercase truncate">
               {collectionName}
             </span>
@@ -357,8 +348,8 @@ SidebarTree.displayName = "SidebarTree";
 export default function Sidebar() {
   return (
     <div className="bg-zinc-900 border-r border-zinc-700 flex flex-col h-full">
-      <SidebarHeader />
       <SidebarTree />
+      <SidebarHeader />
     </div>
   );
 }

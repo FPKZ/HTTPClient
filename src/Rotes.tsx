@@ -7,13 +7,16 @@ import { useAuthGuard } from "@/core/hooks/useAuthGuard";
 // Rotas
 import UpdatePage from "@/pages/update";
 import ResizableDemo from "@/pages/(sistem)/(protected)/demo";
-import Layout from "@/pages/(sistem)";
 import LoginPage from "@/pages/(auth)/login";
 import Home from "@/pages/(sistem)/(protected)/home";
 import UploadPage from "@/pages/(sistem)/(public)/upload";
 import RegisterPage from "@/pages/(auth)/cadastro";
 import RecuperarSenha from "@/pages/(auth)/recuperar-senha";
 import Perfil from "@/pages/(sistem)/(protected)/perfil";
+
+//Layouts
+import LayoutSistem from "@/pages/LayoutSistem";
+import LayoutHomeTabs from "@/pages/LayoutHomeTabs";
 
 // Guards
 import GuestRoute from "@/components/routes/GuestRoute";
@@ -36,7 +39,7 @@ export default function Rotes() {
   return (
     <Routes>
       {/* Rotas de visitante: redireciona para /uploadPage se já logado */}
-      <Route element={<Layout />}>
+      <Route element={<LayoutSistem />}>
         <Route element={<GuestRoute />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -44,11 +47,11 @@ export default function Rotes() {
         </Route>
 
         {/* Rotas COM Layout (TitleBar) — acessíveis com ou sem conta */}
-        <Route path="/home" element={<Home />} />
-        {/* UploadPage como rota padrão e /uploadPage */}
-        <Route path="/" element={<UploadPage />} />
-        <Route path="/uploadPage" element={<UploadPage />} />
-        <Route path="/demo" element={<ResizableDemo />} />
+        <Route element={<LayoutHomeTabs />}>
+          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<UploadPage />} />
+        </Route>
+
         <Route element={<UserRedrect />} >
           <Route path="/perfil" element={<Perfil />} />
         </Route>

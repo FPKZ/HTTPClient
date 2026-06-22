@@ -10,6 +10,7 @@ import {
   Edit,
   Copy,
   ClipboardPaste,
+  FolderOpen,
 } from "lucide-react";
 import useTabStore from "@/core/store/useTabStore";
 import {
@@ -228,17 +229,26 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }: TreeF
           {/* Expander / Icon */}
           {isFolder ? (
             <div
-              className={`flex items-center gap-1 min-w-[20px] rounded px-1 transition-colors`}
+              className={`flex items-center gap-1 min-w-5 rounded px-1 transition-colors`}
             >
               {isOpen ? (
+                <>
                 <ChevronDown size={14} className="text-gray-500" />
+                <FolderOpen
+                  size={16}
+                  className={`${isOpen ? "text-yellow-500" : "text-yellow-600/80"}`}
+                />
+                </>
               ) : (
+                <>
                 <ChevronRight size={14} className="text-gray-500" />
+                <Folder
+                  size={16}
+                  className={`${isOpen ? "text-yellow-500" : "text-yellow-600/80"}`}
+                />
+                </>
               )}
-              <Folder
-                size={16}
-                className={`${isOpen ? "text-yellow-500" : "text-yellow-600/80"}`}
-              />
+              
             </div>
           ) : (
             <div className="w-px" /> // Alinhamento para rotas que não tem collapse
@@ -250,13 +260,13 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }: TreeF
               <span
                 className={`text-[0.65rem]! font-bold ${getMethodColor(
                   item.request?.method,
-                )} min-w-[35px]`}
+                )} min-w-8.75`}
               >
                 {item.request?.method || "GET"}
               </span>
             )}
             <span
-              className={`truncate text-[0.8rem]! whitespace-normal group-hover:whitespace-nowrap transition-all duration-200 ${
+              className={`truncate text-[0.8rem]! whitespace-nowrap transition-all duration-200 ${
                 isFolder ? "text-gray-300 font-medium" : "text-gray-400"
               }`}
             >
@@ -272,7 +282,7 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }: TreeF
           </div>
 
           {/* Ações (Hover) */}
-          <div className="pe-1 p-0 m-0 opacity-0 hidden group-hover:block! group-hover:opacity-100! flex gap-1 items-center transition-opacity">
+          <div className="pe-1 p-0 m-0 opacity-0 hidden group-hover:block! group-hover:opacity-100! gap-1 items-center transition-opacity">
             {isFolder && (
               <>
                 <button

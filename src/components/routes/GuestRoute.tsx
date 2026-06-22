@@ -12,7 +12,7 @@ export default function GuestRoute() {
   const user = useUserStore((state) => state.user);
 
   if (user) {
-    return <Navigate to="/uploadPage" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;

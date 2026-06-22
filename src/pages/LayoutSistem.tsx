@@ -2,7 +2,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import TitleBar from "@/components/TitleBar";
 
-export default function Layout() {
+export default function LayoutSistem() {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#1e1e1e]">
       <TitleBar />

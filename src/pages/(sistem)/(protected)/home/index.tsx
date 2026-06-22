@@ -96,22 +96,22 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="flex flex-col w-full h-full bg-zinc-950">
       <PanelGroup orientation="horizontal">
         {/* Sidebar Esquerda */}
-        {sideBarIsOpen && (
-          <Panel defaultSize={"20%" as any} maxSize={"35%" as any} minSize={"15%" as any}>
+        {/* {sideBarIsOpen && (
+          <Panel defaultSize={"20%" as any} maxSize={"80%" as any} minSize={"0%" as any}>
             <Sidebar />
           </Panel>
-        )}
+        )} */}
 
-        <PanelResizeHandle className="h-full relative group/resize">
-          <div className="h-full absolute left-0 w-[0.1rem] hidden group-hover/resize:block group-hover/resize:bg-yellow-600/50 group-hover/resize:w-1"></div>
-          <div className="h-full absolute right-0 w-[0.2rem] hidden group-hover/resize:block group-hover/resize:bg-yellow-600/50 group-hover/resize:w-1"></div>
+        <PanelResizeHandle className="h-full relative group">
+          <div className="h-full absolute left-0 w-1 hidden group-hover:block group-hover:bg-yellow-600/50! group-hover:w-1!"></div>
+          <div className="h-full absolute right-0 w-1 hidden group-hover:block group-hover:bg-yellow-600/50! group-hover:w-1!"></div>
         </PanelResizeHandle>
 
         {/* Área Principal (Abas + Editor) */}
-        <Panel className="flex-1 flex flex-col h-full">
+        <Panel minSize={"50%" as any} className="flex-1 flex flex-col h-full">
           <TabBar />
           <TabEditor key={activeTabId} />
         </Panel>
