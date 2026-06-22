@@ -3,7 +3,7 @@ import { useNewCollection } from "./useNewCollection";
 import useTabStore from "@/core/store/useTabStore";
 import useModalStore from "@/core/store/useModalStore";
 import useInterfaceStore from "@/core/store/useInterfaceStore";
-import { Plus, FileDown, LogIn, User, SquareTerminal, Braces, ChevronRight, Check } from "lucide-react";
+import { Plus, FileDown, LogIn, User, SquareTerminal, Braces, ChevronRight, Check, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useUserStore from "@/core/store/useUserStore";
 
@@ -21,12 +21,15 @@ export function useMenuGeral() {
 
   const responseIsOpen = useInterfaceStore((state) => state.responseIsOpen);
   const codeSnippetsIsOpen = useInterfaceStore((state) => state.codeSnippetsIsOpen);
+  const sideBarIsOpen = useInterfaceStore((state) => state.sideBarIsOpen)
+
   const setResponseIsOpen = useInterfaceStore(
     (state) => state.setResponseIsOpen,
   );
   const setCodeSnippetsIsOpen = useInterfaceStore(
     (state) => state.setCodeSnippetsIsOpen,
   );
+  const setSideBarIsOpen = useInterfaceStore((state) => state.setSideBarIsOpen)
 
   const isActiveTab = useInterfaceStore((state) => state.isActiveTab);
 
@@ -135,20 +138,32 @@ export function useMenuGeral() {
     },
   ]
 
+  const funcViewMenu = (e: React.MouseEvent<HTMLButtonElement>, func: () => void) => {
+    e.preventDefault();
+    func();
+  } 
+
   const viewMenu = [
     {
       icon: <ChevronRight size={14} />,
       label: "Output",
       disabled: !isActiveTab(),
-      onClick: () => setResponseIsOpen(),
+      onClick: (e: React.MouseEvent<HTMLButtonElement>) => funcViewMenu(e, setResponseIsOpen),
       checked: responseIsOpen ? <Check size={14} strokeWidth={3}/> : null
     },
     {
       icon: <Braces size={14} />,
       label: "Code Snippets",
       disabled: !isActiveTab(),
-      onClick: () => setCodeSnippetsIsOpen(),
+      onClick: (e: React.MouseEvent<HTMLButtonElement>) => funcViewMenu(e, setCodeSnippetsIsOpen),
       checked: codeSnippetsIsOpen ? <Check size={14} strokeWidth={3}/> : null
+    },
+    {
+      icon: sideBarIsOpen ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />,
+      label: "Side Bar",
+      disabled: !collection.id,
+      onClick: (e: React.MouseEvent<HTMLButtonElement>) => funcViewMenu(e, setSideBarIsOpen),
+      checked: sideBarIsOpen ? <Check size={14} strokeWidth={3}/> : null
     }
   ]
 
