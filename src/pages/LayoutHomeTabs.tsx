@@ -16,31 +16,50 @@ import { useQuickExit } from "@/core/hooks/useQuickExit";
 import useHistory from "@/core/hooks/useHistory";
 import useTabStore from "@/core/store/useTabStore";
 import useUserStore from "@/core/store/useUserStore";
+import useInterfaceStore from "@/core/store/useInterfaceStore";
 
 export default function LayoutHomeTabs() {
 
-    const collection = useTabStore((state) => state.collection.id)
+  const sideBarIsOpen = useInterfaceStore((state) => state.sideBarIsOpen)
 
+  const collection = useTabStore((state) => state.collection.id)
 
-    return (
-        <div className="flex w-full h-full">
-            <SideBarButtons />
-            <PanelGroup orientation="horizontal" >
-                <Panel defaultSize={"20%" as any} maxSize={"80%" as any} minSize={"0%" as any} >
+  const [width, setWidth] = useState(window.innerWidth);
+  
+  const minSize: string = collection ? "10%" : width <= 800 ? "40%" : width <= 1200 ? "30%" : width <= 1600 ? "20%" : "20%";
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return (
+      <div className="flex w-full h-full">
+          <SideBarButtons />
+          <PanelGroup orientation="horizontal" disabled={!collection} >
+              { sideBarIsOpen && 
+                <Panel 
+                  defaultSize={"20%" as any}
+                  maxSize={"80%" as any} 
+                  minSize={minSize}
+                  collapsible={true}
+                >
                     { !collection ? 
                         <UserSiderBar />
                         :
                         <Sidebar />
                     }
                 </Panel>
-                {/* <Separator /> */}
-                <Panel minSize={"50%" as any} >
-                    {/* <Collections /> */}
-                    <Outlet />
-                </Panel>
-            </PanelGroup>
-        </div>
-    );
+              }
+              {/* <Separator /> */}
+              <Panel minSize={"50%" as any} >
+                  {/* <Collections /> */}
+                  <Outlet />
+              </Panel>
+          </PanelGroup>
+      </div>
+  );
 }
 
 function SideBarButtons() {
