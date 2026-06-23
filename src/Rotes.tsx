@@ -8,15 +8,16 @@ import { useAuthGuard } from "@/core/hooks/useAuthGuard";
 import UpdatePage from "@/pages/update";
 import ResizableDemo from "@/pages/(sistem)/(protected)/demo";
 import LoginPage from "@/pages/(auth)/login";
-import Home from "@/pages/(sistem)/(protected)/home";
-import UploadPage from "@/pages/(sistem)/(public)/upload";
+import Home from "@/pages/(sistem)/(hometabs)/home";
+import UploadPage from "@/pages/(sistem)/(hometabs)/upload";
 import RegisterPage from "@/pages/(auth)/cadastro";
 import RecuperarSenha from "@/pages/(auth)/recuperar-senha";
 import Perfil from "@/pages/(sistem)/(protected)/perfil";
+import Workspaces from "@/pages/(sistem)/(hometabs)/workspaces";
 
 //Layouts
 import LayoutSistem from "@/pages/LayoutSistem";
-import LayoutHomeTabs from "@/pages/LayoutHomeTabs";
+import LayoutHomeTabs from "@/pages/(sistem)/(hometabs)/LayoutHomeTabs";
 
 // Guards
 import GuestRoute from "@/components/routes/GuestRoute";
@@ -28,11 +29,11 @@ export default function Rotes() {
 
   // Orquestra redirecionamentos de auth e sincronização IPC → Zustand
   useAuthGuard();
-  const paths = ['/home', '/demo', '/perfil'];
+  const paths = ["/home", "/demo", "/perfil"];
   useEffect(() => {
     // A coleção só deve existir na memória enquanto estivermos na página Home.
     if (!paths.includes(location.pathname)) {
-      resetCollection();
+      // resetCollection();
     }
   }, [location.pathname, resetCollection]);
 
@@ -50,12 +51,12 @@ export default function Rotes() {
         <Route element={<LayoutHomeTabs />}>
           <Route path="/home" element={<Home />} />
           <Route path="/" element={<UploadPage />} />
+          <Route path="/workspaces" element={<Workspaces />} />
         </Route>
 
-        <Route element={<UserRedrect />} >
+        <Route element={<UserRedrect />}>
           <Route path="/perfil" element={<Perfil />} />
         </Route>
-
       </Route>
 
       {/* Rotas SEM Layout */}

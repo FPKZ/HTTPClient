@@ -252,6 +252,12 @@ const SidebarTree = React.memo(() => {
     [setModalConfig],
   );
 
+  if(!collectionName) return (
+    <div className="flex-1 overflow-y-auto min-h-0">
+      <p>Selecione uma coleção</p>
+    </div>
+  )
+
   return (
     <ContextMenu items={rootContextMenuItems}>
       <div className="flex-1 overflow-y-auto min-h-0">

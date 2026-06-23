@@ -45,7 +45,7 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }: TreeF
   const isDirty = useTabStore(
     (state) =>
       item.type !== "folder" &&
-      state.tabs.some((tab) => tab.screenKey === item.id && tab.isDirty),
+      state.tabs.some((tab: any) => tab.screenKey === item.id && tab.isDirty),
   );
 
   const {
@@ -357,10 +357,10 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }: TreeF
             </ContextMenu>
           ) : (
             <SortableContext
-              items={item.items.map((i) => i.id)}
+              items={item.items.map((i: any) => i.id)}
               strategy={verticalListSortingStrategy}
             >
-              {item.items.map((child) => (
+              {item.items.map((child: any) => (
                 <TreeFolder
                   key={child.id}
                   item={child}

@@ -9,6 +9,7 @@ const isActiveTab = () => {
 interface InterfaceState {
   sideBarIsOpen: boolean;
   setSideBarIsOpen: () => void;
+  setSidebarIsOpenExplicit: (isClose: boolean) => void;
   responseIsOpen: boolean;
   setResponseIsOpen: () => void;
   codeSnippetsIsOpen: boolean;
@@ -19,6 +20,7 @@ interface InterfaceState {
 const useInterfaceStore = create<InterfaceState>((set) => ({
   sideBarIsOpen: true,
   setSideBarIsOpen: () => set((state) => ({ sideBarIsOpen: !state.sideBarIsOpen })),
+  setSidebarIsOpenExplicit: (isClose: boolean) => set((state) => ({sideBarIsOpen: isClose})),
 
   responseIsOpen: true,
   setResponseIsOpen: () =>

@@ -1,6 +1,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import TitleBar from "@/components/TitleBar";
+import NovaCollectionModal from "@/components/modals/NovaCollectionModal";
 
 export default function LayoutSistem() {
   return (
@@ -9,6 +10,7 @@ export default function LayoutSistem() {
       <div className="flex-1 min-h-0 w-full">
         <Outlet />
       </div>
+      <NovaCollectionModal />
     </div>
   );
 }

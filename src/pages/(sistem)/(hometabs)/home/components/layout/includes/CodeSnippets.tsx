@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import CodeViewer from "@/pages/(sistem)/(protected)/home/components/CodeViewer";
+import CodeViewer from "@/pages/(sistem)/(hometabs)/home/components/CodeViewer";
 import { Eye, EyeOff, Copy, Check } from "lucide-react";
 import { useCodeSnippets } from "@/core/hooks/useCodeSnippets";
 

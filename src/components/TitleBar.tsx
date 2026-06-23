@@ -76,22 +76,28 @@ function TitleBarContent() {
   const activeTab = useTabStore((state) => state.getActiveTab());
   const collectionName = useTabStore((state) => state.collection.name);
 
-  const {fileMenu, isDev, viewMenu} = useMenuGeral();
+  const { fileMenu, isDev, viewMenu } = useMenuGeral();
 
   // Controla qual menu está aberto (menubar behavior)
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
 
   const menu = {
-    "File": fileMenu,
+    File: fileMenu,
     // "Edit": [],
-    "View": viewMenu,
+    View: viewMenu,
     // "History": [],
     // "Settings": [],
-  }
+  };
+
+  const pathsName = [
+    "/home",
+    "/workspaces",
+    "/",
+  ];
+
   return (
     // Alterado de 'flex' para 'grid grid-cols-3' e adicionado 'w-full' (o correto no Tailwind é w-full e não w-100)
     <div className="grid grid-cols-3 w-full items-center mx-2 px-0">
-      
       {/* 1. LADO ESQUERDO: Alinhado à esquerda por padrão */}
       <div className="flex items-center justify-start gap-4">
         <div>
@@ -131,29 +137,29 @@ function TitleBarContent() {
                   </li>
                 </Dropdown.Trigger>
                 <Dropdown.Content
-                  align="start"       // "start" | "center" | "end" → alinhamento horizontal em relação ao trigger
-                  side="bottom"       // "top" | "right" | "bottom" | "left" → lado onde abre
-                  sideOffset={0}      // px de distância do trigger
-                  alignOffset={0}     // px de deslocamento no eixo de alinhamento
-                  avoidCollisions     // (boolean) evita sair da viewport
-                  collisionPadding={8}// margem de segurança com as bordas da tela
+                  align="start" // "start" | "center" | "end" → alinhamento horizontal em relação ao trigger
+                  side="bottom" // "top" | "right" | "bottom" | "left" → lado onde abre
+                  sideOffset={0} // px de distância do trigger
+                  alignOffset={0} // px de deslocamento no eixo de alinhamento
+                  avoidCollisions // (boolean) evita sair da viewport
+                  collisionPadding={8} // margem de segurança com as bordas da tela
                   className="min-w-55 bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.1)] p-1 rounded-sm z-60!"
                 >
-                  {
-                    value?.map((item, index) => (
-                      <MenuItem 
-                        item={item}
-                        index={index}
-                        size="md"
-                        variant="default"
-                        classNames={{
-                          item: "text-[0.7rem]! bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.2)] border-0",
-                          subTrigger: "text-[0.7rem]! bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.2)] border-0",
-                          subContent: "text-[0.7rem]! bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.2)] border-0",
-                        }}
-                      />
-                    ))
-                  }
+                  {value?.map((item, index) => (
+                    <MenuItem
+                      item={item}
+                      index={index}
+                      size="md"
+                      variant="default"
+                      classNames={{
+                        item: "text-[0.7rem]! bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.2)] border-0",
+                        subTrigger:
+                          "text-[0.7rem]! bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.2)] border-0",
+                        subContent:
+                          "text-[0.7rem]! bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.2)] border-0",
+                      }}
+                    />
+                  ))}
                 </Dropdown.Content>
               </Dropdown.Root>
             ))}
@@ -163,40 +169,52 @@ function TitleBarContent() {
 
       {/* 2. CENTRO: justify-self-center garante o alinhamento perfeito no meio do pai */}
       <div className="justify-self-center max-w-full text-zinc-400 text-center text-[0.7rem] m-0 truncate tracking-wider">
-        {location.pathname === "/home" ?
-          (collectionName && `${collectionName}${activeTab?.title ? ` - ${activeTab.title}` : ""}`)
-          : ""
-        }
+        {pathsName.includes(location.pathname)
+          ? collectionName &&
+            `${collectionName}${location.pathname === "/home" ? ` - ${activeTab?.title}` : ""}`
+          : ""}
       </div>
 
       {/* 3. LADO DIREITO: justify-self-end joga todo o bloco para a extremidade direita */}
       <div className="justify-self-end">
         <div className="flex items-center gap-2">
-          <Workspaces>
-            <div
-              className="
+          {collectionName && (
+            <Workspaces>
+              <div
+                className="
                   px-2 py-1 flex items-center justify-center 
                   border
                   rounded-full
                   text-zinc-400 text-xs font-semibold
                   no-drag
                 "
-            >
-              <span className="m-0 truncate max-w-60">Workspace: {collectionName}</span>
-            </div>
-          </Workspaces>
+              >
+                <span className="m-0 truncate max-w-60">
+                  Workspace: {collectionName}
+                </span>
+              </div>
+            </Workspaces>
+          )}
           <div className="h-5 w-0.5 bg-zinc-700" />
           {/* <Settings /> */}
-          {user &&
-            <Bell fill="white" size={18} />
-          }
+          {user && <Bell fill="white" size={18} />}
           <ModalUser>
             <div className="h-full flex items-center px-1 py-1 gap-0.5 hover:bg-zinc-800 rounded transition-all duration-300 cursor-pointer no-drag">
               <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#ffc107]">
                 {user?.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="User Avatar" className="w-full h-full rounded-full" />
+                  <img
+                    src={user.avatarUrl}
+                    alt="User Avatar"
+                    className="w-full h-full rounded-full"
+                  />
                 ) : (
-                  <span className="text-[0.6rem] font-extrabold">{user?.name ? user.name.substring(0, 2).toUpperCase() : <User size={14} strokeWidth={3} />}</span>
+                  <span className="text-[0.6rem] font-extrabold">
+                    {user?.name ? (
+                      user.name.substring(0, 2).toUpperCase()
+                    ) : (
+                      <User size={14} strokeWidth={3} />
+                    )}
+                  </span>
                 )}
               </div>
               <ChevronDown size={14} strokeWidth={2} />
@@ -204,7 +222,6 @@ function TitleBarContent() {
           </ModalUser>
         </div>
       </div>
-
     </div>
   );
 }
@@ -215,10 +232,9 @@ export default function TitleBar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  
   const deleteActiveTab = useTabStore((state) => state.deleteActiveTab);
   const getCollectionForExport = useTabStore(
-    (state) => state.getCollectionForExport
+    (state) => state.getCollectionForExport,
   );
   const showDialog = useDialogStore((state) => state.showDialog);
 
@@ -257,10 +273,13 @@ export default function TitleBar() {
   };
 
   React.useEffect(() => {
-    if (location.pathname !== "/" && location.pathname !== "/home") {
-      deleteActiveTab();
-    }
-    if ((window as any).electronAPI && (window as any).electronAPI.onMenuAction) {
+    // if (location.pathname !== "/" && location.pathname !== "/home") {
+    //   deleteActiveTab();
+    // }
+    if (
+      (window as any).electronAPI &&
+      (window as any).electronAPI.onMenuAction
+    ) {
       (window as any).electronAPI.onMenuAction((action: string) => {
         if (action === "open-settings") {
           // alert("Configurações abertas via menu nativo!");
@@ -275,7 +294,10 @@ export default function TitleBar() {
       className="titlebar titlebar-drag-region flex justify-between items-center"
       style={{ backgroundColor: "#1e1e1e", height: "35px", color: "white" }}
     >
-      <div className="titlebar-left flex items-center gap-2 ml-2 no-drag cursor-pointer" onClick={() => navigate("/")}>
+      <div
+        className="titlebar-left flex items-center gap-2 ml-2 no-drag cursor-pointer"
+        onClick={() => navigate("/")}
+      >
         {/* <img src={icon} alt="Icon" style={{ width: "20px", height: "20px" }} /> */}
         {/* <span className="fw-bold">HTTPClient</span> */}
         {fullLogo({ width: "78", height: "50" })}

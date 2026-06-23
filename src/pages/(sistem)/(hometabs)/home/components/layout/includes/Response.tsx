@@ -1,6 +1,6 @@
 import React from "react";
 import { formatSize } from "@/lib/utils";
-import ResultRequestLog from "@/pages/(sistem)/(protected)/home/components/ResultRequestLog";
+import ResultRequestLog from "@/pages/(sistem)/(hometabs)/home/components/ResultRequestLog";
 import { Tab, Log } from "@/core/store";
 
 interface ResponseProps {
@@ -38,13 +38,10 @@ const Response = React.memo(function Response({
                 />
                 <span
                   className={`${
-                    lastLog.isError
-                      ? "text-red-500"
-                      : "text-green-400"
+                    lastLog.isError ? "text-red-500" : "text-green-400"
                   } text-[0.7rem]! font-bold`}
                 >
-                  {lastLog.status}{" "}
-                  {lastLog.statusText}
+                  {lastLog.status} {lastLog.statusText}
                 </span>
               </div>
               {lastLog.responseTime !== undefined && (
