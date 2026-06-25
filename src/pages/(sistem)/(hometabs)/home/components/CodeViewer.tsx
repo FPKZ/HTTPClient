@@ -40,7 +40,6 @@ export default function CodeViewer({
   return (
     <div className="w-full h-full overflow-hidden bg-transparent monaco-editor-transparente">
       <Editor
-        key={`${language}`}
         height="100%"
         language={language === "bash" ? "shell" : language}
         value={displayValue}

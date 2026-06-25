@@ -18,6 +18,9 @@ export const storagePreload: StorageAPI = {
     getCollectionById: (params) => ipcRenderer.invoke("get-collection-by-id", params),
     deleteHistoryItem: (id) => ipcRenderer.invoke("delete-history-item", id),
     deleteAllHistory: () => ipcRenderer.invoke("delete-all-history"),
+    getRequestDetails: (id) => ipcRenderer.invoke("get-request-details", id),
+    saveRequestDetails: (id, data) => ipcRenderer.invoke("save-request-details", { id, data }),
+    getCollectionForExport: (id) => ipcRenderer.invoke("get-collection-for-export", id),
     onRequestSaveSession: (callback) => {
         const subscription = () => callback();
         ipcRenderer.on("request-save-session", subscription);

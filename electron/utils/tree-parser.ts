@@ -17,32 +17,36 @@ export const TreeParser = {
     const flattenedRequests: NewRequest[] = [];
 
     items.forEach((item, index) => {
-      if (item.type === 'folder') {
+      const isFolder = item.type === 'folder' || !!item.items || !!item.routes;
+      const type = item.type || (isFolder ? 'folder' : 'route');
+
+      if (type === 'folder') {
         flattenedFolders.push({
-          id: item.id,
-          name: item.name,
+          id: item.id || `folder_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          name: item.name || 'Folder',
           collectionId: collectionId,
           parentId: parentId,
           orderIndex: index,
           description: item.description || '',
         });
 
-        if (item.items && Array.isArray(item.items)) {
+        const children = item.items || item.routes;
+        if (children && Array.isArray(children)) {
           const { folders: subFolders, requests: subRequests } = this.flatten(
             collectionId,
-            item.items,
-            item.id
+            children,
+            item.id || `folder_${Date.now()}`
           );
           flattenedFolders.push(...subFolders);
           flattenedRequests.push(...subRequests);
         }
-      } else if (item.type === 'route') {
+      } else if (type === 'route') {
         flattenedRequests.push({
-          id: item.id,
+          id: item.id || `route_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           collectionId: collectionId,
           folderId: parentId,
-          name: item.name,
-          method: item.request?.method || 'GET',
+          name: item.name || 'Request',
+          method: item.method || item.request?.method || 'GET',
           url: item.request?.url || '',
           // Convertemos objetos para string para o SQLite
           params: JSON.stringify(item.request?.params || []),
@@ -61,7 +65,8 @@ export const TreeParser = {
   /**
    * Reconstrói a estrutura de árvore a partir dos dados planos do banco.
    */
-  unflatten(folders: any[], requests: any[]) {
+  unflatten(folders: any[], requests: any[], options?: { lean?: boolean }) {
+    const lean = options?.lean !== false;
     const itemsMap = new Map<string, any>();
     const rootItems: any[] = [];
 
@@ -84,21 +89,25 @@ export const TreeParser = {
         try { return JSON.parse(data); } catch (e) { return fallback; }
       };
 
-      const routeNode = {
+      const routeNode: any = {
         id: r.id,
         type: 'route',
         name: r.name,
         orderIndex: r.orderIndex, // Mantemos para ordenar
-        request: {
+        method: r.method,
+      };
+
+      if (!lean) {
+        routeNode.request = {
           method: r.method,
           url: r.url,
           params: safeParse(r.params, []),
           headers: safeParse(r.headers, []),
           body: safeParse(r.body, { mode: 'none', content: '' }),
           auth: safeParse(r.auth, { name: 'none', config: {} }),
-        },
-        isDirty: r.isDirty,
-      };
+        };
+        routeNode.isDirty = r.isDirty;
+      }
 
       if (r.folderId && itemsMap.has(r.folderId)) {
         itemsMap.get(r.folderId).items.push(routeNode);

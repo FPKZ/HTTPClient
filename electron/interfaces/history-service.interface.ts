@@ -12,4 +12,8 @@ export interface IHistoryService {
   saveHistory(collectionData: any): Promise<{ success: boolean }>;
   deleteHistoryItem(id: string): Promise<boolean>;
   deleteAllHistory(): Promise<boolean>;
+  getRequestDetails(id: string): Promise<any>;
+  saveRequestDetails(id: string, data: any): Promise<boolean>;
+  getCollectionForExport(id: string): Promise<any>;
 }
+

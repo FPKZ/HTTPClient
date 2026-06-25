@@ -89,6 +89,7 @@ export interface CollectionSlice {
 }
 
 export interface TabSlice {
+  tabsByCollection: Record<string, { tabs: Tab[]; activeTabId: string | null }>;
   tabs: Tab[];
   activeTabId: string | null;
   addTab: (screenKey: string, routeData: any) => void;
@@ -106,4 +107,6 @@ export interface TabSlice {
   isRouteDirty: (screenKey: string) => boolean;
   resetTabs: () => void;
   reorderTabs: (oldIndex: number, newIndex: number) => void;
+  saveTabsState: (collectionId: string) => void;
+  restoreTabsState: (collectionId: string) => void;
 }

@@ -1,8 +1,9 @@
+import React, { useEffect, useState } from "react";
 import useUserStore from "@/core/store/useUserStore";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 import { useQuickExit } from "@/core/hooks/useQuickExit";
 import useTabStore from "@/core/store/useTabStore";
+import useDialogStore from "@/core/store/useDialogStore";
 import NovaCollectionModal from "@/components/modals/NovaCollectionModal";
 import ImportCollectionModal from "@/components/modals/ImportCollectionModal";
 import { ArrowRight, LogOut } from "lucide-react";
@@ -10,6 +11,7 @@ import { ArrowRight, LogOut } from "lucide-react";
 export default function UserSiderBar() {
   const user = useUserStore((state) => state.user);
   const navigate = useNavigate();
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // 1. Inicialização e Listeners IPC
   useQuickExit();
@@ -24,6 +26,13 @@ export default function UserSiderBar() {
           window.electronAPI.logAction("Carregando coleção: " + data.raw.name);
           useTabStore.getState().loadCollection(data.raw);
           navigate("/home");
+        } else {
+          // Exibe erro amigável se a conversão/importação falhar ou não trouxer resultados
+          useDialogStore.getState().showDialog({
+            title: "Importação inválida",
+            description: "O arquivo selecionado não contém uma coleção válida no formato HTTPClient ou Postman.",
+            options: [{ label: "OK", value: true, variant: "primary" }],
+          });
         }
       });
 
@@ -111,8 +120,16 @@ export default function UserSiderBar() {
               </div>
             </NovaCollectionModal>
             <ImportCollectionModal
-              onImport={(path) => startConversion(path, true)}
-              onFolderSelect={handleFolderSelect}
+              open={isImportModalOpen}
+              onOpenChange={setIsImportModalOpen}
+              onImport={(path) => {
+                setIsImportModalOpen(false);
+                startConversion(path, true);
+              }}
+              onFolderSelect={async () => {
+                setIsImportModalOpen(false);
+                await handleFolderSelect();
+              }}
             >
               <div className="flex w-full h-full py-2 px-4 rounded items-center justify-center cursor-pointer bg-[#1b1b1b] border border-[#313131] hover:bg-[#292929] active:bg-[#1d1d1d] transition-colors text-gray-300 font-bold">
                 Importar Coleção

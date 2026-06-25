@@ -33,15 +33,23 @@ export interface RouteData {
   response?: ResponseData;
 }
 
-export interface FolderData {
+export interface TreeRouteNode {
+  id: string;
+  type: "route";
+  name: string;
+  description?: string;
+  method: string;
+}
+
+export interface TreeFolderNode {
   id: string;
   type: "folder";
   name: string;
   description?: string;
-  items: (RouteData | FolderData)[];
+  items: CollectionItem[];
 }
 
-export type CollectionItem = RouteData | FolderData;
+export type CollectionItem = TreeRouteNode | TreeFolderNode;
 
 export interface CollectionData {
   id: string;
@@ -49,3 +57,4 @@ export interface CollectionData {
   description: string;
   items: CollectionItem[];
 }
+

@@ -43,7 +43,7 @@ export function usePanelPersistence(
     if (!canSave) return;
     const size = Array.isArray(layout) 
       ? layout[1] !== undefined ? layout[1] : layout[0] 
-      : layout[`response-panel-container-${activeTabId}`];
+      : layout["response-panel-container-global"];
     
     if (size !== undefined) {
       updateTabUiState(activeTabId, {
@@ -56,7 +56,7 @@ export function usePanelPersistence(
     if (!canSave) return;
     const size = Array.isArray(layout)
       ? layout[1] !== undefined ? layout[1] : layout[0]
-      : layout[`snippets-panel-${activeTabId}`];
+      : layout["snippets-panel-global"];
       
     if (size !== undefined) {
       updateTabUiState(activeTabId, {

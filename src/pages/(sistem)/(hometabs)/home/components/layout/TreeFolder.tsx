@@ -259,10 +259,10 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }: TreeF
             {!isFolder && (
               <span
                 className={`text-[0.65rem]! font-bold ${getMethodColor(
-                  item.request?.method,
+                  item.method || item.request?.method || "GET",
                 )} min-w-8.75`}
               >
-                {item.request?.method || "GET"}
+                {item.method || item.request?.method || "GET"}
               </span>
             )}
             <span

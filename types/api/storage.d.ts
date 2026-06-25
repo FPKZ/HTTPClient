@@ -15,6 +15,9 @@ export interface StorageAPI {
     getCollectionById: (params: { id: string, source: string }) => Promise<CollectionData>;
     deleteHistoryItem: (id: string) => Promise<any>;
     deleteAllHistory: () => Promise<any>;
+    getRequestDetails: (id: string) => Promise<any>;
+    saveRequestDetails: (id: string, data: any) => Promise<boolean>;
+    getCollectionForExport: (id: string) => Promise<any>;
     onRequestSaveSession: (callback: () => void) => () => void;
     saveAndQuit: (data: any) => void;
 }

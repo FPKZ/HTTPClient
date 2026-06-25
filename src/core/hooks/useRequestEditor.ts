@@ -14,8 +14,9 @@ interface UseRequestEditorProps {
 }
 
 export function useRequestEditor({ subKey, subValue, onInputChange }: UseRequestEditorProps) {
+  const safeSubValue = subValue || {};
   const isBody = subKey === "body";
-  const items = isBody ? subValue.content : subValue;
+  const items = isBody ? safeSubValue.content : subValue;
 
   /**
    * Atualiza um item específico em uma lista (Key/Value/Enabled)
@@ -26,12 +27,12 @@ export function useRequestEditor({ subKey, subValue, onInputChange }: UseRequest
       newItems[index] = { ...newItems[index], [field]: value };
 
       if (isBody) {
-        onInputChange(0, "body", null, { ...subValue, content: newItems });
+        onInputChange(0, "body", null, { ...safeSubValue, content: newItems });
       } else {
         onInputChange(0, subKey, null, newItems);
       }
     },
-    [items, isBody, onInputChange, subKey, subValue]
+    [items, isBody, onInputChange, subKey, safeSubValue]
   );
 
   /**
@@ -42,11 +43,11 @@ export function useRequestEditor({ subKey, subValue, onInputChange }: UseRequest
     const newItems = Array.isArray(items) ? [...items, newItem] : [newItem];
 
     if (isBody) {
-      onInputChange(0, "body", null, { ...subValue, content: newItems });
+      onInputChange(0, "body", null, { ...safeSubValue, content: newItems });
     } else {
       onInputChange(0, subKey, null, newItems);
     }
-  }, [items, isBody, onInputChange, subKey, subValue]);
+  }, [items, isBody, onInputChange, subKey, safeSubValue]);
 
   /**
    * Remove um item da lista por índice
@@ -57,12 +58,12 @@ export function useRequestEditor({ subKey, subValue, onInputChange }: UseRequest
       const newItems = items.filter((_, i) => i !== index);
 
       if (isBody) {
-        onInputChange(0, "body", null, { ...subValue, content: newItems });
+        onInputChange(0, "body", null, { ...safeSubValue, content: newItems });
       } else {
         onInputChange(0, subKey, null, newItems);
       }
     },
-    [items, isBody, onInputChange, subKey, subValue]
+    [items, isBody, onInputChange, subKey, safeSubValue]
   );
 
   /**
@@ -71,11 +72,11 @@ export function useRequestEditor({ subKey, subValue, onInputChange }: UseRequest
    */
   const handleModeChange = useCallback(
     (newMode: string) => {
-      const currentMode = subValue.mode;
-      const currentContent = subValue.content;
+      const currentMode = safeSubValue.mode;
+      const currentContent = safeSubValue.content;
 
       const newBody = {
-        ...subValue,
+        ...safeSubValue,
         [currentMode]: currentContent, // Preserva estado do modo anterior
         mode: newMode,
       };
@@ -108,16 +109,16 @@ export function useRequestEditor({ subKey, subValue, onInputChange }: UseRequest
       newBody.content = nextContent;
       onInputChange(0, "body", null, newBody);
     },
-    [subValue, onInputChange]
+    [safeSubValue, onInputChange]
   );
 
   /**
    * Lógica de Autenticação
    */
   const handleToggleAuth = useCallback(() => {
-    const isEnabled = subValue.name && subValue.name !== "none";
+    const isEnabled = safeSubValue.name && safeSubValue.name !== "none";
     onInputChange(0, "auth", "name", isEnabled ? "none" : "Authorization");
-  }, [subValue.name, onInputChange]);
+  }, [safeSubValue.name, onInputChange]);
 
   const handleAuthModeChange = useCallback(
     (mode: string) => {

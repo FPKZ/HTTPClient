@@ -31,9 +31,21 @@ export const normalizeItems = (items: any[]): CollectionItem[] => {
     const children = item.items || item.routes || [];
 
     if (item.id && item.type) {
+      if (item.type === "route") {
+        return {
+          id: item.id,
+          type: "route",
+          name: item.name,
+          description: item.description,
+          method: item.method || item.request?.method || "GET",
+        } as CollectionItem;
+      }
       return {
-        ...item,
-        items: isFolder ? normalizeItems(children) : undefined,
+        id: item.id,
+        type: "folder",
+        name: item.name,
+        description: item.description,
+        items: normalizeItems(children),
       } as CollectionItem;
     }
 
@@ -42,8 +54,7 @@ export const normalizeItems = (items: any[]): CollectionItem[] => {
       name: item.name || "Sem Nome",
       type,
       ...(type === "route" && {
-        request: item.request || { method: "GET", url: "" },
-        response: item.response || null,
+        method: item.method || item.request?.method || "GET",
       }),
       ...(type === "folder" && {
         items: normalizeItems(children),

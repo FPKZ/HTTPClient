@@ -20,6 +20,7 @@ const useTabStore = create<FullStore>()(
     {
       name: "httpclient-tabs-storage",
       partialize: (state) => ({
+        tabsByCollection: state.tabsByCollection,
         tabs: state.tabs,
         activeTabId: state.activeTabId,
         collection: state.collection,

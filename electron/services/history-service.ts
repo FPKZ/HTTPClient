@@ -72,7 +72,20 @@ export class HistoryService implements IHistoryService {
       // buscamos todos os folders e requests daquela coleção de forma plana.
       const [allFolders, allRequests] = await Promise.all([
         this.db.select().from(schema.folders).where(eq(schema.folders.collectionId, id)),
-        this.db.select().from(schema.requests).where(eq(schema.requests.collectionId, id))
+        this.db.select({
+          id: schema.requests.id,
+          name: schema.requests.name,
+          collectionId: schema.requests.collectionId,
+          folderId: schema.requests.folderId,
+          method: schema.requests.method,
+          url: schema.requests.url,
+          orderIndex: schema.requests.orderIndex,
+          isDirty: schema.requests.isDirty,
+          createdAt: schema.requests.createdAt,
+          updatedAt: schema.requests.updatedAt,
+        })
+        .from(schema.requests)
+        .where(eq(schema.requests.collectionId, id))
       ]);
 
       const items = TreeParser.unflatten(allFolders, allRequests);
@@ -156,7 +169,16 @@ export class HistoryService implements IHistoryService {
         for (const req of flatRequests) {
           tx.insert(schema.requests)
             .values(req)
-            .onConflictDoUpdate({ target: schema.requests.id, set: req }).run();
+            .onConflictDoUpdate({
+              target: schema.requests.id,
+              set: {
+                name: req.name,
+                method: req.method,
+                folderId: req.folderId,
+                orderIndex: req.orderIndex,
+                updatedAt: new Date().toISOString()
+              }
+            }).run();
         }
 
         // 5. Ambientes
@@ -204,6 +226,98 @@ export class HistoryService implements IHistoryService {
     } catch (error) {
       console.error("[HistoryService] Erro ao deletar tudo:", error);
       return false;
+    }
+  }
+
+  async getRequestDetails(id: string): Promise<any> {
+    try {
+      const req = await this.db.query.requests.findFirst({
+        where: eq(schema.requests.id, id),
+      });
+      if (!req) return null;
+      return {
+        id: req.id,
+        name: req.name,
+        collectionId: req.collectionId,
+        folderId: req.folderId,
+        method: req.method,
+        url: req.url,
+        params: typeof req.params === 'string' ? JSON.parse(req.params) : (req.params || []),
+        headers: typeof req.headers === 'string' ? JSON.parse(req.headers) : (req.headers || []),
+        body: typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || { mode: "none", content: "" }),
+        auth: typeof req.auth === 'string' ? JSON.parse(req.auth) : (req.auth || { name: "none", config: { key: "", type: "Bearer", value: "header" }, enabled: false }),
+        orderIndex: req.orderIndex,
+        isDirty: req.isDirty,
+        createdAt: req.createdAt,
+        updatedAt: req.updatedAt
+      };
+    } catch (error) {
+      console.error("[HistoryService] Erro ao buscar detalhes da requisição:", error);
+      return null;
+    }
+  }
+
+  async saveRequestDetails(id: string, data: any): Promise<boolean> {
+    try {
+      const paramsValue = typeof data.params === 'object' ? JSON.stringify(data.params) : data.params;
+      const headersValue = typeof data.headers === 'object' ? JSON.stringify(data.headers) : data.headers;
+      const bodyValue = typeof data.body === 'object' ? JSON.stringify(data.body) : data.body;
+      const authValue = typeof data.auth === 'object' ? JSON.stringify(data.auth) : data.auth;
+
+      await this.db.update(schema.requests)
+        .set({
+          method: data.method,
+          url: data.url,
+          name: data.name,
+          params: paramsValue,
+          headers: headersValue,
+          body: bodyValue,
+          auth: authValue,
+          isDirty: data.isDirty !== undefined ? data.isDirty : true,
+          updatedAt: new Date().toISOString()
+        })
+        .where(eq(schema.requests.id, id))
+        .run();
+      return true;
+    } catch (error) {
+      console.error("[HistoryService] Erro ao salvar detalhes da requisição:", error);
+      return false;
+    }
+  }
+
+  async getCollectionForExport(id: string): Promise<any> {
+    try {
+      const collection = await this.db.query.collections.findFirst({
+        where: eq(schema.collections.id, id),
+      });
+
+      if (!collection) return null;
+
+      const [allFolders, allRequests] = await Promise.all([
+        this.db.select().from(schema.folders).where(eq(schema.folders.collectionId, id)),
+        this.db.select().from(schema.requests).where(eq(schema.requests.collectionId, id))
+      ]);
+
+      const items = TreeParser.unflatten(allFolders, allRequests, { lean: false });
+
+      // Busca ambientes
+      const envs = await this.db.query.environments.findMany({
+        where: eq(schema.environments.collectionsId, id)
+      });
+
+      const parsedEnvs = envs.map(e => ({
+        ...e,
+        variables: typeof e.variables === 'string' ? JSON.parse(e.variables) : (e.variables || [])
+      }));
+
+      return {
+        ...collection,
+        items,
+        environments: parsedEnvs
+      };
+    } catch (error) {
+      console.error("[HistoryService] Erro ao buscar coleção para exportar:", error);
+      return null;
     }
   }
 }

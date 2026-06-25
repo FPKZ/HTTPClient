@@ -1,0 +1,24 @@
+# Regras de Organização e Estilo de Código (VOLT - HTTPClient)
+
+Este arquivo define os padrões mandatórios de arquitetura, organização de arquivos e regras do React e Electron para o projeto. Qualquer alteração deve seguir rigorosamente estas diretrizes.
+
+## 🏗️ 1. Princípios SOLID e Arquitetura em Camadas
+- **Single Responsibility (S):** Componentes de interface (UI) devem ser focados exclusivamente em renderização e estilos. Lógica de manipulação de estado complexa, chamadas IPC e transformações devem ser isoladas em Hooks Customizados (`src/hooks/`) ou Serviços.
+- **Dependency Inversion (D):** O Frontend nunca acessa recursos de sistema (disco, banco de dados local) diretamente. Ele sempre deve consumir a interface unificada exposta por `window.electronAPI`.
+- **Organização de Código:**
+  - **Componentes:** Devem morar em `src/components/` se forem globais, ou na pasta `components/` local do módulo/página.
+  - **Lógica e Estado:** Abstrações de rede e IPC devem ficar em `src/services/` e utilitários puros em `src/utils/`.
+
+## ⚡ 2. Persistência de Dados Granular e Lazy Loading
+- **Carregamento sob Demanda (Lazy):** Não carregar dados pesados de requisições (`body`, `headers`, `params`, `auth`) na listagem da árvore ou no boot inicial. Esses dados devem ser carregados dinamicamente apenas quando a aba da requisição correspondente for aberta.
+- **Escrita Pontual:** Salvamentos de alterações nas requisições devem ocorrer a nível de requisição individual (granular) via ID, nunca salvando a coleção inteira de uma só vez para evitar conflitos de sincronização.
+- **Dirty Flags:** Sempre marcar a flag `is_dirty` individualmente no SQLite ao realizar alterações locais para permitir sincronização offline resiliente.
+
+## ⚛️ 3. Boas Práticas do React Moderno
+- **Custom Hooks para Estado Complexo:** Utilize hooks como `useRequestEditor` para manter o código JSX dos formulários limpo e focado no layout.
+- **Componentização e Reutilização:** Evite arquivos de visualização com mais de 300 linhas. Componentize inputs de formulários, botões especiais e seções modulares.
+- **Sem Placeholders:** Todas as ilustrações ou fotos necessárias em tempo de desenvolvimento devem usar imagens de demonstração funcionais ou SVG reais.
+
+## 🔌 4. IPC (Electron) & Segurança
+- **Chamadas Assíncronas:** Sempre use `ipcRenderer.invoke` (via `window.electronAPI`) para operações assíncronas que não travem a thread de renderização.
+- **CORS & Isolamento:** Requisições HTTP reais de teste devem ser delegadas para o Processo Main (Node.js) para evitar problemas de CORS e manter os cookies sob controle seguro.

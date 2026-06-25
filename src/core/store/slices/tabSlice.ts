@@ -6,6 +6,7 @@ import { Tab, TabSlice } from "@/core/store";
  * Gerenciamento de abas editáveis.
  */
 export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, get) => ({
+  tabsByCollection: {},
   tabs: [],
   activeTabId: null,
 
@@ -18,28 +19,126 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
       return;
     }
 
-    const newTab: Tab = {
-      id: `tab-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      screenKey,
-      title: routeData.name || screenKey,
-      method: routeData.request?.method || "GET",
-      url: routeData.request?.url || "",
-      data: JSON.parse(JSON.stringify(routeData)),
-      isDirty: false,
-      uiState: {
-        activeSection: "headers",
-        activeResponseView: "json",
-        panelVerticalSize: "50",
-        panelHorizontalSize: "30",
-      },
-      logs: [],
-      isExecuting: false,
-    };
+    if (screenKey) {
+      window.electronAPI.getRequestDetails(screenKey)
+        .then((details) => {
+          const finalDetails = details || {
+            method: routeData.method || "GET",
+            url: "",
+            headers: [],
+            params: [],
+            body: { mode: "none", content: "" },
+          };
 
-    set({
-      tabs: [...tabs, newTab],
-      activeTabId: newTab.id,
-    });
+          const newTab: Tab = {
+            id: `tab-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            screenKey,
+            title: routeData.name || finalDetails.name || screenKey,
+            method: finalDetails.method || routeData.method || "GET",
+            url: finalDetails.url || "",
+            data: {
+              id: routeData.id || screenKey,
+              type: "route",
+              name: routeData.name || finalDetails.name || "",
+              description: routeData.description,
+              request: {
+                method: finalDetails.method || routeData.method || "GET",
+                url: finalDetails.url || "",
+                headers: finalDetails.headers || [],
+                params: finalDetails.params || [],
+                body: finalDetails.body || { mode: "none", content: "" },
+                auth: finalDetails.auth,
+              },
+            },
+            isDirty: false,
+            uiState: {
+              activeSection: "headers",
+              activeResponseView: "json",
+              panelVerticalSize: "50",
+              panelHorizontalSize: "30",
+            },
+            logs: [],
+            isExecuting: false,
+          };
+
+          set((state) => ({
+            tabs: [...state.tabs, newTab],
+            activeTabId: newTab.id,
+          }));
+        })
+        .catch((err) => {
+          console.error("[tabSlice] Erro ao carregar detalhes para abrir aba:", err);
+          const fallbackTab: Tab = {
+            id: `tab-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            screenKey,
+            title: routeData.name || screenKey,
+            method: routeData.method || "GET",
+            url: "",
+            data: {
+              id: routeData.id || screenKey,
+              type: "route",
+              name: routeData.name || "",
+              description: routeData.description,
+              request: {
+                method: routeData.method || "GET",
+                url: "",
+                headers: [],
+                params: [],
+                body: { mode: "none", content: "" },
+              },
+            },
+            isDirty: false,
+            uiState: {
+              activeSection: "headers",
+              activeResponseView: "json",
+              panelVerticalSize: "50",
+              panelHorizontalSize: "30",
+            },
+            logs: [],
+            isExecuting: false,
+          };
+
+          set((state) => ({
+            tabs: [...state.tabs, fallbackTab],
+            activeTabId: fallbackTab.id,
+          }));
+        });
+    } else {
+      const newTab: Tab = {
+        id: `tab-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        screenKey: null,
+        title: routeData.name || "Nova Requisição",
+        method: routeData.method || "GET",
+        url: routeData.url || "",
+        data: {
+          id: `temp_${Date.now()}`,
+          type: "route",
+          name: routeData.name || "",
+          request: {
+            method: routeData.method || "GET",
+            url: routeData.url || "",
+            headers: routeData.request?.headers || [],
+            params: routeData.request?.params || [],
+            body: routeData.request?.body || { mode: "none", content: "" },
+            auth: routeData.request?.auth,
+          },
+        },
+        isDirty: true,
+        uiState: {
+          activeSection: "headers",
+          activeResponseView: "json",
+          panelVerticalSize: "50",
+          panelHorizontalSize: "30",
+        },
+        logs: [],
+        isExecuting: false,
+      };
+
+      set({
+        tabs: [...tabs, newTab],
+        activeTabId: newTab.id,
+      });
+    }
   },
 
   addBlankTab: (nome: string = "Nova Requisição") => {
@@ -200,5 +299,69 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
 
       return { tabs: newTabs };
     });
+  },
+
+  saveTabsState: (collectionId: string) => {
+    if (!collectionId) return;
+    const { tabs, activeTabId, tabsByCollection } = get();
+    set({
+      tabsByCollection: {
+        ...tabsByCollection,
+        [collectionId]: { tabs, activeTabId },
+      },
+    });
+  },
+
+  restoreTabsState: (collectionId: string) => {
+    if (!collectionId) {
+      set({ tabs: [], activeTabId: null });
+      return;
+    }
+    const { tabsByCollection } = get();
+    const savedState = tabsByCollection[collectionId];
+    if (savedState) {
+      set({
+        tabs: savedState.tabs,
+        activeTabId: savedState.activeTabId,
+      });
+
+      // Inicia lazy loading das abas restauradas em background a partir do SQLite
+      savedState.tabs.forEach((tab) => {
+        if (tab.screenKey) {
+          window.electronAPI.getRequestDetails(tab.screenKey).then((details) => {
+            if (details) {
+              set((state) => ({
+                tabs: state.tabs.map((t) =>
+                  t.id === tab.id
+                    ? {
+                        ...t,
+                        url: details.url || t.url,
+                        method: details.method || t.method,
+                        data: {
+                          ...t.data,
+                          request: {
+                            method: details.method || "GET",
+                            url: details.url || "",
+                            body: details.body || { mode: "none", content: "" },
+                            headers: details.headers || [],
+                            params: details.params || [],
+                            auth: details.auth,
+                          },
+                        },
+                        isDirty: false,
+                      }
+                    : t
+                ),
+              }));
+            }
+          }).catch(console.error);
+        }
+      });
+    } else {
+      set({
+        tabs: [],
+        activeTabId: null,
+      });
+    }
   },
 });

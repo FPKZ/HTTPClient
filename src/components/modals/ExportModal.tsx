@@ -168,20 +168,29 @@ export default function ExportModal() {
       .filter(Boolean) as any[];
   };
 
-  const handleExport = () => {
-    const filteredItems = filterItems(collection.items);
-    const filteredEnvironments = collection.environments.filter((env: any) =>
+  const handleExport = async () => {
+    let fullCollection = collection;
+    if (collection.id) {
+      try {
+        fullCollection = await (window as any).electronAPI.getCollectionForExport(collection.id);
+      } catch (err) {
+        console.error("Erro ao carregar dados completos para exportação:", err);
+      }
+    }
+
+    const filteredItems = filterItems(fullCollection.items || []);
+    const filteredEnvironments = (fullCollection.environments || []).filter((env: any) =>
       selectedEnvIds.has(env.id),
     );
 
     const exportData = {
-      ...collection,
+      ...fullCollection,
       items: filteredItems,
       environments: filteredEnvironments.map((env: any) => ({
         ...env,
         variables: env.variables.map((v: any) => ({
           ...v,
-          currentValue: v.initialValue, // Exporta o valor inicial como atual para preservar privacidade
+          currentValue: v.initialValue,
         })),
       })),
       activeEnvironmentId: activeEnvironmentId && selectedEnvIds.has(activeEnvironmentId)
@@ -232,13 +241,13 @@ export default function ExportModal() {
             ) : (
               <FileText size={16} className="text-zinc-400" />
             )}
-            {item.request?.method && (
+            {(item.method || item.request?.method) && (
               <span
                 className={`text-sm! font-bold ${getMethodColor(
-                  item.request?.method,
+                  item.method || item.request?.method,
                 )}`}
               >
-                {item.request?.method}
+                {item.method || item.request?.method}
               </span>
             )}
             <span className="text-sm! text-zinc-200 truncate">{item.name}</span>

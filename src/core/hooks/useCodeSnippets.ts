@@ -34,10 +34,24 @@ export function useCodeSnippets({ request }: UseCodeSnippetsProps) {
   const [useSelectMode, setUseSelectMode] = useState(false);
   const [useRealValues, setUseRealValues] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [hideSnippetsList, setHideSnippetsList] = useState(false);
+  const [hideSnippetsList, setHideSnippetsList] = useState(true);
+  const [isLayoutStable, setIsLayoutStable] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Efeito para estabilizar o layout antes de abrir a lista lateral de snippets
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLayoutStable(true);
+      if (contentRef.current) {
+        const width = contentRef.current.getBoundingClientRect().width;
+        const shouldHide = width < 600;
+        setHideSnippetsList(shouldHide);
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []);
   const previousCategoryRef = useRef(activeCategory);
 
   const collection = useTabStore((state) => state.collection);
@@ -53,15 +67,26 @@ export function useCodeSnippets({ request }: UseCodeSnippetsProps) {
     return [...globals, ...envVariables];
   }, [collection, globalsFromStore]);
 
+  const activeTabId = useTabStore((state) => state.activeTabId);
   const [debouncedRequest, setDebouncedRequest] = useState(request);
+  const prevTabIdRef = useRef<string | null>(null);
 
-  // Debounce para evitar regeneração excessiva durante digitação
+  // Atualiza debouncedRequest imediatamente na troca de aba, ou com debounce na digitação
   useEffect(() => {
-    const handler = setTimeout(() => {
+    const isTabChanged = activeTabId !== prevTabIdRef.current;
+    prevTabIdRef.current = activeTabId;
+
+    if (isTabChanged) {
+      // Se trocou de aba, atualiza imediatamente sem debounce
       setDebouncedRequest(request);
-    }, 200);
-    return () => clearTimeout(handler);
-  }, [request]);
+    } else {
+      // Se é alteração interna na mesma aba (digitação), usa o debounce de 200ms
+      const handler = setTimeout(() => {
+        setDebouncedRequest(request);
+      }, 200);
+      return () => clearTimeout(handler);
+    }
+  }, [request, activeTabId]);
 
   const preparedRequest = useMemo(() => {
     if (!debouncedRequest) return null;
@@ -155,6 +180,8 @@ export function useCodeSnippets({ request }: UseCodeSnippetsProps) {
     if (!contentRef.current) return;
 
     const resizeObserver = new ResizeObserver((entries) => {
+      if (!isLayoutStable) return;
+
       for (const entry of entries) {
         const width = entry.contentRect.width;
         const shouldHide = width < 600;
@@ -168,7 +195,7 @@ export function useCodeSnippets({ request }: UseCodeSnippetsProps) {
 
     resizeObserver.observe(contentRef.current);
     return () => resizeObserver.disconnect();
-  }, [filteredSnippets, selectedSnippet]);
+  }, [filteredSnippets, selectedSnippet, isLayoutStable]);
 
   // Sincroniza seleção ao trocar categoria
   useEffect(() => {

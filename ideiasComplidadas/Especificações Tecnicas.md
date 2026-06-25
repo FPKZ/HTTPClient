@@ -21,7 +21,7 @@ O SQLite e o PostgreSQL devem compartilhar este esquema:
 - **workspaces**: `id`, `name`, `owner_id`.
 - **workspace_members**: `workspace_id`, `user_id`, `role` (admin/editor/viewer).
 - **collections**: `id`, `workspace_id`, `name`, `order_index`, `storage_type` ('local' | 'cloud'), `owner_id` (Opcional no banco local para permitir uso anônimo/offline sem login).
-- **requests**: `id`, `collection_id`, `folder_id`, `method`, `url`, `body`, `headers`, `is_dirty` (boolean para sync), `order_index`.
+- **requests**: `id`, `collection_id`, `folder_id`, `method`, `url`, `body` (lazy), `headers` (lazy), `params` (lazy), `auth` (lazy), `is_dirty` (boolean para sync), `order_index`.
 
 ## 5. Fluxos de Trabalho (Regras de Implementação)
 
@@ -34,6 +34,9 @@ O SQLite e o PostgreSQL devem compartilhar este esquema:
 - **Escrita Local/Anônima**: Coleções criadas sem usuário logado têm `owner_id = null` e funcionam 100% offline.
 - **Transição de Login**: Ao fazer login, o sistema deve detectar coleções locais sem dono e exibir um prompt perguntando se deseja sincronizar. O usuário deve ter a opção de sincronizar **todas** ou **escolher individualmente** quais coleções irão para a nuvem.
 - **Sync Engine**: O Back-end deve monitorar a conexão. Ao detectar sinal, varrer o SQLite por registros `is_dirty === true` (que possuam `owner_id` vinculado) e sincronizar.
+- **Escrita Granular de Requisições**: Salvamentos locais são síncronos e granulares por ID de requisição, modificando apenas o registro correspondente no SQLite (e marcando `is_dirty` para sync), sem reescrever a árvore da Coleção. Os dados mais pesados (body, headers, params, auth) são carregados do banco sob demanda (lazy loading) quando a aba correspondente é focada.
+- **Preservação de Abas por Coleção (UI State)**: O estado das abas abertas e ativas de cada Coleção é armazenado de forma persistente diretamente no Zustand (LocalStorage do Chromium). Ao alternar de Coleção, o estado de abas anterior é salvo e o da nova coleção é carregado instantaneamente.
+
 
 ### 5.3 Colaboração Real-time
 - **Presença**: Usar Supabase Presence para indicar usuários ativos e rotas em edição.

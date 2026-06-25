@@ -247,20 +247,20 @@ export default function TabEditor() {
             </PanelResizeHandle>
 
             <Panel
-              id={`response-panel-container-${activeTab.id}`}
+              id="response-panel-container-global"
               ref={verticalPanelRef}
               defaultSize={`${panelVerticalSize}%` as any}
               maxSize={"90%" as any}
               minSize={"10%" as any}
             >
               <PanelGroup
-                id={`horizontal-group-${activeTab.id}`}
+                id="horizontal-group-global"
                 orientation="horizontal"
                 onLayoutChanged={onHorizontalLayoutChanged}
               >
                 {/* Parte Inferior: Console de Logs (Resultado) */}
                 {responseIsOpen && (
-                  <Panel id={`response-content-panel-${activeTab.id}`}>
+                  <Panel id="response-content-panel-global">
                     <Response
                       logs={logs}
                       activeResponseView={activeResponseView}
@@ -277,7 +277,7 @@ export default function TabEditor() {
 
                 {codeSnippetsIsOpen && (
                   <Panel
-                    id={`snippets-panel-${activeTab.id}`}
+                    id="snippets-panel-global"
                     ref={horizontalPanelRef}
                     defaultSize={`${panelHorizontalSize}%` as any}
                     maxSize={"70%" as any}

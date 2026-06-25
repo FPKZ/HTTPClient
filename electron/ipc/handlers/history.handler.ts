@@ -18,6 +18,9 @@ export class HistoryHandler extends BaseHandler {
     ipcMain.handle("get-collection-by-id", (_event, { id, source }: { id: string; source: 'local' | 'supabase' }) =>
       this.history.getCollectionById(id)
     );
+    ipcMain.handle("get-collection-for-export", (_event, id: string) =>
+      this.history.getCollectionForExport(id)
+    );
     ipcMain.on("save-and-quit", async (_event, collectionData: any) => {
       if (collectionData && collectionData.name) {
         await this.history.saveHistory(collectionData);
@@ -35,5 +38,13 @@ export class HistoryHandler extends BaseHandler {
       this.history.deleteHistoryItem(id),
     );
     ipcMain.handle("delete-all-history", () => this.history.deleteAllHistory());
+    
+    ipcMain.handle("get-request-details", (_event, id: string) =>
+      this.history.getRequestDetails(id)
+    );
+
+    ipcMain.handle("save-request-details", (_event, { id, data }: { id: string; data: any }) =>
+      this.history.saveRequestDetails(id, data)
+    );
   }
 }

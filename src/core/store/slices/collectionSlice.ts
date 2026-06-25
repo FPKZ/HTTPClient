@@ -76,13 +76,21 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
     setDraggingDisabled: (disabled: boolean) => set({ isDraggingDisabled: disabled }),
 
     loadCollection: (data: any) => {
+      const currentCollectionId = get().collection.id;
+      if (currentCollectionId) {
+        get().saveTabsState(currentCollectionId);
+      }
+
+      const newCollectionId = data?.id || `coll_${Date.now()}`;
+      const name = data?.name || data?.collectionName || "Collection";
+      const description = data?.descricao || data?.description || "";
+
       const rawItems =
         data?.items ||
         data?.content?.items ||
         data?.routes ||
         data?.content?.routes ||
         [];
-      const cleanItems = utils.normalizeItems(rawItems);
 
       let environments = data?.environments || [];
       let activeEnvironmentId = data?.activeEnvironmentId || null;
@@ -104,19 +112,38 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
         activeEnvironmentId = "env_migrated";
       }
 
-      window.electronAPI.logAction("Coleção carregada: " + data?.name);
+      // Pré-salva no SQLite para garantir a persistência dos dados ricos importados
+      window.electronAPI.saveHistory({
+        id: newCollectionId,
+        name,
+        description,
+        items: rawItems,
+        environments,
+        activeEnvironmentId
+      }).catch((err) => console.error("Erro ao pré-salvar coleção carregada:", err));
+
+      const cleanItems = utils.normalizeItems(rawItems);
+
+      window.electronAPI.logAction("Coleção carregada: " + name);
       set({
         collection: {
-          id: data?.id || null,
-          name: data?.name || data?.collectionName || "Collection",
-          description: data?.descricao || data?.description || "",
+          id: newCollectionId,
+          name,
+          description,
           items: cleanItems,
           environments,
           activeEnvironmentId,
         },
-        tabs: [],
-        activeTabId: null,
       });
+
+      if (newCollectionId) {
+        get().restoreTabsState(newCollectionId);
+      } else {
+        set({
+          tabs: [],
+          activeTabId: null,
+        });
+      }
     },
 
     saveTabToCollection: (id: string) => {
@@ -127,22 +154,39 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
       if (!tab.screenKey) return;
       const routeExists = utils.findItemById(collection.items, tab.screenKey);
 
+      const requestToSave = tab.data?.request || {
+        method: tab.method || "GET",
+        url: tab.url || "",
+        headers: [],
+        params: [],
+        body: { mode: "none", content: "" },
+      };
+
       if (!routeExists) {
         const newRoute = {
-          ...tab.data,
-          type: "route",
           id: tab.screenKey || `route_${Date.now()}`,
+          type: "route",
           name: tab.title,
+          method: tab.method || "GET",
         };
-        set({
-          collection: {
-            ...collection,
-            items: [...collection.items, newRoute],
-          },
-          tabs: tabs.map((t) =>
-            t.id === id ? { ...t, screenKey: newRoute.id, isDirty: false } : t
-          ),
-        });
+
+        window.electronAPI.saveRequestDetails(newRoute.id, {
+          name: tab.title,
+          method: tab.method || "GET",
+          url: tab.url || "",
+          ...requestToSave,
+          isDirty: false,
+        }).then(() => {
+          set({
+            collection: {
+              ...collection,
+              items: [...collection.items, newRoute],
+            },
+            tabs: tabs.map((t) =>
+              t.id === id ? { ...t, screenKey: newRoute.id, isDirty: false } : t
+            ),
+          });
+        }).catch(console.error);
         return;
       }
 
@@ -150,35 +194,47 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
         collection.items,
         tab.screenKey!,
         {
-          ...tab.data,
           name: tab.title,
+          method: tab.method || "GET",
         }
       );
       window.electronAPI.logAction("Salvando alterações na rota: " + tab.title);
-      set({
-        collection: { ...collection, items: updatedItems },
-        tabs: tabs.map((t) => (t.id === id ? { ...t, isDirty: false } : t)),
-      });
+
+      window.electronAPI.saveRequestDetails(tab.screenKey, {
+        name: tab.title,
+        method: tab.method || "GET",
+        url: tab.url || "",
+        ...requestToSave,
+        isDirty: false,
+      }).then(() => {
+        set({
+          collection: { ...collection, items: updatedItems },
+          tabs: tabs.map((t) => (t.id === id ? { ...t, isDirty: false } : t)),
+        });
+      }).catch(console.error);
     },
 
     addRoute: (parentId: string | null = null, name: string = "Nova Rota") => {
       const { collection } = get();
+      const newRouteId = `route_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
       const newRoute: any = {
-        id: `route_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        id: newRouteId,
         type: "route",
         name: name || "Nova Rota",
-        request: {
-          method: "GET",
-          url: "",
-          headers: [
-            { key: "Content-Type", value: "application/json", enabled: true },
-          ],
-          params: [],
-          body: { mode: "json", content: "" },
-          auth: {
-            name: "none",
-            config: { key: "", type: "Bearer", value: "header" },
-          },
+        method: "GET",
+      };
+
+      const initialRequest = {
+        method: "GET",
+        url: "",
+        headers: [
+          { key: "Content-Type", value: "application/json", enabled: true },
+        ],
+        params: [],
+        body: { mode: "json", content: "" },
+        auth: {
+          name: "none",
+          config: { key: "", type: "Bearer", value: "header" },
         },
       };
 
@@ -188,18 +244,52 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
         newRoute
       );
       set({ collection: { ...collection, items: updatedItems } });
-      get().addTab(newRoute.id, newRoute);
+
+      window.electronAPI.saveRequestDetails(newRouteId, {
+        name: newRoute.name,
+        ...initialRequest,
+        isDirty: false,
+      }).then(() => {
+        get().addTab(newRoute.id, newRoute);
+      }).catch((err) => {
+        console.error("Erro ao salvar detalhes da rota inicial:", err);
+        get().addTab(newRoute.id, { ...newRoute, request: initialRequest });
+      });
     },
 
-    duplicateRoute: (id: string) => {
-      const { collection } = get();
+    duplicateRoute: async (id: string) => {
+      const { collection, tabs } = get();
       const route = utils.findItemById(collection.items, id);
       if (!route) return;
 
-      const newRoute = {
-        ...route,
+      let requestDetails = null;
+      const tabForRoute = tabs.find((t) => t.screenKey === id);
+      if (tabForRoute && tabForRoute.data?.request) {
+        requestDetails = JSON.parse(JSON.stringify(tabForRoute.data.request));
+      } else {
+        try {
+          requestDetails = await window.electronAPI.getRequestDetails(id);
+        } catch (err) {
+          console.error("Erro ao obter detalhes para duplicação:", err);
+        }
+      }
+
+      if (!requestDetails) {
+        requestDetails = {
+          method: (route as any).method || "GET",
+          url: "",
+          headers: [],
+          params: [],
+          body: { mode: "none", content: "" },
+        };
+      }
+
+      const newRouteId = `route_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      const newRoute: any = {
+        id: newRouteId,
+        type: "route",
         name: route.name + " (Cópia)",
-        id: `route_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        method: (route as any).method || requestDetails.method || "GET",
       };
 
       const path = utils.findItemPath(collection.items, id);
@@ -215,6 +305,17 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
 
         window.electronAPI.logAction("Duplicada a rota: " + route.name);
         set({ collection: { ...collection, items: updatedItems } });
+
+        try {
+          await window.electronAPI.saveRequestDetails(newRouteId, {
+            name: newRoute.name,
+            ...requestDetails,
+            isDirty: false,
+          });
+        } catch (err) {
+          console.error("Erro ao persistir detalhes duplicados:", err);
+        }
+
         get().addTab(newRoute.id, newRoute);
       }
     },

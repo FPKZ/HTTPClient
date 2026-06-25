@@ -7,6 +7,8 @@ interface ImportCollectionModalProps {
   children: React.ReactNode;
   onImport: (path: string, isFile: boolean) => void;
   onFolderSelect: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -17,13 +19,15 @@ export default function ImportCollectionModal({
   children,
   onImport,
   onFolderSelect,
+  open,
+  onOpenChange,
 }: ImportCollectionModalProps) {
   const handleFileDrop = (path: string) => {
     onImport(path, true);
   };
 
   return (
-    <Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 animate-in fade-in duration-200 z-50!" />

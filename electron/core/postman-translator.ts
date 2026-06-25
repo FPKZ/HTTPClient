@@ -28,6 +28,7 @@ interface PostmanCollection {
 export interface CollectionItem {
   id: string;
   name: string;
+  type?: string;
   items?: CollectionItem[];
   request?: {
     method: string;
@@ -131,6 +132,7 @@ export class PostmanTranslator {
         routes.push({
           id: `folder_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
           name: item.name,
+          type: "folder",
           items: this._processItems(item.item),
         });
       } else if (item.request) {
@@ -138,6 +140,7 @@ export class PostmanTranslator {
         routes.push({
           id: `route_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
           name: item.name,
+          type: "route",
           request: this._extractRequestData(item.request)!,
           response: {
             status: null,
