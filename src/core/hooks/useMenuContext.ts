@@ -1,27 +1,18 @@
 import React from "react";
 import useTabStore from "@/core/store/useTabStore";
 import useDialogStore from "@/core/store/useDialogStore";
-
-interface ModalConfig {
-  open: boolean;
-  type: "folder" | "file" | "rename" | null;
-  targetId?: string | null;
-  currentName?: string;
-}
+import useModalConfig from "./useModalConfig";
 
 interface UseMenuContextProps {
-  modalConfig: ModalConfig;
-  setModalConfig: (config: ModalConfig) => void;
   deleteItem: (id: string) => void;
   reorderItems: (activeId: string, overId: string) => void;
 }
 
 export default function useMenuContext({
-  modalConfig,
-  setModalConfig,
   deleteItem,
   reorderItems,
 }: UseMenuContextProps) {
+  const { modalConfig, setModalConfig } = useModalConfig();
   const showDialog = useDialogStore((state) => state.showDialog);
 
   React.useEffect(() => {

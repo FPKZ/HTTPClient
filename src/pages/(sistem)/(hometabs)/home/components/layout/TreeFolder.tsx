@@ -22,15 +22,16 @@ import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
 import useDialogStore from "@/core/store/useDialogStore";
 import { CollectionItem } from "@/core/store";
+import useModalConfig from "@/core/hooks/useModalConfig";
 
 interface TreeFolderProps {
   item: CollectionItem;
   level?: number;
-  setModalConfig: (config: any) => void;
 }
 
-export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }: TreeFolderProps) => {
+export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { setModalConfig } = useModalConfig();
 
   // Ações do store
   const addTab = useTabStore((state) => state.addTab);
@@ -365,7 +366,6 @@ export const TreeFolder = React.memo(({ item, level = 0, setModalConfig }: TreeF
                   key={child.id}
                   item={child}
                   level={level + 1}
-                  setModalConfig={setModalConfig}
                 />
               ))}
             </SortableContext>

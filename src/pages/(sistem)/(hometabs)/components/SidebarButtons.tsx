@@ -1,64 +1,37 @@
-import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FolderTree, FolderOpen, Folder, Settings, Boxes, Box } from "lucide-react";
+import useSideBar from "@/core/hooks/useSideBar";
 
 
-export default function SideBarButtons({handleSetSideBar}: any) {
-
-  const location = useLocation();
-
+export default function SideBarButtons() {
   const navigate = useNavigate();
 
-  const mocap = [
-    {
-      icon: (active: boolean) =>
-        active ? (
-          <FolderOpen strokeWidth={2.5} size={20} />
-        ) : (
-          <Folder strokeWidth={2.5} size={20} />
-        ),
-      title: "home",
-      href: "/home",
-      func: () => {handleSetSideBar("collection"), navigate("home")},
-    },
-    {
-      icon: (active: boolean) => (
-          <div className="flex flex-col items-center">
-            <Box className={active ? "fill-yellow-500" : `fill-zinc-400 group-hover:fill-yellow-400`} strokeWidth={2.5} size={10} />
-            <div className="flex">
-              <Box className={active ? "fill-yellow-500" : `fill-zinc-400 group-hover:fill-yellow-400`} strokeWidth={2.5} size={10} />
-              <Box className={active ? "fill-yellow-500" : `fill-zinc-400 group-hover:fill-yellow-400`} strokeWidth={2.5} size={10} />
-            </div>
-          </div>
-        ),
-        title: "workspaces",
-        href: "/workspaces",
-        func: () => handleSetSideBar("workspace"),
-      },
-      {
-        icon: () => <FolderTree strokeWidth={2.5} size={20} />,
-        title: "Colecoes",
-        href: "/",
-        func: () => navigate("/"),
-    }
-  ];
+  const { sidebar, Buttons } = useSideBar();
+
+  const { activeSidebar, sideBarIsOpen, setActiveSidebar } = sidebar;
+
+  // Um botão está "ativo" se a sidebar correspondente está visível E aberta
+  const isActive = (sidebar: string) => activeSidebar === sidebar && sideBarIsOpen;
 
   return (
     <div className="grid flex-col w-13 bg-zinc-900/60 text-zinc-400">
       <div className="w-full">
         <div className="grid grid-cols-1 justify-start items-center w-full">
-          {mocap.map((button) => (
-            <button
-              key={button.title}
-              className={`flex items-center justify-center w-full py-3.5 cursor-pointer relative group ${location.pathname === button.href ? "text-yellow-500" : "hover:text-yellow-400"} `}
-              onClick={button.func}
-            >
-              {location.pathname === button.href && (
-                <div className="absolute left-0 h-full w-0.5 bg-yellow-500"></div>
-              )}
-              {button.icon(location.pathname === button.href)}
-            </button>
-          ))}
+          {Buttons.map((button) => {
+            const active = isActive(button.title);
+            return (
+              <button
+                key={button.title}
+                className={`flex items-center justify-center w-full py-3.5 cursor-pointer relative group ${active ? "text-yellow-500" : "hover:text-yellow-400"}`}
+                onClick={button.func}
+              >
+                {active && (
+                  <div className="absolute left-0 h-full w-0.5 bg-yellow-500"></div>
+                )}
+                {button.icon(active)}
+              </button>
+            );
+          })}
         </div>
       </div>
       <div className="flex flex-col justify-self-end justify-end items-center p-2 gap-2">
@@ -66,8 +39,8 @@ export default function SideBarButtons({handleSetSideBar}: any) {
           <Settings
             strokeWidth={2.5}
             size={20}
-            className="group-hover:text-white"
-            onClick={() => handleSetSideBar("user")}
+            className={`${isActive("user") ? "text-yellow-500" : "group-hover:text-white"}`}
+            onClick={() => setActiveSidebar("user")}
           />
         </button>
       </div>

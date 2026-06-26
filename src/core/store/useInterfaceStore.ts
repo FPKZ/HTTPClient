@@ -6,10 +6,14 @@ const isActiveTab = () => {
   return !!activeTab;
 };
 
+type SidebarKey = "user" | "collections" | "workspaces" | null;
+
 interface InterfaceState {
   sideBarIsOpen: boolean;
   setSideBarIsOpen: () => void;
   setSidebarIsOpenExplicit: (isClose: boolean) => void;
+  activeSidebar: SidebarKey;
+  setActiveSidebar: (side: SidebarKey) => void;
   responseIsOpen: boolean;
   setResponseIsOpen: () => void;
   codeSnippetsIsOpen: boolean;
@@ -17,10 +21,20 @@ interface InterfaceState {
   isActiveTab: () => boolean;
 }
 
-const useInterfaceStore = create<InterfaceState>((set) => ({
+const useInterfaceStore = create<InterfaceState>((set, get) => ({
   sideBarIsOpen: true,
   setSideBarIsOpen: () => set((state) => ({ sideBarIsOpen: !state.sideBarIsOpen })),
-  setSidebarIsOpenExplicit: (isClose: boolean) => set((state) => ({sideBarIsOpen: isClose})),
+  setSidebarIsOpenExplicit: (isClose: boolean) => set(() => ({ sideBarIsOpen: isClose })),
+
+  activeSidebar: "user" as SidebarKey,
+  setActiveSidebar: (side: SidebarKey) => set((state) => {
+    // Clicando no botão que já está ativo → fecha o painel
+    if (side === state.activeSidebar && state.sideBarIsOpen) {
+      return { sideBarIsOpen: false, activeSidebar: side };
+    }
+    // Clicando em outro botão → abre o painel com o novo sidebar
+    return { activeSidebar: side, sideBarIsOpen: true };
+  }),
 
   responseIsOpen: true,
   setResponseIsOpen: () =>

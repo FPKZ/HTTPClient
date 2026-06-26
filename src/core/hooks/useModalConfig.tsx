@@ -1,34 +1,22 @@
 import React from "react";
+import { useSidebarModalStore } from "@/core/store/useSidebarModalStore";
+import useTabStore from "@/core/store/useTabStore";
 
-interface ModalConfig {
-  open: boolean;
-  type: "folder" | "file" | "rename" | null;
-  targetId: string | null;
-  currentName: string;
-}
-
-interface UseModalConfigProps {
-  addFolder: (parentId: string | null, name: string) => void;
-  addRoute: (parentId: string | null, name: string) => void;
-  renameItem: (id: string | null, name: string) => void;
-}
-
-export default function useModalConfig({ addFolder, addRoute, renameItem }: UseModalConfigProps) {
-  const [modalConfig, setModalConfig] = React.useState<ModalConfig>({
-    open: false,
-    type: null,
-    targetId: null,
-    currentName: "", // Adicionado para carregar o nome atual
-  });
+export default function useModalConfig() {
+  const { modalConfig, setModalConfig } = useSidebarModalStore();
+  
+  const addFolder = useTabStore((state) => state.addFolder);
+  const addRoute = useTabStore((state) => state.addRoute);
+  const renameItem = useTabStore((state) => state.renameItem);
 
   const handleModalAdd = (name: string) => {
     const { type, targetId } = modalConfig;
     if (type === "folder") {
-      addFolder(targetId, name);
+      addFolder?.(targetId, name);
     } else if (type === "file") {
-      addRoute(targetId, name);
+      addRoute?.(targetId, name);
     } else if (type === "rename") {
-      renameItem(targetId, name);
+      renameItem?.(targetId, name);
     }
     setModalConfig({ ...modalConfig, open: false, currentName: "" });
   };
@@ -77,3 +65,4 @@ export default function useModalConfig({ addFolder, addRoute, renameItem }: UseM
 
   return { modalConfig, setModalConfig, handleModalAdd, getModalProps };
 }
+

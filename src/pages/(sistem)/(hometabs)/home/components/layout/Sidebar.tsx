@@ -25,8 +25,8 @@ import EnvManagerModal from "@/components/modals/EnvManagerModal";
 //hooks
 import useTabStore from "@/core/store/useTabStore";
 import useMenuContext from "@/core/hooks/useMenuContext";
-import useModalConfig from "@/core/hooks/useModalConfig";
 import useDialogStore from "@/core/store/useDialogStore";
+import useModalConfig from "@/core/hooks/useModalConfig";
 
 import {
   DndContext,
@@ -188,11 +188,12 @@ const SidebarHeader = () => {
  * Gerencia a lista de arquivos.
  */
 const SidebarTree = React.memo(() => {
+  const { modalConfig, setModalConfig } = useModalConfig();
   const collectionItems = useTabStore((state) => state.collection.items);
   const collectionName = useTabStore((state) => state.collection.name);
-  const addRoute = useTabStore((state) => state.addRoute);
-  const addFolder = useTabStore((state) => state.addFolder);
-  const renameItem = useTabStore((state) => state.renameItem);
+  // const addRoute = useTabStore((state) => state.addRoute);
+  // const addFolder = useTabStore((state) => state.addFolder);
+  // const renameItem = useTabStore((state) => state.renameItem);
   const deleteItem = useTabStore((state) => state.deleteItem);
   const reorderItems = useTabStore((state) => state.reorderItems);
   const isDraggingDisabled = useTabStore((state) => state.isDraggingDisabled);
@@ -210,26 +211,15 @@ const SidebarTree = React.memo(() => {
 
   const activeSensors = isDraggingDisabled ? [] : sensors;
 
-  const handleAddRoute = (name?: string) => {
-    addRoute(null, name);
-  };
+  // const handleAddRoute = (name?: string) => {
+  //   addRoute(null, name);
+  // };
 
-  const handleAddFolder = (name?: string) => {
-    addFolder(null, name);
-  };
-
-  const { modalConfig, setModalConfig, handleModalAdd, getModalProps } =
-    useModalConfig({
-      addFolder,
-      addRoute,
-      renameItem,
-      deleteItem,
-      reorderItems,
-    });
+  // const handleAddFolder = (name?: string) => {
+  //   addFolder(null, name);
+  // };
 
   const { handleDragEnd } = useMenuContext({
-    modalConfig,
-    setModalConfig,
     deleteItem,
     reorderItems,
   });
@@ -266,29 +256,11 @@ const SidebarTree = React.memo(() => {
             <span className="text-xs font-semibold text-gray-500 uppercase truncate">
               {collectionName}
             </span>
-            <Dropdown.Root>
+            {/* <Dropdown.Root>
               <Dropdown.Trigger asChild>
                 <div className="p-1 hover:bg-zinc-800/40 group data-[state=open]:bg-zinc-800/40 rounded cursor-pointer transition-colors duration-200">
                   <EllipsisVertical size={16} className="text-gray-400" />
                 </div>
-                {/* <div className="w-fit flex">
-                  <NovoItemModal onAdd={handleAddFolder}>
-                    <button
-                      className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
-                      title="Nova Pasta"
-                    >
-                      <FolderPlus size={14} />
-                    </button>
-                  </NovoItemModal>
-                  <NovoItemModal onAdd={handleAddRoute}>
-                    <button
-                      className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
-                      title="Nova Rota"
-                    >
-                      <FilePlus size={14} />
-                    </button>
-                  </NovoItemModal>
-                </div> */}
               </Dropdown.Trigger>
               <Dropdown.Content
                 sideOffset={10}
@@ -304,7 +276,7 @@ const SidebarTree = React.memo(() => {
                   />
                 ))}
               </Dropdown.Content>
-            </Dropdown.Root>
+            </Dropdown.Root> */}
           </div>
 
           {collectionItems.length === 0 ? (
@@ -326,21 +298,12 @@ const SidebarTree = React.memo(() => {
                   <TreeFolder
                     key={item.id}
                     item={item}
-                    setModalConfig={setModalConfig}
                   />
                 ))}
               </SortableContext>
             </DndContext>
           )}
         </div>
-
-        {/* Modal controlado via menu de contexto */}
-        <NovoItemModal
-          {...getModalProps()}
-          open={modalConfig.open}
-          onOpenChange={(open: boolean) => setModalConfig({ ...modalConfig, open })}
-          onAdd={handleModalAdd}
-        />
       </div>
     </ContextMenu>
   );

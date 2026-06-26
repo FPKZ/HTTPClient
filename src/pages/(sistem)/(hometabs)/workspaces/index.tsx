@@ -1,11 +1,5 @@
+import SidebarWorkspaces from "./Sidebar";
 
-
-
-export default function Workspaces() {
-
-  return (
-    <div>
-      asd
-    </div>
-  )
+export default {
+  Sidebar: SidebarWorkspaces,
 }

@@ -1,75 +1,40 @@
 import { Outlet } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { Group as PanelGroup, Panel } from "react-resizable-panels";
 
 // UI Components
+import { EllipsisVertical } from "lucide-react";
 import Footer from "@/pages/(sistem)/(hometabs)/components/Footer";
 import Sidebar from "@/pages/(sistem)/(hometabs)/home/components/layout/Sidebar";
+
+import * as Dropdown from "@radix-ui/react-dropdown-menu";
+import { MenuItem } from "@/components/DropdownMenu";
 
 // Sidebars Components
 import UserSiderBar from "@/pages/(sistem)/(hometabs)/components/UserSidebar";
 import SideBarButtons from "@/pages/(sistem)/(hometabs)/components/SidebarButtons";
+import Workspace from "@/pages/(sistem)/(hometabs)/workspaces";
 
+//hooks
+import useSideBar from "@/core/hooks/useSideBar";
+import NovoItemModal from "@/components/modals/NovoItemModal";
 
-// Stores
-import useTabStore from "@/core/store/useTabStore";
-import useInterfaceStore from "@/core/store/useInterfaceStore";
+const SIDEBAR_MAP = {
+  user: <UserSiderBar />,
+  collections: <Sidebar />,
+  workspaces: <Workspace.Sidebar />,
+} as const;
 
 export default function LayoutHomeTabs() {
-  const sideBarIsOpen = useInterfaceStore((state) => state.sideBarIsOpen);
-  const setSidebarIsOpenExplicit = useInterfaceStore((state) => state.setSidebarIsOpenExplicit)
+  const { sidebar, collection, resize, modal, Buttons } = useSideBar();
 
-  const [sidebar, setSidebar] = useState<string>()
-
-  const collection = useTabStore((state) => state.collection.id);
-
-  const [width, setWidth] = useState(window.innerWidth);
-
-  const minSize: string = collection
-    ? "10%"
-    : width <= 800
-      ? "40%"
-      : width <= 1200
-        ? "30%"
-        : width <= 1600
-          ? "20%"
-          : "20%";
-
-  useEffect(() => {
-    const handleResize = () => setWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  type sidebars = "user"| "collection" | "" | null
-
-  const handleSetSideBar = (side: sidebars) => {
-    if(side === null) return setSidebar("")
-    if(side === sidebar) {
-      setSidebarIsOpenExplicit(false)
-      setSidebar("")
-    }
-    if(!sideBarIsOpen) setSidebarIsOpenExplicit(true)
-    setSidebar(side)
-  }
-
-  const SideBarComponent = () => {
-    switch(sidebar){
-      case "user":
-        return <UserSiderBar />
-      case "collection":
-        return <Sidebar />
-      case "":
-        return <Sidebar />
-      default:
-        return <Sidebar />
-    }
-  }
+  const { sideBarIsOpen, activeSidebar, SidebarMenu } = sidebar;
+  const { minSize } = resize;
+  const { modalConfig, setModalConfig, handleModalAdd, getModalProps } = modal;
 
   return (
     <div className="h-full flex flex-col">
       <div className="flex w-full h-full">
-        <SideBarButtons handleSetSideBar={handleSetSideBar} />
+        <SideBarButtons />
         <PanelGroup orientation="horizontal" disabled={!collection}>
           {sideBarIsOpen && (
             <Panel
@@ -78,7 +43,35 @@ export default function LayoutHomeTabs() {
               minSize={minSize}
               collapsible={true}
             >
-              <SideBarComponent />
+              <div className="flex justify-between bg-zinc-900 p-2">
+                <div className="flex w-full ">
+                  {activeSidebar}
+                </div>
+                {SidebarMenu.length > 0 && (
+                  <Dropdown.Root>
+                    <Dropdown.Trigger asChild>
+                      <div className="p-1 hover:bg-zinc-800/40 group data-[state=open]:bg-zinc-800/40 rounded cursor-pointer transition-colors duration-200">
+                        <EllipsisVertical size={16} className="text-gray-400" />
+                      </div>
+                    </Dropdown.Trigger>
+                    <Dropdown.Content
+                      sideOffset={10}
+                      side="bottom"
+                      align="start"
+                      className="min-w-55 bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.1)] p-1 rounded-sm z-60!"
+                    >
+                    {SidebarMenu?.map((item, index) => (
+                        <MenuItem
+                          key={index}
+                          index={index}
+                          item={item}
+                        />
+                      ))}
+                    </Dropdown.Content>
+                  </Dropdown.Root>
+                )}
+              </div>
+              {activeSidebar ? SIDEBAR_MAP[activeSidebar] ?? null : null}
             </Panel>
           )}
           {/* <Separator /> */}
@@ -89,6 +82,12 @@ export default function LayoutHomeTabs() {
         </PanelGroup>
       </div>
       <Footer />
+      <NovoItemModal
+        {...getModalProps()}
+        open={modalConfig.open}
+        onOpenChange={(open: boolean) => setModalConfig({ ...modalConfig, open })}
+        onAdd={handleModalAdd}
+      />
     </div>
   );
 }
