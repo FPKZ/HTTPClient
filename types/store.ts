@@ -38,6 +38,22 @@ export interface TabUiState {
   panelHorizontalSize?: string;
 }
 
+export interface Log {
+  status: number | string | null;
+  statusText: string;
+  data?: any;
+  body?: any;
+  isError?: boolean;
+  headers: Record<string, string> | { key: string, value: string }[];
+  responseTime?: number;
+  responseSize?: number;
+  contentType?: string;
+  isImage?: boolean;
+  isPDF?: boolean;
+  isAudio?: boolean;
+  isVideo?: boolean;
+}
+
 export interface Tab {
   id: string;
   screenKey: string | null;
@@ -47,8 +63,8 @@ export interface Tab {
   data: any; 
   isDirty: boolean;
   uiState: TabUiState;
-  logs: any[];
-  isExecuting: boolean;
+  logs: Log[];
+  isExecuting: boolean | string;
   lastResponse?: any;
 }
 
@@ -99,8 +115,8 @@ export interface TabSlice {
   updateTabData: (id: string, newData: Partial<Tab>) => void;
   updateTabRequest: (id: string, sectionKey: string, fieldKey: string | null, value: any) => void;
   updateTabUiState: (id: string, partialUiState: Partial<TabUiState>) => void;
-  updateTabLogs: (id: string, logs: any[]) => void;
-  setTabExecuting: (id: string, isExecuting: boolean) => void;
+  updateTabLogs: (id: string, logs: Log[]) => void;
+  setTabExecuting: (id: string, isExecuting: boolean | string) => void;
   getActiveTab: () => Tab | null;
   deleteActiveTab: () => void;
   isTabDirty: (id: string) => boolean;

@@ -1,21 +1,16 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { createTabSlice } from "./slices/tabSlice";
-import { createCollectionSlice } from "./slices/collectionSlice";
-import { TabSlice, CollectionSlice } from "@/core/store";
+import { TabSlice } from "../../../types/store";
 
 /**
  * useTabStore
- * Store centralizado utilizando o Slice Pattern.
+ * Store dedicado exclusivamente ao gerenciamento de abas editáveis e logs de requisições.
  */
-
-type FullStore = TabSlice & CollectionSlice;
-
-const useTabStore = create<FullStore>()(
+const useTabStore = create<TabSlice>()(
   persist(
     (set, get, api) => ({
       ...createTabSlice(set, get, api),
-      ...createCollectionSlice(set, get, api),
     }),
     {
       name: "httpclient-tabs-storage",
@@ -23,8 +18,6 @@ const useTabStore = create<FullStore>()(
         tabsByCollection: state.tabsByCollection,
         tabs: state.tabs,
         activeTabId: state.activeTabId,
-        collection: state.collection,
-        globals: state.globals,
       }),
     }
   )

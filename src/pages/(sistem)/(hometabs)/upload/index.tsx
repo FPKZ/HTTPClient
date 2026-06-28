@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import useUserStore from "@/core/store/useUserStore";
 
 // Components
@@ -45,7 +45,7 @@ function UploadPage() {
           const data = result.results[0];
           // Carrega diretamente no store
           window.electronAPI.logAction("Carregando coleção: " + data.raw.name);
-          useTabStore.getState().loadCollection(data.raw);
+          useCollectionStore.getState().loadCollection(data.raw);
           navigate("/home");
         }
       });

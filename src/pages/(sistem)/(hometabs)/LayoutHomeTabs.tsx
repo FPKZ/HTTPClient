@@ -35,13 +35,14 @@ export default function LayoutHomeTabs() {
     <div className="h-full flex flex-col">
       <div className="flex w-full h-full">
         <SideBarButtons />
-        <PanelGroup orientation="horizontal" disabled={!collection}>
+        <PanelGroup orientation="horizontal" >
           {sideBarIsOpen && (
             <Panel
               defaultSize={"20%" as any}
               maxSize={"80%" as any}
-              minSize={minSize}
+              minSize={"15%" as any}
               collapsible={true}
+              className="flex flex-col border-r border-[#313131]"
             >
               <div className="flex justify-between bg-zinc-900 p-2">
                 <div className="flex w-full ">

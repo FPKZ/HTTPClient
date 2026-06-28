@@ -1,4 +1,5 @@
 import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import { buildFinalRequest } from "@/utils/collectionUtils";
 
 /**
@@ -10,9 +11,9 @@ export function useRequestExecutor() {
   const updateTabLogs = useTabStore((state) => state.updateTabLogs);
   const setTabExecuting = useTabStore((state) => state.setTabExecuting);
 
-  const environments = useTabStore((state) => state.collection.environments) || [];
-  const activeEnvironmentId = useTabStore((state) => state.collection.activeEnvironmentId);
-  const globals = useTabStore((state) => state.globals) || [];
+  const environments = useCollectionStore((state) => state.collection.environments) || [];
+  const activeEnvironmentId = useCollectionStore((state) => state.collection.activeEnvironmentId);
+  const globals = useCollectionStore((state) => state.globals) || [];
 
   const envVariables = environments.find((env) => env.id === activeEnvironmentId)?.variables || [];
 

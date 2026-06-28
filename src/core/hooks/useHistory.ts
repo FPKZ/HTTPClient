@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import useDialogStore from "@/core/store/useDialogStore";
 
 export function useHistory(fetchOnMount = true) {
@@ -31,7 +31,7 @@ export function useHistory(fetchOnMount = true) {
       window.electronAPI.logAction(
         "Carregando coleção salva no historico: " + item.name
       );
-      useTabStore.getState().loadCollection(content);
+      useCollectionStore.getState().loadCollection(content);
       navigate("/home");
     }
   };
@@ -58,7 +58,7 @@ export function useHistory(fetchOnMount = true) {
   const handleSaveCollection = async (confirmed: boolean) => {
     if (!window.electronAPI) return;
     if (confirmed) {
-      const collection = (useTabStore.getState() as any).getCollectionForExport();
+      const collection = useCollectionStore.getState().collection;
       window.electronAPI.logAction(
         "Salvando coleção no historico: " + collection.name
       );

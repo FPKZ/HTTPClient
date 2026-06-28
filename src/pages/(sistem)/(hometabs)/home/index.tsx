@@ -5,6 +5,7 @@ import TabEditor from "./components/layout/TabEditor";
 
 // Store
 import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 
 // Hooks
 import { useQuickExit } from "@/core/hooks/useQuickExit";
@@ -21,7 +22,7 @@ import ExportModal from "@/components/modals/ExportModal";
  */
 export default function Home() {
   const showDialog = useDialogStore((state) => state.showDialog);
-  const getCollectionForExport = useTabStore(
+  const getCollectionForExport = useCollectionStore(
     (state) => state.getCollectionForExport,
   );
   const resetTabs = useTabStore((state) => state.resetTabs);

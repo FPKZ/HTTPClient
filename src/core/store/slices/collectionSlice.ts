@@ -1,16 +1,16 @@
 import { StateCreator } from "zustand";
 import * as utils from "@/utils/collectionUtils";
-import { CollectionSlice, TabSlice, Variable } from "@/core/store";
+import { CollectionSlice, Variable } from "../../../../types/store";
+
+// Importação lazy para evitar dependência circular com useTabStore
+const getTabStore = () => import("../useTabStore").then((m) => m.default);
 
 /**
  * collectionSlice.ts
  * Gerenciamento do estado da coleção e sincronização com abas.
  */
 
-// Interface combinada para o store total (necessário para o StateCreator)
-type FullStore = CollectionSlice & TabSlice;
-
-export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSlice> = (set, get) => {
+export const createCollectionSlice: StateCreator<CollectionSlice, [], [], CollectionSlice> = (set, get) => {
   const envUpdateTimeouts: Record<string, NodeJS.Timeout> = {};
   const envInitialNames: Record<string, string> = {};
   const varUpdateTimeouts: Record<string, NodeJS.Timeout> = {};
@@ -75,10 +75,11 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
 
     setDraggingDisabled: (disabled: boolean) => set({ isDraggingDisabled: disabled }),
 
-    loadCollection: (data: any) => {
+    loadCollection: async (data: any) => {
+      const tabStore = await getTabStore();
       const currentCollectionId = get().collection.id;
       if (currentCollectionId) {
-        get().saveTabsState(currentCollectionId);
+        tabStore.getState().saveTabsState(currentCollectionId);
       }
 
       const newCollectionId = data?.id || `coll_${Date.now()}`;
@@ -137,9 +138,9 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
       });
 
       if (newCollectionId) {
-        get().restoreTabsState(newCollectionId);
+        tabStore.getState().restoreTabsState(newCollectionId);
       } else {
-        set({
+        tabStore.setState({
           tabs: [],
           activeTabId: null,
         });
@@ -147,71 +148,73 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
     },
 
     saveTabToCollection: (id: string) => {
-      const { tabs, collection } = get();
-      const tab = tabs.find((t) => t.id === id);
-      if (!tab) return;
+      const { collection } = get();
+      // Acessa o tabStore de forma lazy para evitar dependência circular
+      getTabStore().then((tabStore) => {
+        const { tabs: currentTabs } = tabStore.getState();
+        const tab = currentTabs.find((t: any) => t.id === id);
+        if (!tab) return;
+        if (!tab.screenKey) return;
 
-      if (!tab.screenKey) return;
-      const routeExists = utils.findItemById(collection.items, tab.screenKey);
-
-      const requestToSave = tab.data?.request || {
-        method: tab.method || "GET",
-        url: tab.url || "",
-        headers: [],
-        params: [],
-        body: { mode: "none", content: "" },
-      };
-
-      if (!routeExists) {
-        const newRoute = {
-          id: tab.screenKey || `route_${Date.now()}`,
-          type: "route",
-          name: tab.title,
+        const routeExists = utils.findItemById(collection.items, tab.screenKey);
+        const requestToSave = tab.data?.request || {
           method: tab.method || "GET",
+          url: tab.url || "",
+          headers: [],
+          params: [],
+          body: { mode: "none", content: "" },
         };
 
-        window.electronAPI.saveRequestDetails(newRoute.id, {
+        if (!routeExists) {
+          const newRoute = {
+            id: tab.screenKey || `route_${Date.now()}`,
+            type: "route",
+            name: tab.title,
+            method: tab.method || "GET",
+          };
+          window.electronAPI.saveRequestDetails(newRoute.id, {
+            name: tab.title,
+            method: tab.method || "GET",
+            url: tab.url || "",
+            ...requestToSave,
+            isDirty: false,
+          }).then(() => {
+            set({
+              collection: {
+                ...get().collection,
+                items: [...get().collection.items, newRoute as any],
+              },
+            });
+            tabStore.setState({
+              tabs: tabStore.getState().tabs.map((t: any) =>
+                t.id === id ? { ...t, screenKey: newRoute.id, isDirty: false } : t
+              ),
+            });
+          }).catch(console.error);
+          return;
+        }
+
+        const updatedItems = utils.updateItemInTree(
+          collection.items,
+          tab.screenKey!,
+          { name: tab.title, method: tab.method || "GET" }
+        );
+        window.electronAPI.logAction("Salvando alterações na rota: " + tab.title);
+        window.electronAPI.saveRequestDetails(tab.screenKey, {
           name: tab.title,
           method: tab.method || "GET",
           url: tab.url || "",
           ...requestToSave,
           isDirty: false,
         }).then(() => {
-          set({
-            collection: {
-              ...collection,
-              items: [...collection.items, newRoute],
-            },
-            tabs: tabs.map((t) =>
-              t.id === id ? { ...t, screenKey: newRoute.id, isDirty: false } : t
+          set({ collection: { ...get().collection, items: updatedItems } });
+          tabStore.setState({
+            tabs: tabStore.getState().tabs.map((t: any) =>
+              t.id === id ? { ...t, isDirty: false } : t
             ),
           });
         }).catch(console.error);
-        return;
-      }
-
-      const updatedItems = utils.updateItemInTree(
-        collection.items,
-        tab.screenKey!,
-        {
-          name: tab.title,
-          method: tab.method || "GET",
-        }
-      );
-      window.electronAPI.logAction("Salvando alterações na rota: " + tab.title);
-
-      window.electronAPI.saveRequestDetails(tab.screenKey, {
-        name: tab.title,
-        method: tab.method || "GET",
-        url: tab.url || "",
-        ...requestToSave,
-        isDirty: false,
-      }).then(() => {
-        set({
-          collection: { ...collection, items: updatedItems },
-          tabs: tabs.map((t) => (t.id === id ? { ...t, isDirty: false } : t)),
-        });
-      }).catch(console.error);
+      });
     },
 
     addRoute: (parentId: string | null = null, name: string = "Nova Rota") => {
@@ -250,15 +253,17 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
         ...initialRequest,
         isDirty: false,
       }).then(() => {
-        get().addTab(newRoute.id, newRoute);
+        getTabStore().then((tabStore) => tabStore.getState().addTab(newRoute.id, newRoute));
       }).catch((err) => {
         console.error("Erro ao salvar detalhes da rota inicial:", err);
-        get().addTab(newRoute.id, { ...newRoute, request: initialRequest });
+        getTabStore().then((tabStore) => tabStore.getState().addTab(newRoute.id, { ...newRoute, request: initialRequest }));
       });
     },
 
     duplicateRoute: async (id: string) => {
-      const { collection, tabs } = get();
+      const { collection } = get();
+      const tabStore = await getTabStore();
+      const tabs = tabStore.getState().tabs;
       const route = utils.findItemById(collection.items, id);
       if (!route) return;
 
@@ -316,7 +321,7 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
           console.error("Erro ao persistir detalhes duplicados:", err);
         }
 
-        get().addTab(newRoute.id, newRoute);
+        getTabStore().then((tabStore) => tabStore.getState().addTab(newRoute.id, newRoute));
       }
     },
 
@@ -361,7 +366,7 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
       set({ collection: { ...collection, items: updatedItems } });
 
       if (newItem.type === "route") {
-        get().addTab(newItem.id, newItem);
+        getTabStore().then((tabStore) => tabStore.getState().addTab(newItem.id, newItem));
       }
       set({ clipboard: null });
     },
@@ -384,30 +389,36 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
     },
 
     deleteItem: (id: string) => {
-      const { collection, tabs } = get();
+      const { collection } = get();
       const itemToDelete = utils.findItemById(collection.items, id);
       if (!itemToDelete) return;
 
       const idsToClose = utils.collectRouteIds(itemToDelete);
       const updatedItems = utils.removeItemFromTree(collection.items, id);
 
-      set({
-        collection: { ...collection, items: updatedItems },
-        tabs: tabs.filter((tab) => !idsToClose.includes(tab.screenKey!)),
+      set({ collection: { ...collection, items: updatedItems } });
+      getTabStore().then((tabStore) => {
+        const tabs = tabStore.getState().tabs;
+        tabStore.setState({
+          tabs: tabs.filter((tab) => !idsToClose.includes(tab.screenKey!)),
+        });
       });
     },
 
     renameItem: (id: string, newName: string) => {
-      const { collection, tabs } = get();
+      const { collection } = get();
       const updatedItems = utils.updateItemInTree(collection.items, id, {
         name: newName,
       });
 
-      set({
-        collection: { ...collection, items: updatedItems },
-        tabs: tabs.map((tab) =>
-          tab.screenKey === id ? { ...tab, title: newName } : tab
-        ),
+      set({ collection: { ...collection, items: updatedItems } });
+      getTabStore().then((tabStore) => {
+        const tabs = tabStore.getState().tabs;
+        tabStore.setState({
+          tabs: tabs.map((tab) =>
+            tab.screenKey === id ? { ...tab, title: newName } : tab
+          ),
+        });
       });
     },
 
@@ -739,8 +750,9 @@ export const createCollectionSlice: StateCreator<FullStore, [], [], CollectionSl
           activeEnvironmentId: null,
         },
         globals: [],
-        tabs: [],
-        activeTabId: null,
+      });
+      getTabStore().then((tabStore) => {
+        tabStore.setState({ tabs: [], activeTabId: null });
       });
     },
   };

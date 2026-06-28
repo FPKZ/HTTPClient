@@ -24,6 +24,7 @@ import EnvManagerModal from "@/components/modals/EnvManagerModal";
 
 //hooks
 import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import useMenuContext from "@/core/hooks/useMenuContext";
 import useDialogStore from "@/core/store/useDialogStore";
 import useModalConfig from "@/core/hooks/useModalConfig";
@@ -48,9 +49,9 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
  * SidebarHeader
  */
 const SidebarHeader = () => {
-  const collectionName = useTabStore((state) => state.collection.name);
-  const collectionDesc = useTabStore((state) => state.collection.description);
-  const updateCollectionMeta = useTabStore(
+  const collectionName = useCollectionStore((state) => state.collection.name);
+  const collectionDesc = useCollectionStore((state) => state.collection.description);
+  const updateCollectionMeta = useCollectionStore(
     (state) => state.updateCollectionMeta,
   );
   const { handleSaveCollection } = useHistory(false);
@@ -62,10 +63,10 @@ const SidebarHeader = () => {
   const [tempName, setTempName] = useState(collectionName);
   const [tempDesc, setTempDesc] = useState(collectionDesc);
 
-  const environments = useTabStore(
+  const environments = useCollectionStore(
     (state) => state.collection.environments || [],
   );
-  const activeEnvironmentId = useTabStore(
+  const activeEnvironmentId = useCollectionStore(
     (state) => state.collection.activeEnvironmentId,
   );
   const activeEnv = environments.find((e) => e.id === activeEnvironmentId);
@@ -100,47 +101,6 @@ const SidebarHeader = () => {
 
   return (
     <div>
-      {/* <div className="p-2 justify-between items-center flex">
-        <button
-          className="flex items-center gap-2 p-2 rounded hover:bg-zinc-700 text-zinc-300 text-[0.75rem]! font-semibold transition-colors"
-          onClick={handleSaveExt}
-        >
-          <ArrowLeft size={20} />
-          Voltar
-        </button>
-
-        <DropdownMenuComponent
-          buttonContent={<MoreVertical size={20} />}
-          items={[
-            {
-              icon: <Edit2 size={14} />,
-              label: "Editar Coleção",
-              onClick: () => setIsEditingName(true),
-            },
-            { separator: true },
-            {
-              icon: <Trash2 size={14} />,
-              label: "Fechar Coleção",
-              className: "text-red-500 hover:bg-red-500/10",
-              shortcut: "Ctrl+Q",
-              onClick: () => navigate("/"),
-            },
-          ]}
-        />
-      </div> */}
-
-      {/* <div className="p-3 pt-0 border-b border-zinc-700">
-        <h2
-          className="text-lg! font-bold text-white flex-1 mb-0 cursor-pointer hover:text-yellow-500 transition-colors"
-          onClick={() => setIsEditingName(true)}
-        >
-          {collectionName || "Collection"}
-        </h2>
-        <p className="text-[0.7rem]! text-gray-500 mt-1 mb-0 truncate opacity-80">
-          {collectionDesc || "Nenhuma descrição"}
-        </p>
-      </div> */}
-
       <div className="px-2 py-2 flex items-center justify-between group/env">
         <div className="flex items-center gap-2 overflow-hidden">
           <Settings 
@@ -189,14 +149,14 @@ const SidebarHeader = () => {
  */
 const SidebarTree = React.memo(() => {
   const { modalConfig, setModalConfig } = useModalConfig();
-  const collectionItems = useTabStore((state) => state.collection.items);
-  const collectionName = useTabStore((state) => state.collection.name);
-  // const addRoute = useTabStore((state) => state.addRoute);
-  // const addFolder = useTabStore((state) => state.addFolder);
-  // const renameItem = useTabStore((state) => state.renameItem);
-  const deleteItem = useTabStore((state) => state.deleteItem);
-  const reorderItems = useTabStore((state) => state.reorderItems);
-  const isDraggingDisabled = useTabStore((state) => state.isDraggingDisabled);
+  const collectionItems = useCollectionStore((state) => state.collection.items);
+  const collectionName = useCollectionStore((state) => state.collection.name);
+  // const addRoute = useCollectionStore((state) => state.addRoute);
+  // const addFolder = useCollectionStore((state) => state.addFolder);
+  // const renameItem = useCollectionStore((state) => state.renameItem);
+  const deleteItem = useCollectionStore((state) => state.deleteItem);
+  const reorderItems = useCollectionStore((state) => state.reorderItems);
+  const isDraggingDisabled = useCollectionStore((state) => state.isDraggingDisabled);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -241,12 +201,6 @@ const SidebarTree = React.memo(() => {
     ],
     [setModalConfig],
   );
-
-  if(!collectionName) return (
-    <div className="flex-1 overflow-y-auto min-h-0">
-      <p>Selecione uma coleção</p>
-    </div>
-  )
 
   return (
     <ContextMenu items={rootContextMenuItems}>
@@ -316,7 +270,7 @@ SidebarTree.displayName = "SidebarTree";
  */
 export default function Sidebar() {
   return (
-    <div className="bg-zinc-900 border-r border-zinc-700 flex flex-col h-full">
+    <div className="bg-zinc-900 flex flex-col h-full">
       <SidebarTree />
       <SidebarHeader />
     </div>

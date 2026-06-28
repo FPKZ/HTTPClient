@@ -11,7 +11,7 @@ import {
   Square,
   MinusSquare,
 } from "lucide-react";
-import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import useModalStore from "@/core/store/useModalStore";
 import { collectRouteIds, getMethodColor } from "@/utils/collectionUtils";
 
@@ -20,7 +20,7 @@ export default function ExportModal() {
   const exportFormat = useModalStore((state) => state.exportFormat);
   const setExportModalOpen = useModalStore((state) => state.setExportModalOpen);
 
-  const collection = useTabStore((state) => state.collection);
+  const collection = useCollectionStore((state) => state.collection);
   const activeEnvironmentId = collection.activeEnvironmentId;
 
   const [selectedRouteIds, setSelectedRouteIds] = useState<Set<string>>(new Set());

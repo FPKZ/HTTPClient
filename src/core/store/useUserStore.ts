@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { User } from "../../types/entities/user";
+import type { User } from "../../../types/entities/user.d";
 
 /**
  * Estado global do usuário autenticado.

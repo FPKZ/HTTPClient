@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import useModalStore from "@/core/store/useModalStore";
 import { useNewCollection } from "@/core/hooks/useNewCollection";
 
@@ -21,7 +21,7 @@ export default function NovaCollectionModal({ children }: NovaCollectionModalPro
     "PATCH",
   ]);
   const navigate = useNavigate();
-  const loadCollection = useTabStore((state) => state.loadCollection);
+  const loadCollection = useCollectionStore((state) => state.loadCollection);
   const { newCollection, createTestRoute } = useNewCollection();
 
   const isNovaCollectionOpen = useModalStore(

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import useUserStore from "@/core/store/useUserStore";
 import { useNavigate } from "react-router-dom";
 import { useQuickExit } from "@/core/hooks/useQuickExit";
-import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import useDialogStore from "@/core/store/useDialogStore";
 import NovaCollectionModal from "@/components/modals/NovaCollectionModal";
 import ImportCollectionModal from "@/components/modals/ImportCollectionModal";
@@ -24,7 +24,7 @@ export default function UserSiderBar() {
           const data = result.results[0];
           // Carrega diretamente no store
           window.electronAPI.logAction("Carregando coleção: " + data.raw.name);
-          useTabStore.getState().loadCollection(data.raw);
+          useCollectionStore.getState().loadCollection(data.raw);
           navigate("/home");
         } else {
           // Exibe erro amigável se a conversão/importação falhar ou não trouxer resultados
@@ -53,7 +53,7 @@ export default function UserSiderBar() {
   };
 
   return (
-    <div className="w-full flex flex-col h-full border-r border-[#313131] relative transition-all duration-300">
+    <div className="w-full flex flex-col h-full relative transition-all duration-300">
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         <div className="flex flex-col">
           <div className="flex flex-col items-center justify-center my-4 gap-2">

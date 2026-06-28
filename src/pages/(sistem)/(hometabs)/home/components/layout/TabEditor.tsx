@@ -1,6 +1,7 @@
 import React from "react";
 import { Save, Play } from "lucide-react";
 import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import RequestEditor from "../collections/RequestEditor";
 import { useRequestExecutor } from "@/core/hooks/useRequestExecutor";
 import { getMethodColor } from "@/lib/utils";
@@ -13,7 +14,7 @@ import {
   Panel,
   Separator as PanelResizeHandle,
 } from "react-resizable-panels";
-import { Tab } from "@/core/store";
+import { Tab } from "@/core/store/index";
 
 /**
  * TabEditor
@@ -23,7 +24,7 @@ import { Tab } from "@/core/store";
 export default function TabEditor() {
   const activeTab = useTabStore((state) => state.getActiveTab());
   const updateTabRequest = useTabStore((state) => state.updateTabRequest);
-  const saveTabToCollection = useTabStore((state) => state.saveTabToCollection);
+  const saveTabToCollection = useCollectionStore((state) => state.saveTabToCollection);
   const updateTabUiState = useTabStore((state) => state.updateTabUiState);
   const responseIsOpen = useInterfaceStore((state) => state.responseIsOpen);
   const codeSnippetsIsOpen = useInterfaceStore(
@@ -44,7 +45,7 @@ export default function TabEditor() {
     onVerticalLayoutChanged,
     onHorizontalLayoutChanged,
   } = usePanelPersistence(
-    activeTab?.id || null,
+    activeTab?.id || "",
     { 
       vertical: `${panelVerticalSize}%`, 
       horizontal: `${panelHorizontalSize}%` 

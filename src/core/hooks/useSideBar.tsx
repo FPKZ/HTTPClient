@@ -1,7 +1,20 @@
 
 //ui
 import { useEffect, useState } from "react";
-import { FolderOpen, Folder, FolderTree, Box, Check, ChevronRight, Braces, PanelLeftClose, PanelLeftOpen, FilePlus, FolderPlus } from "lucide-react";
+import { 
+    FolderOpen, 
+    Folder, 
+    FolderTree, 
+    Box, 
+    Check, 
+    ChevronRight, 
+    Braces, 
+    PanelLeftClose, 
+    PanelLeftOpen, 
+    FilePlus, 
+    FolderPlus,
+    FolderClosed
+} from "lucide-react";
 
 //hooks
 import { useNavigate } from "react-router-dom";
@@ -9,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 //interfaces
 import useInterfaceStore from "@/core/store/useInterfaceStore";
 import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import React from "react";
 import useModalConfig from "./useModalConfig";
 
@@ -80,19 +94,20 @@ function useSidebarConfig(){
     }
 }
 
-
 function useCollection () {
 
-    const collection = useTabStore((state) => state.collection.id);
-    const addRoute = useTabStore((state) => state.addRoute);
-    const addFolder = useTabStore((state) => state.addFolder);
-    const renameItem = useTabStore((state) => state.renameItem);
+    const collection = useCollectionStore((state) => state.collection.id);
+    const addRoute = useCollectionStore((state) => state.addRoute);
+    const addFolder = useCollectionStore((state) => state.addFolder);
+    const renameItem = useCollectionStore((state) => state.renameItem);
+    const fecharCollection = useCollectionStore((state) => state.resetCollection)
 
     return {
         collection,
         addRoute,
         addFolder,
         renameItem,
+        fecharCollection
     }
 }
 
@@ -100,7 +115,7 @@ function useTemplateMenu(){
 
     const { sideBarIsOpen, setActiveSidebar } = useInterfaceStore();
     
-    const { collection } = useCollection();
+    const { collection, fecharCollection } = useCollection();
 
     const navigate = useNavigate();
 
@@ -128,6 +143,11 @@ function useTemplateMenu(){
                     icon: <FilePlus size={14} />,
                     onClick: () => setModalConfig({ open: true, type: "file", targetId: null }),
                 },
+                {
+                    label: "Fechar Collection",
+                    icon: <FolderClosed size={14} />,
+                    onClick: () => fecharCollection(), 
+                }
             ]
         },
         {

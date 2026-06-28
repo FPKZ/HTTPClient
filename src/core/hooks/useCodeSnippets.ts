@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 // @ts-ignore
 import { generateCodeSnippet, supportedLanguages } from "@/lib/codeGenerator";
 import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import { buildFinalRequest } from "@/utils/collectionUtils";
 
 /**
@@ -54,8 +55,8 @@ export function useCodeSnippets({ request }: UseCodeSnippetsProps) {
   }, []);
   const previousCategoryRef = useRef(activeCategory);
 
-  const collection = useTabStore((state) => state.collection);
-  const globalsFromStore = useTabStore((state) => state.globals);
+  const collection = useCollectionStore((state) => state.collection);
+  const globalsFromStore = useCollectionStore((state) => state.globals);
 
   // Calcula variáveis ativas (Globais + Ambiente)
   const activeVariables = useMemo(() => {

@@ -16,7 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 
 interface EnvManagerModalProps {
   open: boolean;
@@ -25,34 +25,34 @@ interface EnvManagerModalProps {
 
 export default function EnvManagerModal({ open, onOpenChange }: EnvManagerModalProps) {
   const environments =
-    useTabStore((state) => state.collection.environments) || [];
-  const activeEnvironmentId = useTabStore(
+    useCollectionStore((state) => state.collection.environments) || [];
+  const activeEnvironmentId = useCollectionStore(
     (state) => state.collection.activeEnvironmentId,
   );
-  const setActiveEnvironment = useTabStore(
+  const setActiveEnvironment = useCollectionStore(
     (state) => state.setActiveEnvironment,
   );
-  const addEnvironment = useTabStore((state) => state.addEnvironment);
-  const updateEnvironmentName = useTabStore(
+  const addEnvironment = useCollectionStore((state) => state.addEnvironment);
+  const updateEnvironmentName = useCollectionStore(
     (state) => state.updateEnvironmentName,
   );
-  const deleteEnvironment = useTabStore((state) => state.deleteEnvironment);
+  const deleteEnvironment = useCollectionStore((state) => state.deleteEnvironment);
 
-  const addVariable = useTabStore((state) => state.addVariable);
-  const updateVariable = useTabStore((state) => state.updateVariable);
-  const deleteVariable = useTabStore((state) => state.deleteVariable);
+  const addVariable = useCollectionStore((state) => state.addVariable);
+  const updateVariable = useCollectionStore((state) => state.updateVariable);
+  const deleteVariable = useCollectionStore((state) => state.deleteVariable);
 
-  const globals = useTabStore((state) => state.globals) || [];
-  const addGlobalVariable = useTabStore((state) => state.addGlobalVariable);
-  const updateGlobalVariable = useTabStore(
+  const globals = useCollectionStore((state) => state.globals) || [];
+  const addGlobalVariable = useCollectionStore((state) => state.addGlobalVariable);
+  const updateGlobalVariable = useCollectionStore(
     (state) => state.updateGlobalVariable,
   );
-  const deleteGlobalVariable = useTabStore(
+  const deleteGlobalVariable = useCollectionStore(
     (state) => state.deleteGlobalVariable,
   );
 
-  const importEnvironment = useTabStore((state) => state.importEnvironment);
-  const importGlobals = useTabStore((state) => state.importGlobals);
+  const importEnvironment = useCollectionStore((state) => state.importEnvironment);
+  const importGlobals = useCollectionStore((state) => state.importGlobals);
 
   const [viewMode, setViewMode] = useState<"envs" | "globals">("envs");
   const [selectedEnvId, setSelectedEnvId] = useState<string | null>(

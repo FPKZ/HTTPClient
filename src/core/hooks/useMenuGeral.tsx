@@ -1,6 +1,7 @@
 import React from "react";
 import { useNewCollection } from "./useNewCollection";
 import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import useModalStore from "@/core/store/useModalStore";
 import useInterfaceStore from "@/core/store/useInterfaceStore";
 import { Plus, FileDown, LogIn, User, SquareTerminal, Braces, ChevronRight, Check, PanelLeftClose, PanelLeftOpen } from "lucide-react";
@@ -14,7 +15,7 @@ import useUserStore from "@/core/store/useUserStore";
 export function useMenuGeral() {
   const { triggerNewCollection } = useNewCollection();
   const setExportModalOpen = useModalStore((state) => state.setExportModalOpen);
-  const collection = useTabStore((state) => state.collection);
+  const collection = useCollectionStore((state) => state.collection);
   const user = useUserStore((state) => state.user);
   const isDev = (window as any).electronAPI?.isDev;
   const navigate = useNavigate();

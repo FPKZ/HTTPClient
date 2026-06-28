@@ -1,5 +1,5 @@
 import { StateCreator } from "zustand";
-import { Tab, TabSlice } from "@/core/store";
+import { Tab, TabSlice } from "../../../../types/store";
 
 /**
  * tabSlice.ts
@@ -254,7 +254,7 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
     }));
   },
 
-  setTabExecuting: (id: string, isExecuting: boolean) => {
+  setTabExecuting: (id: string, isExecuting: boolean | string) => {
     set((state) => ({
       tabs: state.tabs.map((tab) =>
         tab.id === id ? { ...tab, isExecuting } : tab

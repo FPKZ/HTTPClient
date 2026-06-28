@@ -11,6 +11,7 @@ import { useMenuGeral } from "@/core/hooks/useMenuGeral";
 import useDialogStore from "@/core/store/useDialogStore";
 import useUserStore from "@/core/store/useUserStore";
 import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import useInterfaceStore from "@/core/store/useInterfaceStore";
 
 interface ActionButtonsProps {
@@ -74,10 +75,10 @@ function TitleBarContent() {
   const location = useLocation();
   const user = useUserStore((state) => state.user);
   const activeTab = useTabStore((state) => state.getActiveTab());
-  const collectionName = useTabStore((state) => state.collection.name);
+  const collectionName = useCollectionStore((state) => state.collection.name);
 
   const { fileMenu, isDev, viewMenu } = useMenuGeral();
-
+  console.log(activeTab)
   // Controla qual menu está aberto (menubar behavior)
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
 
@@ -171,7 +172,7 @@ function TitleBarContent() {
       <div className="justify-self-center max-w-full text-zinc-400 text-center text-[0.7rem] m-0 truncate tracking-wider">
         {pathsName.includes(location.pathname)
           ? collectionName &&
-            `${collectionName}${location.pathname === "/home" ? ` - ${activeTab?.title}` : ""}`
+            `${collectionName}${location.pathname === "/home" ? `${activeTab?.title ? " - " + activeTab.title : ""}` : ""}`
           : ""}
       </div>
 
@@ -233,7 +234,7 @@ export default function TitleBar() {
   const navigate = useNavigate();
 
   const deleteActiveTab = useTabStore((state) => state.deleteActiveTab);
-  const getCollectionForExport = useTabStore(
+  const getCollectionForExport = useCollectionStore(
     (state) => state.getCollectionForExport,
   );
   const showDialog = useDialogStore((state) => state.showDialog);

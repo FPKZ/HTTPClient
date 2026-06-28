@@ -13,6 +13,7 @@ import {
   FolderOpen,
 } from "lucide-react";
 import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import {
   useSortable,
   SortableContext,
@@ -21,7 +22,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
 import useDialogStore from "@/core/store/useDialogStore";
-import { CollectionItem } from "@/core/store";
+import { CollectionItem } from "@/core/store/index";
 import useModalConfig from "@/core/hooks/useModalConfig";
 
 interface TreeFolderProps {
@@ -35,12 +36,12 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
 
   // Ações do store
   const addTab = useTabStore((state) => state.addTab);
-  const deleteItem = useTabStore((state) => state.deleteItem);
+  const deleteItem = useCollectionStore((state) => state.deleteItem);
   const showDialog = useDialogStore((state) => state.showDialog);
-  const copyRoute = useTabStore((state) => state.copyRoute);
-  const pasteRoute = useTabStore((state) => state.pasteRoute);
-  const duplicateRoute = useTabStore((state) => state.duplicateRoute);
-  const clipboard = useTabStore((state) => state.clipboard);
+  const copyRoute = useCollectionStore((state) => state.copyRoute);
+  const pasteRoute = useCollectionStore((state) => state.pasteRoute);
+  const duplicateRoute = useCollectionStore((state) => state.duplicateRoute);
+  const clipboard = useCollectionStore((state) => state.clipboard);
 
   // Selector reativo para verificar se o item está modificado
   const isDirty = useTabStore(
@@ -259,11 +260,9 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
           <div className="flex-1 flex items-center gap-2 min-w-0">
             {!isFolder && (
               <span
-                className={`text-[0.65rem]! font-bold ${getMethodColor(
-                  item.method || item.request?.method || "GET",
-                )} min-w-8.75`}
+                className={`text-[0.65rem]! font-bold ${getMethodColor(item.method)} min-w-8.75`}
               >
-                {item.method || item.request?.method || "GET"}
+                {item.method}
               </span>
             )}
             <span

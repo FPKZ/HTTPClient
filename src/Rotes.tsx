@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import { useAuthGuard } from "@/core/hooks/useAuthGuard";
 
 // Rotas
@@ -25,7 +25,7 @@ import UserRedrect from "@/components/routes/UserRedrect";
 
 export default function Rotes() {
   const location = useLocation();
-  const resetCollection = useTabStore((state) => state.resetCollection);
+  const resetCollection = useCollectionStore((state) => state.resetCollection);
 
   // Orquestra redirecionamentos de auth e sincronização IPC → Zustand
   useAuthGuard();
@@ -51,7 +51,7 @@ export default function Rotes() {
         <Route element={<LayoutHomeTabs />}>
           <Route path="/home" element={<Home />} />
           <Route path="/" element={<UploadPage />} />
-          <Route path="/workspaces" element={<Workspaces />} />
+          {/* <Route path="/workspaces" element={<Workspaces />} /> */}
         </Route>
 
         <Route element={<UserRedrect />}>
