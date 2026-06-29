@@ -14,6 +14,7 @@ import useDialogStore from "@/core/store/useDialogStore";
 // Modals
 import NovaCollectionModal from "@/components/modals/NovaCollectionModal";
 import ExportModal from "@/components/modals/ExportModal";
+import Hub from "./components/layout/Hub";
 
 /**
  * Home Page (Refatorada com Sistema de Abas)
@@ -21,6 +22,11 @@ import ExportModal from "@/components/modals/ExportModal";
  * Gerenciamento de estado via Zustand
  */
 export default function Home() {
+
+  const collection = useCollectionStore((state) => state.collection.id)
+
+  if(!collection) return <Hub />
+
   const showDialog = useDialogStore((state) => state.showDialog);
   const getCollectionForExport = useCollectionStore(
     (state) => state.getCollectionForExport,
