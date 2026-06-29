@@ -1,10 +1,12 @@
 import useUserStore from "@/core/store/useUserStore";
+import { useThemeStore } from "@/core/store";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut } from "lucide-react";
+import { ArrowRight, LogOut, Sun, Moon } from "lucide-react";
 
 export default function UserSiderBar() {
   const user = useUserStore((state) => state.user);
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useThemeStore();
 
   return (
     <div className="w-full flex flex-col h-full relative transition-all duration-300">
@@ -15,12 +17,12 @@ export default function UserSiderBar() {
             {user ? (
               <>
                 <div
-                  className={`w-30 h-30 rounded-full flex items-center justify-center ${!user.avatarUrl && "bg-[#ffc107]"} overflow-hidden cursor-pointer`}
+                  className={`w-30 h-30 rounded-full flex items-center justify-center ${!user.avatarUrl && "bg-brand"} overflow-hidden cursor-pointer`}
                 >
                   {user.avatarUrl ? (
                     <img src={user.avatarUrl} alt="" className="w-full" />
                   ) : (
-                    <span className="text-[3rem] font-extrabold">
+                    <span className="text-[3rem] font-extrabold text-brand-text">
                       {user.name
                         ? user.name.substring(0, 2).toUpperCase()
                         : "US"}
@@ -28,10 +30,10 @@ export default function UserSiderBar() {
                   )}
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="text-[1rem] font-extrabold">
+                  <span className="text-[1rem] font-extrabold text-text-primary">
                     {user.name || "Usuário"}
                   </span>
-                  <span className="text-[0.8rem] text-zinc-500">
+                  <span className="text-[0.8rem] text-text-secondary">
                     {user.email}
                   </span>
                 </div>
@@ -39,10 +41,10 @@ export default function UserSiderBar() {
             ) : (
               <div className="px-3 flex flex-col gap-3">
                 <div className="flex flex-col items-center gap-2">
-                  <span className="text-[1rem] font-extrabold">
+                  <span className="text-[1rem] font-extrabold text-text-primary">
                     Fazer login!
                   </span>
-                  <span className="text-[0.7rem] text-center text-zinc-400">
+                  <span className="text-[0.7rem] text-center text-text-secondary">
                     Fazer login para acessar todos os recursos do sistema!
                   </span>
                 </div>
@@ -50,10 +52,10 @@ export default function UserSiderBar() {
                   <div
                     className="
                           flex items-center justify-between w-full p-1
-                          bg-[#ffb117]/90 hover:bg-zinc-900
-                          border border-[#ffb117]/90 hover:border-zinc-700/60
+                          bg-brand hover:bg-bg-active text-brand-text hover:text-text-primary
+                          border border-brand hover:border-border-base
                           rounded 
-                          font-bold hover:text-zinc-200
+                          font-bold
                           cursor-pointer transition-colors duration-200
                         "
                     onClick={() => navigate("/login")}
@@ -65,6 +67,23 @@ export default function UserSiderBar() {
                 </div>
               </div>
             )}
+            
+            <div className="w-full border-t border-border-base my-4 pt-4 px-4 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-text-secondary">Tema</span>
+                <button
+                  onClick={toggleTheme}
+                  className="p-1.5 rounded-lg bg-bg-hover hover:bg-bg-active border border-border-base transition-all duration-200 cursor-pointer flex items-center justify-center"
+                  title="Alternar Tema"
+                >
+                  {theme === "dark" ? (
+                    <Sun size={15} className="text-brand" />
+                  ) : (
+                    <Moon size={15} className="text-text-primary" />
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

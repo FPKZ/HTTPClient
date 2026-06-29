@@ -6,6 +6,7 @@ export { default as useDialogStore } from "./useDialogStore";
 export { default as useModalStore } from "./useModalStore";
 export { useSidebarModalStore } from "./useSidebarModalStore";
 export { default as useUserStore } from "./useUserStore";
+export { useThemeStore } from "./useThemeStore";
 
 // Exportação de todos os tipos de estado e auxiliares da store
 export type {

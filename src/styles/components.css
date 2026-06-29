@@ -1,0 +1,11 @@
+@utility btn-primary {
+  @apply bg-brand text-brand-text hover:bg-brand-hover transition-colors duration-200 font-bold px-3 py-1.5 rounded cursor-pointer flex items-center justify-center gap-2;
+}
+
+@utility btn-secondary {
+  @apply bg-bg-panel border border-border-base text-text-primary hover:bg-bg-hover transition-colors duration-200 font-bold px-3 py-1.5 rounded cursor-pointer flex items-center justify-center gap-2;
+}
+
+@utility btn-danger {
+  @apply bg-danger text-white hover:bg-danger/80 transition-colors duration-200 font-bold px-3 py-1.5 rounded cursor-pointer flex items-center justify-center gap-2;
+}

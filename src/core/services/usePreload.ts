@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import useDialogStore from "@/core/store/useDialogStore";
 import useUserStore from "@/core/store/useUserStore";
 import { initMonacoThemes } from "@/lib/monacoSetup";
+import { useThemeStore } from "@/core/store";
+import { applyTheme } from "@/core/store/useThemeStore";
 
 export default function usePreload(): void {
   const navigate = useNavigate();
@@ -12,6 +14,9 @@ export default function usePreload(): void {
   const clearUser = (useUserStore as any)((state: any) => state.clearUser);
 
   useEffect(() => {
+    // Aplica o tema ativo ao iniciar
+    const activeTheme = useThemeStore.getState().theme;
+    applyTheme(activeTheme);
     initMonacoThemes();
   }, []);
 

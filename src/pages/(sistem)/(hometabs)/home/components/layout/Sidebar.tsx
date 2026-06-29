@@ -261,14 +261,14 @@ const SidebarTree = React.memo(() => {
           </div>
 
           {collectionItems.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 flex flex-col items-center">
-              <span className="text-xs font-bold text-zinc-300 mb-1">Nenhuma coleção carregada</span>
-              <span className="text-[0.6rem] text-zinc-500">Faça upload de uma coleção ou crie uma nova!</span>
+            <div className="text-center py-8 text-text-secondary flex flex-col items-center">
+              <span className="text-xs font-bold text-text-primary mb-1">Nenhuma coleção carregada</span>
+              <span className="text-[0.6rem] text-text-muted">Faça upload de uma coleção ou crie uma nova!</span>
 
               <div className="flex flex-col px-3 gap-2.5 mt-5 w-full">
                 <NovaCollectionModal>
-                  <div className="flex w-full gap-2 py-1 items-center justify-center cursor-pointer bg-[#1b1b1b] border border-[#3131315e] hover:bg-[#292929] transition-colors text-gray-300 font-semibold">
-                    <FolderPlus size={16} className="text-gray-300" />
+                  <div className="btn-secondary w-full text-xs font-semibold py-1 gap-2 flex justify-center items-center">
+                    <FolderPlus size={16} className="text-text-primary" />
                     <span className="text-xs">Nova Coleção</span>
                   </div>
                 </NovaCollectionModal>
@@ -284,8 +284,8 @@ const SidebarTree = React.memo(() => {
                     await handleFolderSelect();
                   }}
                 >
-                  <div className="flex w-full gap-2 py-1 items-center justify-center cursor-pointer bg-[#1b1b1b] border border-[#3131315e] hover:bg-[#292929] transition-colors text-gray-300 font-semibold">
-                    <Folder size={16} className="text-gray-300" />
+                  <div className="btn-secondary w-full text-xs font-semibold py-1 gap-2 flex justify-center items-center">
+                    <Folder size={16} className="text-text-primary" />
                     <span className="text-xs">Importar Coleção</span>
                   </div>
                 </ImportCollectionModal>

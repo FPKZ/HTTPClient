@@ -1,0 +1,55 @@
+:root {
+  /* Tema Escuro (Padrão) - Cinza Escuro e Amarelo Volt */
+  --bg-app: #1e1e1e;
+  --bg-panel: #1b1b1b;
+  --bg-editor: #141414;
+  --bg-card: #252526;
+  --bg-input: #121212;
+  --bg-hover: #2a2a2b;
+  --bg-active: #37373d;
+
+  --text-primary: #ffffff;
+  --text-secondary: #cecece;
+  --text-muted: #808080;
+  --text-inverse: #1e1e1e;
+
+  --brand-color: #ffbf00; /* Amarelo Volt Vibrante */
+  --brand-color-hover: #e0a800;
+  --brand-text-color: #121212; /* Texto escuro sobre amarelo */
+
+  --border-base: #313131;
+  --border-hover: #454545;
+  --border-focus: #ffc107;
+
+  --success-color: #4caf50;
+  --danger-color: #f44336;
+  --warning-color: #ffc107;
+}
+
+.light {
+  /* Tema Claro - Cinza Claro e Amarelo Escuro/Âmbar (Legível e com Contraste) */
+  --bg-app: #f3f4f6; /* Cinza claro */
+  --bg-panel: #ffffff; /* Branco para contraste lateral */
+  --bg-editor: #ffffff;
+  --bg-card: #f9fafb;
+  --bg-input: #f3f4f6;
+  --bg-hover: #e5e7eb;
+  --bg-active: #d1d5db;
+
+  --text-primary: #111827; /* Cinza quase preto */
+  --text-secondary: #374151;
+  --text-muted: #9ca3af;
+  --text-inverse: #ffffff;
+
+  --brand-color: #d97706; /* Amarelo escuro / Âmbar para melhor contraste */
+  --brand-color-hover: #b45309;
+  --brand-text-color: #ffffff; /* Texto branco sobre fundo âmbar */
+
+  --border-base: #e5e7eb;
+  --border-hover: #d1d5db;
+  --border-focus: #d97706;
+
+  --success-color: #2e7d32;
+  --danger-color: #d32f2f;
+  --warning-color: #d97706;
+}

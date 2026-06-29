@@ -42,24 +42,24 @@ export default function LayoutHomeTabs() {
               maxSize={"80%" as any}
               minSize={"15%" as any}
               collapsible={true}
-              className="flex flex-col h-full overflow-hidden border-r border-[#313131]"
+              className="flex flex-col h-full overflow-hidden border-r border-border-base bg-bg-panel"
             >
-              <div className="flex justify-between bg-zinc-900 py-1.5 px-3 shrink-0">
-                <div className="flex w-full items-center text-sm font-bold text-gray-500 uppercase">
+              <div className="flex justify-between bg-bg-panel border-b border-border-base py-1.5 px-3 shrink-0">
+                <div className="flex w-full items-center text-sm font-bold text-text-secondary uppercase">
                   {activeSidebar}
                 </div>
                 {SidebarMenu.length > 0 && (
                   <Dropdown.Root>
                     <Dropdown.Trigger asChild>
-                      <div className="py-1 hover:bg-zinc-800/40 group data-[state=open]:bg-zinc-800/40 rounded cursor-pointer transition-colors duration-200">
-                        <EllipsisVertical size={16} className="text-gray-400" />
+                      <div className="py-1 hover:bg-bg-hover group data-[state=open]:bg-bg-hover rounded cursor-pointer transition-colors duration-200">
+                        <EllipsisVertical size={16} className="text-text-secondary" />
                       </div>
                     </Dropdown.Trigger>
                     <Dropdown.Content
                       sideOffset={10}
                       side="bottom"
                       align="start"
-                      className="min-w-55 bg-zinc-800 shadow-[0_0_0.5rem_rgba(0,0,0,0.1)] p-1 rounded-sm z-60!"
+                      className="min-w-55 bg-bg-panel border border-border-base shadow-md p-1 rounded-sm z-60! text-text-primary"
                     >
                     {SidebarMenu?.map((item, index) => (
                         <MenuItem

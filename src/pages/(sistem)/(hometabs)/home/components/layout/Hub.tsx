@@ -25,37 +25,19 @@ export default function Hub(){
     const user = useUserStore((state) => state.user);
 
     return(
-        <div className="w-full h-full flex flex-col gap-6 items-center justify-center bg-zinc-900 text-gray-500">
+        <div className="w-full h-full flex flex-col gap-6 items-center justify-center bg-bg-app text-text-secondary">
             <div className="flex flex-col w-1/3">
                 <div className="flex flex-col items-center justify-center mb-5">
                     {roundIcon()}
-                    <p className="text-xl mt-3 font-bold text-white">Volt API Client</p>
-                    <p className="text-gray-400 text-xs mt-3">Selecione uma coleção para começar</p>
+                    <p className="text-xl mt-3 font-bold text-text-primary">Volt API Client</p>
+                    <p className="text-text-muted text-xs mt-3">Selecione uma coleção para começar</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3 w-full font-bold text-sm">
-                    <button 
-                        className="
-                            flex gap-2 p-2 px-4 justify-center items-center
-                            bg-yellow-600 
-                            text-zinc-900 
-                            hover:text-zinc-100
-                            transition-all duration-200
-                            cursor-pointer
-                        "
-                    >
+                    <button className="btn-primary">
                         <Plus size={15} strokeWidth={3} />
                         New Collection
                     </button>
-                    <button 
-                        className="
-                            flex gap-2 p-2 px-4 justify-center items-center
-                            bg-zinc-800 
-                            text-zinc-400 
-                            hover:text-zinc-100
-                            transition-all duration-200
-                            cursor-pointer
-                        "
-                    >
+                    <button className="btn-secondary">
                         <FilePlus size={15} strokeWidth={3} />
                         Import Collection
                     </button>
