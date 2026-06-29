@@ -78,7 +78,7 @@ function TitleBarContent() {
   const collectionName = useCollectionStore((state) => state.collection.name);
 
   const { fileMenu, isDev, viewMenu } = useMenuGeral();
-  console.log(activeTab)
+
   // Controla qual menu está aberto (menubar behavior)
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
 

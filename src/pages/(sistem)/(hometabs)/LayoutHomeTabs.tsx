@@ -33,7 +33,7 @@ export default function LayoutHomeTabs() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex w-full h-full">
+      <div className="flex w-full h-full overflow-hidden">
         <SideBarButtons />
         <PanelGroup orientation="horizontal" >
           {sideBarIsOpen && (
@@ -42,16 +42,16 @@ export default function LayoutHomeTabs() {
               maxSize={"80%" as any}
               minSize={"15%" as any}
               collapsible={true}
-              className="flex flex-col border-r border-[#313131]"
+              className="flex flex-col h-full overflow-hidden border-r border-[#313131]"
             >
-              <div className="flex justify-between bg-zinc-900 p-2">
-                <div className="flex w-full ">
+              <div className="flex justify-between bg-zinc-900 py-2 px-3 shrink-0">
+                <div className="flex w-full items-center text-sm font-bold text-gray-500 uppercase">
                   {activeSidebar}
                 </div>
                 {SidebarMenu.length > 0 && (
                   <Dropdown.Root>
                     <Dropdown.Trigger asChild>
-                      <div className="p-1 hover:bg-zinc-800/40 group data-[state=open]:bg-zinc-800/40 rounded cursor-pointer transition-colors duration-200">
+                      <div className="py-1 hover:bg-zinc-800/40 group data-[state=open]:bg-zinc-800/40 rounded cursor-pointer transition-colors duration-200">
                         <EllipsisVertical size={16} className="text-gray-400" />
                       </div>
                     </Dropdown.Trigger>

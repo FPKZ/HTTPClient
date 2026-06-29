@@ -1,29 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Plus,
-  Trash2,
   FolderPlus,
   FilePlus,
-  ArrowLeft,
-  MoreVertical,
-  Edit2,
   Settings,
-  Menu,
-  EllipsisVertical,
+  Folder,
 } from "lucide-react";
 import { TreeFolder } from "./TreeFolder";
 import { useNavigate } from "react-router-dom";
-import NovoItemModal from "@/components/modals/NovoItemModal";
 import { useHistory } from "@/core/hooks/useHistory";
 import ContextMenu from "@/components/ContextMenu";
-import * as Dropdown from "@radix-ui/react-dropdown-menu";
-import { MenuItem } from "@/components/DropdownMenu";
 import EditCollectionModal from "@/components/modals/EditCollectionModal";
 // import EnvInfoModal from "@/components/modals/EnvInfoModal";
 import EnvManagerModal from "@/components/modals/EnvManagerModal";
 
 //hooks
-import useTabStore from "@/core/store/useTabStore";
 import useCollectionStore from "@/core/store/useCollectionStore";
 import useMenuContext from "@/core/hooks/useMenuContext";
 import useDialogStore from "@/core/store/useDialogStore";
@@ -43,6 +33,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import NovaCollectionModal from "@/components/modals/NovaCollectionModal";
+import ImportCollectionModal from "@/components/modals/ImportCollectionModal";
+import { useQuickExit } from "@/core/hooks/useQuickExit";
 
 
 /**
@@ -158,6 +151,48 @@ const SidebarTree = React.memo(() => {
   const reorderItems = useCollectionStore((state) => state.reorderItems);
   const isDraggingDisabled = useCollectionStore((state) => state.isDraggingDisabled);
 
+  const navigate = useNavigate()
+
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  const startConversion = (inputPath: string | string[], isFile: boolean) => {
+    window.electronAPI?.startConversion({ inputPath, isFile });
+  };
+
+  const handleFolderSelect = async () => {
+    const path = await window.electronAPI?.selectFile();
+    window.electronAPI.logAction("Importando coleção: " + path);
+    if (path) startConversion(path, true);
+  };
+  
+  useQuickExit();
+
+  useEffect(() => {
+    if (window.electronAPI) {
+      // Finalização da conversão
+      const unFinished = window.electronAPI.onFinished?.((result: any) => {
+        if (result.success && result.results?.length > 0) {
+          const data = result.results[0];
+          // Carrega diretamente no store
+          window.electronAPI.logAction("Carregando coleção: " + data.raw.name);
+          useCollectionStore.getState().loadCollection(data.raw);
+          navigate("/home");
+        } else {
+          // Exibe erro amigável se a conversão/importação falhar ou não trouxer resultados
+          useDialogStore.getState().showDialog({
+            title: "Importação inválida",
+            description: "O arquivo selecionado não contém uma coleção válida no formato HTTPClient ou Postman.",
+            options: [{ label: "OK", value: true, variant: "primary" }],
+          });
+        }
+      });
+
+      return () => {
+        unFinished?.();
+      };
+    }
+  }, [navigate]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -170,14 +205,6 @@ const SidebarTree = React.memo(() => {
   );
 
   const activeSensors = isDraggingDisabled ? [] : sensors;
-
-  // const handleAddRoute = (name?: string) => {
-  //   addRoute(null, name);
-  // };
-
-  // const handleAddFolder = (name?: string) => {
-  //   addFolder(null, name);
-  // };
 
   const { handleDragEnd } = useMenuContext({
     deleteItem,
@@ -234,8 +261,35 @@ const SidebarTree = React.memo(() => {
           </div>
 
           {collectionItems.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 text-sm">
-              Coleção vazia
+            <div className="text-center py-8 text-gray-500 flex flex-col items-center">
+              <span className="text-xs font-bold text-zinc-300 mb-1">Nenhuma coleção carregada</span>
+              <span className="text-[0.6rem] text-zinc-500">Faça upload de uma coleção ou crie uma nova!</span>
+
+              <div className="flex flex-col px-3 gap-2.5 mt-5 w-full">
+                <NovaCollectionModal>
+                  <div className="flex w-full gap-2 py-1 items-center justify-center cursor-pointer bg-[#1b1b1b] border border-[#3131315e] hover:bg-[#292929] transition-colors text-gray-300 font-semibold">
+                    <FolderPlus size={16} className="text-gray-300" />
+                    <span className="text-xs">Nova Coleção</span>
+                  </div>
+                </NovaCollectionModal>
+                <ImportCollectionModal
+                  open={isImportModalOpen}
+                  onOpenChange={setIsImportModalOpen}
+                  onImport={(path) => {
+                    setIsImportModalOpen(false);
+                    startConversion(path, true);
+                  }}
+                  onFolderSelect={async () => {
+                    setIsImportModalOpen(false);
+                    await handleFolderSelect();
+                  }}
+                >
+                  <div className="flex w-full gap-2 py-1 items-center justify-center cursor-pointer bg-[#1b1b1b] border border-[#3131315e] hover:bg-[#292929] transition-colors text-gray-300 font-semibold">
+                    <Folder size={16} className="text-gray-300" />
+                    <span className="text-xs">Importar Coleção</span>
+                  </div>
+                </ImportCollectionModal>
+              </div>
             </div>
           ) : (
             <DndContext

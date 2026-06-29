@@ -1,56 +1,10 @@
-import React, { useEffect, useState } from "react";
 import useUserStore from "@/core/store/useUserStore";
 import { useNavigate } from "react-router-dom";
-import { useQuickExit } from "@/core/hooks/useQuickExit";
-import useCollectionStore from "@/core/store/useCollectionStore";
-import useDialogStore from "@/core/store/useDialogStore";
-import NovaCollectionModal from "@/components/modals/NovaCollectionModal";
-import ImportCollectionModal from "@/components/modals/ImportCollectionModal";
 import { ArrowRight, LogOut } from "lucide-react";
 
 export default function UserSiderBar() {
   const user = useUserStore((state) => state.user);
   const navigate = useNavigate();
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-
-  // 1. Inicialização e Listeners IPC
-  useQuickExit();
-
-  useEffect(() => {
-    if (window.electronAPI) {
-      // Finalização da conversão
-      const unFinished = window.electronAPI.onFinished?.((result: any) => {
-        if (result.success && result.results?.length > 0) {
-          const data = result.results[0];
-          // Carrega diretamente no store
-          window.electronAPI.logAction("Carregando coleção: " + data.raw.name);
-          useCollectionStore.getState().loadCollection(data.raw);
-          navigate("/home");
-        } else {
-          // Exibe erro amigável se a conversão/importação falhar ou não trouxer resultados
-          useDialogStore.getState().showDialog({
-            title: "Importação inválida",
-            description: "O arquivo selecionado não contém uma coleção válida no formato HTTPClient ou Postman.",
-            options: [{ label: "OK", value: true, variant: "primary" }],
-          });
-        }
-      });
-
-      return () => {
-        unFinished?.();
-      };
-    }
-  }, [navigate]);
-
-  const startConversion = (inputPath: string | string[], isFile: boolean) => {
-    window.electronAPI?.startConversion({ inputPath, isFile });
-  };
-
-  const handleFolderSelect = async () => {
-    const path = await window.electronAPI?.selectFile();
-    window.electronAPI.logAction("Importando coleção: " + path);
-    if (path) startConversion(path, true);
-  };
 
   return (
     <div className="w-full flex flex-col h-full relative transition-all duration-300">
@@ -111,30 +65,6 @@ export default function UserSiderBar() {
                 </div>
               </div>
             )}
-          </div>
-
-          <div className="flex flex-col px-3 gap-2.5">
-            <NovaCollectionModal>
-              <div className="flex w-full h-full py-2 px-4 rounded items-center justify-center cursor-pointer bg-[#1b1b1b] border border-[#313131] hover:bg-[#292929] active:bg-[#1d1d1d] transition-colors text-gray-300 font-bold">
-                Nova Coleção
-              </div>
-            </NovaCollectionModal>
-            <ImportCollectionModal
-              open={isImportModalOpen}
-              onOpenChange={setIsImportModalOpen}
-              onImport={(path) => {
-                setIsImportModalOpen(false);
-                startConversion(path, true);
-              }}
-              onFolderSelect={async () => {
-                setIsImportModalOpen(false);
-                await handleFolderSelect();
-              }}
-            >
-              <div className="flex w-full h-full py-2 px-4 rounded items-center justify-center cursor-pointer bg-[#1b1b1b] border border-[#313131] hover:bg-[#292929] active:bg-[#1d1d1d] transition-colors text-gray-300 font-bold">
-                Importar Coleção
-              </div>
-            </ImportCollectionModal>
           </div>
         </div>
       </div>

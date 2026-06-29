@@ -51,11 +51,11 @@ export default function Rotes() {
         <Route element={<LayoutHomeTabs />}>
           <Route path="/home" element={<Home />} />
           <Route path="/" element={<UploadPage />} />
-          {/* <Route path="/workspaces" element={<Workspaces />} /> */}
         </Route>
 
         <Route element={<UserRedrect />}>
           <Route path="/perfil" element={<Perfil />} />
+          <Route path="/workspaces" element={<Workspaces.Page />} />
         </Route>
       </Route>
 
