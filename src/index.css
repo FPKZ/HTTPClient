@@ -2,6 +2,9 @@
 @import "./styles/variables.css";
 @import "./styles/components.css";
 
+@source "./pages";
+@source "./components";
+
 @plugin "tailwindcss-animate";
 
 @theme {
@@ -34,6 +37,13 @@
   --color-success: var(--success-color);
   --color-danger: var(--danger-color);
   --color-warning: var(--warning-color);
+
+  /* Breakpoints de Container Customizados (Telas Grandes) */
+  --container-6xl: 72rem;   /* 1152px */
+  --container-7xl: 80rem;   /* 1280px */
+  --container-8xl: 90rem;   /* 1440px */
+  --container-9xl: 100rem;  /* 1600px */
+  --container-10xl: 120rem; /* 1920px */
 }
 
 @custom-variant dark (&:is(.dark *));

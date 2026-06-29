@@ -16,7 +16,7 @@ import {
 } from "react-resizable-panels";
 import { Tab } from "@/core/store/index";
 
-import icons from "@/assets/icons";
+import Icons from "@/assets/Icons";
 
 /**
  * TabEditor
@@ -24,12 +24,10 @@ import icons from "@/assets/icons";
  * Substituído BSTab.Container/Nav do react-bootstrap por abas nativas com estado React.
  */
 export default function TabEditor() {
-
   const collectionId = useCollectionStore((state) => state.collection.id);
 
-  if(!collectionId) {
-    
-    const { roundIcon } = icons()
+  if (!collectionId) {
+    const { roundIcon } = Icons();
 
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-zinc-900 text-gray-500">
@@ -41,12 +39,14 @@ export default function TabEditor() {
           <p className="text-sm mb-2">Selecione uma coleção para começar</p>
         </div>
       </div>
-    )
-}
+    );
+  }
 
   const activeTab = useTabStore((state) => state.getActiveTab());
   const updateTabRequest = useTabStore((state) => state.updateTabRequest);
-  const saveTabToCollection = useCollectionStore((state) => state.saveTabToCollection);
+  const saveTabToCollection = useCollectionStore(
+    (state) => state.saveTabToCollection,
+  );
   const updateTabUiState = useTabStore((state) => state.updateTabUiState);
   const responseIsOpen = useInterfaceStore((state) => state.responseIsOpen);
   const codeSnippetsIsOpen = useInterfaceStore(
@@ -68,9 +68,9 @@ export default function TabEditor() {
     onHorizontalLayoutChanged,
   } = usePanelPersistence(
     activeTab?.id || "",
-    { 
-      vertical: `${panelVerticalSize}%`, 
-      horizontal: `${panelHorizontalSize}%` 
+    {
+      vertical: `${panelVerticalSize}%`,
+      horizontal: `${panelHorizontalSize}%`,
     },
     updateTabUiState,
   );
@@ -88,11 +88,21 @@ export default function TabEditor() {
     );
   }
 
-  const handleInputChange = (sectionKey: string, fieldKey: string | null, newValue: any) => {
+  const handleInputChange = (
+    sectionKey: string,
+    fieldKey: string | null,
+    newValue: any,
+  ) => {
     updateTabRequest(activeTab.id, sectionKey, fieldKey, newValue);
   };
 
-  const handleSelectFile = async ({ subKey, fieldKey }: { subKey: string, fieldKey: string }) => {
+  const handleSelectFile = async ({
+    subKey,
+    fieldKey,
+  }: {
+    subKey: string;
+    fieldKey: string;
+  }) => {
     if (!(window as any).electronAPI) return;
     const filePath = await (window as any).electronAPI.selectFile();
     if (!filePath) return;
@@ -147,20 +157,28 @@ export default function TabEditor() {
                   telaData.request.method,
                 )}`}
               >
-                <option className={getMethodColor("GET")} value="GET">GET</option>
-                <option className={getMethodColor("POST")} value="POST">POST</option>
-                <option className={getMethodColor("PUT")} value="PUT">PUT</option>
-                <option className={getMethodColor("DELETE")} value="DELETE">DELETE</option>
-                <option className={getMethodColor("PATCH")} value="PATCH">PATCH</option>
+                <option className={getMethodColor("GET")} value="GET">
+                  GET
+                </option>
+                <option className={getMethodColor("POST")} value="POST">
+                  POST
+                </option>
+                <option className={getMethodColor("PUT")} value="PUT">
+                  PUT
+                </option>
+                <option className={getMethodColor("DELETE")} value="DELETE">
+                  DELETE
+                </option>
+                <option className={getMethodColor("PATCH")} value="PATCH">
+                  PATCH
+                </option>
               </select>
 
               {/* URL */}
               <input
                 type="text"
                 value={telaData.request.url || ""}
-                onChange={(e) =>
-                  handleInputChange("url", null, e.target.value)
-                }
+                onChange={(e) => handleInputChange("url", null, e.target.value)}
                 placeholder="https://api.exemplo.com/endpoint"
                 className="flex-1 bg-zinc-800 text-white px-3 py-2 rounded border border-zinc-600 focus:outline-none focus:border-yellow-500"
               />
@@ -218,7 +236,9 @@ export default function TabEditor() {
                 return (
                   <button
                     key={subKey}
-                    onClick={() => updateTabUiState(activeTab.id, { activeSection: subKey })}
+                    onClick={() =>
+                      updateTabUiState(activeTab.id, { activeSection: subKey })
+                    }
                     style={{
                       backgroundColor: isActive ? "#141414" : "transparent",
                     }}
@@ -294,8 +314,7 @@ export default function TabEditor() {
                 )}
 
                 {responseIsOpen && codeSnippetsIsOpen && (
-                  <PanelResizeHandle className="relative group/resize w-1 bg-zinc-800 hover:bg-yellow-600/50 transition-colors">
-                  </PanelResizeHandle>
+                  <PanelResizeHandle className="relative group/resize w-1 bg-zinc-800 hover:bg-yellow-600/50 transition-colors"></PanelResizeHandle>
                 )}
 
                 {codeSnippetsIsOpen && (

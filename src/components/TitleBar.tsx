@@ -2,7 +2,7 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ModalUser from "./ui/ModalUser";
 import Workspaces from "./modals/Workspaces";
-import icons from "../assets/icons";
+import Icons from "@/assets/Icons";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import { MenuItem } from "./DropdownMenu";
 import { Bell, ChevronDown, User } from "lucide-react";
@@ -90,11 +90,7 @@ function TitleBarContent() {
     // "Settings": [],
   };
 
-  const pathsName = [
-    "/home",
-    "/workspaces",
-    "/",
-  ];
+  const pathsName = ["/home", "/workspaces", "/"];
 
   return (
     // Alterado de 'flex' para 'grid grid-cols-3' e adicionado 'w-full' (o correto no Tailwind é w-full e não w-100)
@@ -229,7 +225,7 @@ function TitleBarContent() {
 
 export default function TitleBar() {
   // const { templete, devTemplete, isDev } = useMenuGeral();
-  const { fullLogo } = icons();
+  const { fullLogo } = Icons();
   const location = useLocation();
   const navigate = useNavigate();
 

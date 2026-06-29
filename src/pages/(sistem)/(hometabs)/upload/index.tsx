@@ -32,7 +32,7 @@ function UploadPage() {
     handleDeleteAllHistory,
   } = useHistory();
 
-  // const { fullLogo } = icons();
+  // const { fullLogo } = Icons();
 
   // 1. Inicialização e Listeners IPC
   useQuickExit();

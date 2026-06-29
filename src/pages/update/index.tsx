@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Progress } from "@/components/ui/progress";
-import icons from "@/assets/icons";
+import Icons from "@/assets/Icons";
 
 export default function UpdatePage() {
   const [status, setStatus] = useState("checking"); // checking, available, downloading, ready
   const [progress, setProgress] = useState(0);
 
-  const { roundIcon } = icons();
+  const { roundIcon } = Icons();
 
   useEffect(() => {
     // Escutando eventos do Main Process
@@ -15,7 +15,7 @@ export default function UpdatePage() {
       "update-available",
       () => {
         setStatus("available");
-      }
+      },
     );
 
     const removeProgress = (window as any).electronAPI.ipcRenderer.on(
@@ -23,14 +23,14 @@ export default function UpdatePage() {
       (percent: number) => {
         setStatus("downloading");
         setProgress(percent);
-      }
+      },
     );
 
     const removeDownloaded = (window as any).electronAPI.ipcRenderer.on(
       "update-downloaded",
       () => {
         setStatus("ready");
-      }
+      },
     );
 
     // Limpeza ao desmontar o componente
@@ -53,9 +53,7 @@ export default function UpdatePage() {
             style={{ animationDuration: "2s" }}
           />
         )}
-        <div className="animate-pulse">
-          {roundIcon()}
-        </div>
+        <div className="animate-pulse">{roundIcon()}</div>
       </div>
 
       {status === "downloading" && (

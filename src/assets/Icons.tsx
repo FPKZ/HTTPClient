@@ -1,4 +1,5 @@
 import React from "react";
+import { tv, type VariantProps } from "tailwind-variants";
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {
   width?: string | number;
@@ -10,7 +11,7 @@ interface DivIconProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
-const icons = () => {
+const Icons = () => {
   const FullLogo = ({
     width = "240",
     height = "80",
@@ -62,16 +63,49 @@ const icons = () => {
     );
   };
 
-  const RoundIcon = ({ className = "", ...props }: DivIconProps = {}) => {
+  const variantsRoundIcon = tv({
+    // Modificamos a base para garantir que o SVG fique centralizado corretamente
+    base: "bg-[#FFC107] rounded-full flex items-center justify-center shadow-lg transition-all",
+    variants: {
+      size: {
+        sm: "w-12 h-12",
+        md: "w-16 h-16",
+        lg: "w-24 h-24",
+        xl: "w-32 h-32",
+      },
+      // Criamos uma variante interna fictícia (ou composta) se quiséssemos,
+      // mas podemos resolver o tamanho do SVG diretamente via classes utilitárias baseadas no tamanho do pai.
+    },
+    defaultVariants: {
+      size: "md",
+    },
+  });
+
+  // Mapeamento simples para o SVG manter a proporção ideal dentro da div
+  const svgSizes = {
+    sm: "w-6 h-6", // 24px
+    md: "w-8 h-8", // 32px
+    lg: "w-12 h-12", // 48px
+    xl: "w-16 h-16", // 64px
+  };
+
+  interface RoundIconProps
+    extends
+      React.HTMLAttributes<HTMLDivElement>,
+      VariantProps<typeof variantsRoundIcon> {}
+
+  const RoundIcon = ({
+    className,
+    size = "md",
+    ...props
+  }: RoundIconProps = {}) => {
     return (
-      <div
-        className={`w-24 h-24 bg-[#FFC107] rounded-full flex items-center justify-center shadow-lg ${className}`}
-        {...props}
-      >
+      <div className={variantsRoundIcon({ size, className })} {...props}>
         <svg
-          width="40"
-          height="40"
-          viewBox="0 0 60 80"
+          // 1. REMOVEMOS width e height fixos em pixels.
+          // 2. USAMOS classes do Tailwind que mudam dinamicamente com o objeto svgSizes.
+          className={svgSizes[size]}
+          viewBox="0 0 60 80" // O viewBox DEVE continuar aqui para manter a proporção do desenho interno!
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -136,7 +170,10 @@ const icons = () => {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path d="M40 10L15 45H35L25 70L55 30H35L40 10Z" fill="#FFC107" />
+                <path
+                  d="M40 10L15 45H35L25 70L55 30H35L40 10Z"
+                  fill="#FFC107"
+                />
               </svg>
             </div>
           </div>
@@ -154,7 +191,10 @@ const icons = () => {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path d="M40 10L15 45H35L25 70L55 30H35L40 10Z" fill="#121212" />
+                <path
+                  d="M40 10L15 45H35L25 70L55 30H35L40 10Z"
+                  fill="#121212"
+                />
               </svg>
             </div>
           </div>
@@ -171,4 +211,4 @@ const icons = () => {
   };
 };
 
-export default icons;
+export default Icons;

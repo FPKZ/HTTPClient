@@ -22,24 +22,13 @@ import Hub from "./components/layout/Hub";
  * Gerenciamento de estado via Zustand
  */
 export default function Home() {
-
   const collection = useCollectionStore((state) => state.collection.id)
-
-  if(!collection) return <Hub />
-
   const showDialog = useDialogStore((state) => state.showDialog);
   const getCollectionForExport = useCollectionStore(
     (state) => state.getCollectionForExport,
   );
   const resetTabs = useTabStore((state) => state.resetTabs);
   const activeTabId = useTabStore((state) => state.activeTabId);
-
-  // 1. Limpeza de estado ao sair da Home (voltar para o início)
-  // useEffect(() => {
-  //   return () => {
-  //     resetTabs();
-  //   };
-  // }, [resetTabs]);
 
   // 4. Auto-save ao sair (Ctrl+Q ou fechamento pelo SO)
   useQuickExit(async () => {
@@ -60,6 +49,8 @@ export default function Home() {
       (window as any).electronAPI.forceClose();
     }
   });
+
+  if(!collection) return <Hub />
 
   return (
     <div className="flex flex-col w-full h-full bg-zinc-950">

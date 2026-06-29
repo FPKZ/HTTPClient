@@ -17,7 +17,7 @@ export default function HistoryList({ history, onLoad, onDelete, onAllDelete }: 
   if (!history || history.length === 0) return null;
 
   return (
-    <div className="mt-4 flex flex-col h-full min-h-0">
+    <div className="mt-4 flex flex-col w-full h-full min-h-0">
       <div className="flex justify-between">
         <h6
           className="text-gray-400 mb-3 shrink-0 uppercase tracking-wider"

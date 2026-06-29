@@ -59,7 +59,7 @@ export default function Workspaces({ children }: WorkspacesProps) {
             name: "User 1",
             email: "user1@user.com",
             role: "owner",
-            avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+            avatar: "https://cdn-Icons-png.flaticon.com/512/149/149071.png",
           },
         ],
         collectionIds: history,
@@ -94,7 +94,7 @@ export default function Workspaces({ children }: WorkspacesProps) {
             name: "User 2",
             email: "user2@user.com",
             role: "owner",
-            avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+            avatar: "https://cdn-Icons-png.flaticon.com/512/149/149071.png",
           },
         ],
         collectionIds: history,
@@ -129,7 +129,7 @@ export default function Workspaces({ children }: WorkspacesProps) {
             name: "User 3",
             email: "user3@user.com",
             role: "owner",
-            avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+            avatar: "https://cdn-Icons-png.flaticon.com/512/149/149071.png",
           },
         ],
         collectionIds: history,
@@ -161,7 +161,9 @@ export default function Workspaces({ children }: WorkspacesProps) {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
-        <button className="bg-transparent border-none p-0 cursor-pointer">{children}</button>
+        <button className="bg-transparent border-none p-0 cursor-pointer">
+          {children}
+        </button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content
@@ -212,7 +214,9 @@ export default function Workspaces({ children }: WorkspacesProps) {
                     </span>
                   ))}
                   {item.collectionIds.length === 0 && (
-                    <span className="text-[0.6rem] text-zinc-600 px-2 font-italic">Nenhuma coleção</span>
+                    <span className="text-[0.6rem] text-zinc-600 px-2 font-italic">
+                      Nenhuma coleção
+                    </span>
                   )}
                 </div>
               </div>

@@ -40,9 +40,9 @@ export default function LayoutHomeTabs() {
             <Panel
               defaultSize={"20%" as any}
               maxSize={"80%" as any}
-              minSize={"15%" as any}
+              minSize={"200px" as any}
               collapsible={true}
-              className="flex flex-col h-full overflow-hidden border-r border-border-base bg-bg-panel"
+              className="flex flex-col h-full overflow-hidden border-r border-border-base bg-bg-panel @container"
             >
               <div className="flex justify-between bg-bg-panel border-b border-border-base py-1.5 px-3 shrink-0">
                 <div className="flex w-full items-center text-sm font-bold text-text-secondary uppercase">
@@ -51,7 +51,10 @@ export default function LayoutHomeTabs() {
                 {SidebarMenu.length > 0 && (
                   <Dropdown.Root>
                     <Dropdown.Trigger asChild>
-                      <div className="py-1 hover:bg-bg-hover group data-[state=open]:bg-bg-hover rounded cursor-pointer transition-colors duration-200">
+                      <div 
+                        onPointerDown={(e) => e.preventDefault()}
+                        className="py-1 hover:bg-bg-hover group data-[state=open]:bg-bg-hover rounded cursor-pointer transition-colors duration-200"
+                      >
                         <EllipsisVertical size={16} className="text-text-secondary" />
                       </div>
                     </Dropdown.Trigger>
@@ -77,8 +80,10 @@ export default function LayoutHomeTabs() {
           )}
           {/* <Separator /> */}
           <Panel minSize={"50%" as any}>
-            {/* <Collections /> */}
-            <Outlet />
+            <div className="@container w-full h-full">
+              {/* <Collections /> */}
+              <Outlet />
+            </div>
           </Panel>
         </PanelGroup>
       </div>

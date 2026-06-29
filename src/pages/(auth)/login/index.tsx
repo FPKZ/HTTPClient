@@ -1,5 +1,5 @@
 import React from "react";
-import icons from "@/assets/icons";
+import Icons from "@/assets/Icons";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useLogin from "@/core/hooks/useLogin";
@@ -10,7 +10,7 @@ import ButtonAuth from "@/pages/(auth)/components/ButtonAuth";
  * @returns {JSX.Element}
  */
 export default function LoginPage() {
-  const { 
+  const {
     formValue,
     setFormValue,
     erros,
@@ -32,7 +32,7 @@ export default function LoginPage() {
   } = useLogin();
 
   const navigate = useNavigate();
-  const { fullLogo } = icons();
+  const { fullLogo } = Icons();
 
   return (
     <div className="flex flex-col h-full relative overflow-hidden">
@@ -50,14 +50,19 @@ export default function LoginPage() {
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path d="M40 10L15 45H35L25 70L55 30H35L40 10Z" fill="#FFC107" />
+                  <path
+                    d="M40 10L15 45H35L25 70L55 30H35L40 10Z"
+                    fill="#FFC107"
+                  />
                 </svg>
               </div>
               <div className="absolute -inset-1 bg-[#FFC107]/20 blur-lg rounded-2xl -z-10 animate-pulse"></div>
             </div>
 
             <div className="text-center flex flex-col gap-2">
-              <h2 className="text-[#FFC107] font-bold text-xl tracking-tight">Sincronizando conta...</h2>
+              <h2 className="text-[#FFC107] font-bold text-xl tracking-tight">
+                Sincronizando conta...
+              </h2>
               <p className="text-[#cecece]/70 text-sm max-w-[18rem]">
                 Conclua a autenticação no seu navegador para continuar.
               </p>
@@ -144,15 +149,24 @@ export default function LoginPage() {
                 Entrar
               </button>
 
-              {erros?.geral && <p className="text-red-500 text-sm m-0">{erros.geral}</p>}
+              {erros?.geral && (
+                <p className="text-red-500 text-sm m-0">{erros.geral}</p>
+              )}
               {error && <p className="text-red-500 text-sm m-0">{error}</p>}
-              {success && <p className="text-green-500 text-sm m-0">Login realizado com sucesso!</p>}
+              {success && (
+                <p className="text-green-500 text-sm m-0">
+                  Login realizado com sucesso!
+                </p>
+              )}
             </div>
             <div className="flex gap-2 p-2 justify-between text-[0.7rem] text-[#cecece]/70">
               <div>
                 <p className="m-0">
                   Não tem uma conta?{" "}
-                  <a onClick={() => navigate('/register')} className="text-amber-400 hover:text-amber-300 cursor-pointer">
+                  <a
+                    onClick={() => navigate("/register")}
+                    className="text-amber-400 hover:text-amber-300 cursor-pointer"
+                  >
                     Cadastre-se
                   </a>
                 </p>
@@ -175,9 +189,24 @@ export default function LoginPage() {
             </div>
             <div className="flex flex-col items-center justify-between px-3 gap-3 text-zinc-900 font-bold">
               {[
-                { img: "google.svg", alt: "Google", size: "w-8 h-8", text: "Entrar com o Google", action: () => handleSocialLogin("google") },
-                { img: "/github-brands-solid-full(1).svg", alt: "GitHub", size: "w-8 h-8", text: "Entrar com o GitHub", action: () => handleSocialLogin("github") },
-                { text: "Entrar sem conta", action: () => navigate("/uploadPage") }
+                {
+                  img: "google.svg",
+                  alt: "Google",
+                  size: "w-8 h-8",
+                  text: "Entrar com o Google",
+                  action: () => handleSocialLogin("google"),
+                },
+                {
+                  img: "/github-brands-solid-full(1).svg",
+                  alt: "GitHub",
+                  size: "w-8 h-8",
+                  text: "Entrar com o GitHub",
+                  action: () => handleSocialLogin("github"),
+                },
+                {
+                  text: "Entrar sem conta",
+                  action: () => navigate("/uploadPage"),
+                },
               ].map((item, index) => (
                 <ButtonAuth.Root
                   key={index}
@@ -187,7 +216,11 @@ export default function LoginPage() {
                   className="justify-between"
                   onClick={item.action}
                 >
-                  <ButtonAuth.Icon img={item.img} alt={item.alt} invisible={item.img ? false : true}/>
+                  <ButtonAuth.Icon
+                    img={item.img}
+                    alt={item.alt}
+                    invisible={item.img ? false : true}
+                  />
                   <ButtonAuth.Content>{item.text}</ButtonAuth.Content>
                 </ButtonAuth.Root>
               ))}

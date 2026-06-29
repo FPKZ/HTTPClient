@@ -14,7 +14,7 @@ export default function SideBarButtons() {
   const isActive = (sidebar: string) => activeSidebar === sidebar && sideBarIsOpen;
 
   return (
-    <div className="grid flex-col w-13 bg-zinc-900/60 text-zinc-400">
+    <div className="grid flex-col w-13 bg-bg-panel text-zinc-400">
       <div className="w-full">
         <div className="grid grid-cols-1 justify-start items-center w-full">
           {Buttons.map((button) => {
