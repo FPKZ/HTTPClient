@@ -5,7 +5,7 @@ import {
   Settings,
   Folder,
 } from "lucide-react";
-import { TreeFolder } from "./TreeFolder";
+import { TreeFolder } from "./includes/sidebarComponents/TreeFolder";
 import { useNavigate } from "react-router-dom";
 import { useHistory } from "@/core/hooks/useHistory";
 import ContextMenu from "@/components/ContextMenu";

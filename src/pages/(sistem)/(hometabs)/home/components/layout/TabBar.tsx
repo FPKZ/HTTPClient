@@ -18,7 +18,7 @@ import {
 import useTabStore from "@/core/store/useTabStore";
 import { useTabScroll } from "@/core/hooks/useTabScroll";
 import NovoItemModal from "@/components/modals/NovoItemModal";
-import { SortableTab } from "./SortableTab";
+import { SortableTab } from "./includes/tabbarComponents/SortableTab";
 
 /**
  * TabBar
@@ -123,16 +123,17 @@ export default function TabBar() {
   };
 
   if (tabs.length === 0) {
-    return (
-      <div className="h-12 bg-zinc-800 border-b border-zinc-700 flex items-center justify-center">
-        <NovoItemModal onAdd={handleAddTab}>
-          <button className="flex items-center gap-2 px-4 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-gray-300 rounded transition-colors">
-            <Plus size={16} />
-            <span className="text-sm">Nova Aba</span>
-          </button>
-        </NovoItemModal>
-      </div>
-    );
+    return
+    // return (
+    //   <div className="h-12 bg-zinc-800 border-b border-zinc-700 flex items-center justify-center">
+    //     <NovoItemModal onAdd={handleAddTab}>
+    //       <button className="flex items-center gap-2 px-4 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-gray-300 rounded transition-colors">
+    //         <Plus size={16} />
+    //         <span className="text-sm">Nova Aba</span>
+    //       </button>
+    //     </NovoItemModal>
+    //   </div>
+    // );
   }
 
   return (
@@ -191,14 +192,14 @@ export default function TabBar() {
       )}
 
       {/* Botão Nova Aba */}
-      <NovoItemModal onAdd={handleAddTab}>
+      {/* <NovoItemModal onAdd={handleAddTab}>
         <button
           className="px-3 py-2 hover:bg-zinc-700 transition-colors shrink-0"
           title="Nova aba"
         >
           <Plus size={18} className="text-gray-400" />
         </button>
-      </NovoItemModal>
+      </NovoItemModal> */}
     </div>
   );
 }

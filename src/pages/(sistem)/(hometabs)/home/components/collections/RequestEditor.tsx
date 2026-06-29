@@ -1,6 +1,6 @@
 import React from "react";
 import { Plus, Trash2, CheckSquare, Square } from "lucide-react";
-import AutoResizeTextarea from "../AutoResizeTextarea";
+import AutoResizeTextarea from "../layout/includes/tabeditorComponents/AutoResizeTextarea";
 import Editor, { OnMount } from "@monaco-editor/react";
 import { monacoRegistry } from "@/lib/monacoRegistry";
 import { defaultEditorOptions } from "@/lib/monacoConfig";

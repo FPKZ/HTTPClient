@@ -1,6 +1,6 @@
 import React from "react";
 import { formatSize } from "@/lib/utils";
-import ResultRequestLog from "@/pages/(sistem)/(hometabs)/home/components/ResultRequestLog";
+import ResultRequestLog from "./ResultRequestLog";
 import { Tab, Log } from "@/core/store";
 
 interface ResponseProps {

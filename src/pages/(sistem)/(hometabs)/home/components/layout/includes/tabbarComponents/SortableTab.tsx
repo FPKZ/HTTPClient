@@ -2,7 +2,7 @@ import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { X } from "lucide-react";
-import { Tab } from "@/core/store";
+import { Tab } from "@/core/store/index";
 
 interface SortableTabProps {
   tab: Tab;
@@ -51,7 +51,7 @@ export function SortableTab({
       }}
       onClick={() => onActivate(tab.id)}
       className={`
-        group flex items-center gap-1 px-2 h-full min-w-[180px] max-w-[220px] shrink-0 border-r border-zinc-700 cursor-pointer transition-colors select-none
+        group flex items-center gap-1 px-2 py-2 h-full min-w-[180px] max-w-[220px] shrink-0 border-r border-zinc-700 cursor-pointer transition-colors select-none
         ${
           isActive
             ? "bg-zinc-900 text-white"

@@ -56,16 +56,6 @@ function UploadPage() {
     }
   }, [navigate]);
 
-  const startConversion = (inputPath: string | string[], isFile: boolean) => {
-    window.electronAPI?.startConversion({ inputPath, isFile });
-  };
-
-  const handleFolderSelect = async () => {
-    const path = await window.electronAPI?.selectFile();
-    window.electronAPI.logAction("Importando coleção: " + path);
-    if (path) startConversion(path, true);
-  };
-
   return (
     <div className="flex w-full h-full relative overflow-hidden">
       {/* Grid de 2 colunas: sidebar esquerda + área central */}

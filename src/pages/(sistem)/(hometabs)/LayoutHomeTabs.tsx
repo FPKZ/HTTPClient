@@ -44,7 +44,7 @@ export default function LayoutHomeTabs() {
               collapsible={true}
               className="flex flex-col h-full overflow-hidden border-r border-[#313131]"
             >
-              <div className="flex justify-between bg-zinc-900 py-2 px-3 shrink-0">
+              <div className="flex justify-between bg-zinc-900 py-1.5 px-3 shrink-0">
                 <div className="flex w-full items-center text-sm font-bold text-gray-500 uppercase">
                   {activeSidebar}
                 </div>

@@ -6,8 +6,8 @@ import RequestEditor from "../collections/RequestEditor";
 import { useRequestExecutor } from "@/core/hooks/useRequestExecutor";
 import { getMethodColor } from "@/lib/utils";
 import useInterfaceStore from "@/core/store/useInterfaceStore";
-import Response from "./includes/Response";
-import CodeSnippets from "./includes/CodeSnippets";
+import Response from "./includes/tabeditorComponents/Response";
+import CodeSnippets from "./includes/tabeditorComponents/CodeSnippets";
 import { usePanelPersistence } from "@/core/hooks/usePanelPersistence";
 import {
   Group as PanelGroup,
@@ -16,12 +16,34 @@ import {
 } from "react-resizable-panels";
 import { Tab } from "@/core/store/index";
 
+import icons from "@/assets/icons";
+
 /**
  * TabEditor
  * Editor da aba ativa com painel de requisição e console de logs.
  * Substituído BSTab.Container/Nav do react-bootstrap por abas nativas com estado React.
  */
 export default function TabEditor() {
+
+  const collectionId = useCollectionStore((state) => state.collection.id);
+
+  if(!collectionId) {
+    
+    const { roundIcon } = icons()
+
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-zinc-900 text-gray-500">
+        <div className="flex flex-col items-center justify-center mb-5">
+          {roundIcon()}
+          <p className="text-lg mt-3 font-bold text-white">Volt API Client</p>
+        </div>
+        <div className="text-center">
+          <p className="text-sm mb-2">Selecione uma coleção para começar</p>
+        </div>
+      </div>
+    )
+}
+
   const activeTab = useTabStore((state) => state.getActiveTab());
   const updateTabRequest = useTabStore((state) => state.updateTabRequest);
   const saveTabToCollection = useCollectionStore((state) => state.saveTabToCollection);
