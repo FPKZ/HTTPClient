@@ -1,17 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useCollectionStore from "@/core/store/useCollectionStore";
 import useUserStore from "@/core/store/useUserStore";
 
 // Components
 import HistoryList from "@/pages/(sistem)/(hometabs)/home/components/history/HistoryList";
-import ImportCollectionModal from "@/components/modals/ImportCollectionModal";
-import NovaCollectionModal from "@/components/modals/NovaCollectionModal";
-import { ArrowRight, LogOut } from "lucide-react";
 
 // Hooks
 import { useQuickExit } from "@/core/hooks/useQuickExit";
 import { useHistory } from "@/core/hooks/useHistory";
+import useCollectionImport from "@/core/hooks/useCollectionImport";
 
 // import img from "../assets/icon1.png";
 
@@ -32,29 +29,14 @@ function UploadPage() {
     handleDeleteAllHistory,
   } = useHistory();
 
+  // Ouve a conversão de coleções importadas e redireciona ao finalizar
+  useCollectionImport();
+
   // const { fullLogo } = Icons();
 
   // 1. Inicialização e Listeners IPC
   useQuickExit();
 
-  useEffect(() => {
-    if (window.electronAPI) {
-      // Finalização da conversão
-      const unFinished = window.electronAPI.onFinished?.((result: any) => {
-        if (result.success && result.results?.length > 0) {
-          const data = result.results[0];
-          // Carrega diretamente no store
-          window.electronAPI.logAction("Carregando coleção: " + data.raw.name);
-          useCollectionStore.getState().loadCollection(data.raw);
-          navigate("/home");
-        }
-      });
-
-      return () => {
-        unFinished?.();
-      };
-    }
-  }, [navigate]);
 
   return (
     <div className="flex w-full h-full relative overflow-hidden">

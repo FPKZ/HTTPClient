@@ -6,9 +6,9 @@ export default function UserRedrect() {
     const location = useLocation();
     console.log(location)
 
-    // if (!user) {
-    //     return <Navigate to="/login" state={{ from: location }} replace />;
-    // }
+    if (!user) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
 
     return <Outlet />;
 }

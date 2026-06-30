@@ -12,7 +12,7 @@ export default function GuestRoute() {
   const user = useUserStore((state) => state.user);
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   return <Outlet />;
