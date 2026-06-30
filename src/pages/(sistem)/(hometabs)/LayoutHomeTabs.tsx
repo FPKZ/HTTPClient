@@ -17,12 +17,58 @@ import Workspace from "@/pages/(sistem)/(hometabs)/workspaces";
 //hooks
 import useSideBar from "@/core/hooks/useSideBar";
 import NovoItemModal from "@/components/modals/NovoItemModal";
+import { useState } from "react";
+import type { DropdownMenuItem } from "@/components/DropdownMenu";
 
 const SIDEBAR_MAP = {
   user: <UserSiderBar />,
   collections: <Sidebar />,
   workspaces: <Workspace.Sidebar />,
 } as const;
+
+/**
+ * SidebarMenuDropdown
+ * Controla abertura via onClick para evitar que o Radix abra
+ * no pointerdown e dispare imediatamente o primeiro item.
+ */
+function SidebarMenuDropdown({ items }: { items: DropdownMenuItem[] }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dropdown.Root open={open} onOpenChange={setOpen}>
+      <Dropdown.Trigger asChild>
+        <div
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setOpen((prev) => !prev);
+          }}
+          data-state={open ? "open" : "closed"}
+          className="py-1 hover:bg-bg-hover group data-[state=open]:bg-bg-hover rounded cursor-pointer transition-colors duration-200"
+        >
+          <EllipsisVertical size={16} className="text-text-secondary" />
+        </div>
+      </Dropdown.Trigger>
+      <Dropdown.Portal>
+        <Dropdown.Content
+          // onOpenAutoFocus={(e) => e.preventDefault()}
+          sideOffset={10}
+          side="bottom"
+          align="start"
+          className="min-w-55 bg-bg-panel border border-border-base shadow-md p-1 rounded-sm z-60! text-text-primary"
+        >
+          {items.map((item, index) => (
+            <MenuItem
+              key={index}
+              index={index}
+              item={item}
+            />
+          ))}
+        </Dropdown.Content>
+      </Dropdown.Portal>
+    </Dropdown.Root>
+  );
+}
 
 export default function LayoutHomeTabs() {
   const { sidebar, collection, resize, modal, Buttons } = useSideBar();
@@ -49,31 +95,9 @@ export default function LayoutHomeTabs() {
                   {activeSidebar}
                 </div>
                 {SidebarMenu.length > 0 && (
-                  <Dropdown.Root>
-                    <Dropdown.Trigger asChild>
-                      <div 
-                        onPointerDown={(e) => e.preventDefault()}
-                        className="py-1 hover:bg-bg-hover group data-[state=open]:bg-bg-hover rounded cursor-pointer transition-colors duration-200"
-                      >
-                        <EllipsisVertical size={16} className="text-text-secondary" />
-                      </div>
-                    </Dropdown.Trigger>
-                    <Dropdown.Content
-                      sideOffset={10}
-                      side="bottom"
-                      align="start"
-                      className="min-w-55 bg-bg-panel border border-border-base shadow-md p-1 rounded-sm z-60! text-text-primary"
-                    >
-                    {SidebarMenu?.map((item, index) => (
-                        <MenuItem
-                          key={index}
-                          index={index}
-                          item={item}
-                        />
-                      ))}
-                    </Dropdown.Content>
-                  </Dropdown.Root>
+                  <SidebarMenuDropdown items={SidebarMenu} />
                 )}
+
               </div>
               {activeSidebar ? SIDEBAR_MAP[activeSidebar] ?? null : null}
             </Panel>

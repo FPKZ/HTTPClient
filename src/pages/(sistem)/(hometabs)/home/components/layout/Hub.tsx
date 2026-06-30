@@ -3,11 +3,14 @@ import { useUserStore } from "@/core/store";
 
 // Hooks
 import useHistory from "@/core/hooks/useHistory";
+import useCollectionImport from "@/core/hooks/useCollectionImport";
 
 // Ui
 import Icons from "@/assets/Icons";
 import HistoryList from "../history/HistoryList";
 import { FilePlus, Plus } from "lucide-react";
+import NovaCollectionModal from "@/components/modals/NovaCollectionModal";
+import ImportCollectionModal from "@/components/modals/ImportCollectionModal";
 
 export default function Hub() {
   const { roundIcon } = Icons();
@@ -18,6 +21,13 @@ export default function Hub() {
     handleDeleteHistoryItem,
     handleDeleteAllHistory,
   } = useHistory();
+
+  const {
+    isImportModalOpen,
+    setIsImportModalOpen,
+    startConversion,
+    handleFolderSelect,
+  } = useCollectionImport();
 
   const user = useUserStore((state) => state.user);
 
@@ -34,14 +44,29 @@ export default function Hub() {
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 w-full font-bold text-sm">
-          <button className="btn-primary flex items-center justify-center gap-2 py-3">
-            <Plus size={15} strokeWidth={3} />
-            New Collection
-          </button>
-          <button className="btn-secondary flex items-center justify-center gap-2 py-3">
-            <FilePlus size={15} strokeWidth={3} />
-            Import Collection
-          </button>
+          <NovaCollectionModal>
+            <button className="btn-primary flex items-center justify-center gap-2 py-3">
+              <Plus size={15} strokeWidth={3} />
+              New Collection
+            </button>
+          </NovaCollectionModal>
+          <ImportCollectionModal
+            open={isImportModalOpen}
+            onOpenChange={setIsImportModalOpen}
+            onImport={(path) => {
+              setIsImportModalOpen(false);
+              startConversion(path, true);
+            }}
+            onFolderSelect={async () => {
+              setIsImportModalOpen(false);
+              await handleFolderSelect();
+            }}
+          >
+            <button className="btn-secondary flex items-center justify-center gap-2 py-3">
+              <FilePlus size={15} strokeWidth={3} />
+              Import Collection
+            </button>
+          </ImportCollectionModal>
         </div>
       </div>
 

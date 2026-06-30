@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   FolderPlus,
   FilePlus,
@@ -18,6 +18,7 @@ import useCollectionStore from "@/core/store/useCollectionStore";
 import useMenuContext from "@/core/hooks/useMenuContext";
 import useDialogStore from "@/core/store/useDialogStore";
 import useModalConfig from "@/core/hooks/useModalConfig";
+import useCollectionImport from "@/core/hooks/useCollectionImport";
 
 import {
   DndContext,
@@ -151,47 +152,14 @@ const SidebarTree = React.memo(() => {
   const reorderItems = useCollectionStore((state) => state.reorderItems);
   const isDraggingDisabled = useCollectionStore((state) => state.isDraggingDisabled);
 
-  const navigate = useNavigate()
+  const {
+    isImportModalOpen,
+    setIsImportModalOpen,
+    startConversion,
+    handleFolderSelect,
+  } = useCollectionImport();
 
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-
-  const startConversion = (inputPath: string | string[], isFile: boolean) => {
-    window.electronAPI?.startConversion({ inputPath, isFile });
-  };
-
-  const handleFolderSelect = async () => {
-    const path = await window.electronAPI?.selectFile();
-    window.electronAPI.logAction("Importando coleção: " + path);
-    if (path) startConversion(path, true);
-  };
-  
   useQuickExit();
-
-  useEffect(() => {
-    if (window.electronAPI) {
-      // Finalização da conversão
-      const unFinished = window.electronAPI.onFinished?.((result: any) => {
-        if (result.success && result.results?.length > 0) {
-          const data = result.results[0];
-          // Carrega diretamente no store
-          window.electronAPI.logAction("Carregando coleção: " + data.raw.name);
-          useCollectionStore.getState().loadCollection(data.raw);
-          navigate("/home");
-        } else {
-          // Exibe erro amigável se a conversão/importação falhar ou não trouxer resultados
-          useDialogStore.getState().showDialog({
-            title: "Importação inválida",
-            description: "O arquivo selecionado não contém uma coleção válida no formato HTTPClient ou Postman.",
-            options: [{ label: "OK", value: true, variant: "primary" }],
-          });
-        }
-      });
-
-      return () => {
-        unFinished?.();
-      };
-    }
-  }, [navigate]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

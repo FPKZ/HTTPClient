@@ -24,24 +24,6 @@ import Icons from "@/assets/Icons";
  * Substituído BSTab.Container/Nav do react-bootstrap por abas nativas com estado React.
  */
 export default function TabEditor() {
-  const collectionId = useCollectionStore((state) => state.collection.id);
-
-  if (!collectionId) {
-    const { roundIcon } = Icons();
-
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-zinc-900 text-gray-500">
-        <div className="flex flex-col items-center justify-center mb-5">
-          {roundIcon()}
-          <p className="text-lg mt-3 font-bold text-white">Volt API Client</p>
-        </div>
-        <div className="text-center">
-          <p className="text-sm mb-2">Selecione uma coleção para começar</p>
-        </div>
-      </div>
-    );
-  }
-
   const activeTab = useTabStore((state) => state.getActiveTab());
   const updateTabRequest = useTabStore((state) => state.updateTabRequest);
   const saveTabToCollection = useCollectionStore(
@@ -77,7 +59,7 @@ export default function TabEditor() {
 
   if (!activeTab) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-zinc-900 text-gray-500">
+      <div className="flex-1 flex items-center justify-center bg-zinc-900/75 text-gray-500">
         <div className="text-center">
           <p className="text-lg mb-2">Nenhuma aba aberta</p>
           <p className="text-sm">

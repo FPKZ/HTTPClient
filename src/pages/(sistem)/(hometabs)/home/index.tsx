@@ -53,7 +53,7 @@ export default function Home() {
   if(!collection) return <Hub />
 
   return (
-    <div className="flex flex-col w-full h-full bg-zinc-950">
+    <div className="flex flex-col w-full h-full">
 
       {/* Área Principal (Abas + Editor) */}
       <TabBar />
