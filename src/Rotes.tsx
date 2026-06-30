@@ -9,7 +9,6 @@ import UpdatePage from "@/pages/update";
 import ResizableDemo from "@/pages/(sistem)/(protected)/demo";
 import LoginPage from "@/pages/(auth)/login";
 import Home from "@/pages/(sistem)/(hometabs)/home";
-import UploadPage from "@/pages/(sistem)/(hometabs)/upload";
 import RegisterPage from "@/pages/(auth)/cadastro";
 import RecuperarSenha from "@/pages/(auth)/recuperar-senha";
 import Perfil from "@/pages/(sistem)/(protected)/perfil";
@@ -50,7 +49,6 @@ export default function Rotes() {
         {/* Rotas COM Layout (TitleBar) — acessíveis com ou sem conta */}
         <Route element={<LayoutHomeTabs />}>
           <Route path="/home" element={<Home />} />
-          <Route path="/" element={<UploadPage />} />
         </Route>
 
         <Route element={<UserRedrect />}>

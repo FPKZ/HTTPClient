@@ -136,16 +136,22 @@ function useTemplateMenu(){
                 {
                     label: "Nova Pasta",
                     icon: <FolderPlus size={14} />,
+                    disabled: !collection,
                     onClick: () => setModalConfig({ open: true, type: "folder", targetId: null }),
                 },
                 {
                     label: "Nova Rota",
                     icon: <FilePlus size={14} />,
+                    disabled: !collection,
                     onClick: () => setModalConfig({ open: true, type: "file", targetId: null }),
+                },
+                {
+                    separator: true,
                 },
                 {
                     label: "Fechar Collection",
                     icon: <FolderClosed size={14} />,
+                    disabled: !collection,
                     onClick: () => fecharCollection(), 
                 }
             ]
@@ -165,35 +171,6 @@ function useTemplateMenu(){
             func: () => setActiveSidebar("workspaces"),
             menu: []
         },
-        {
-            icon: () => <FolderTree strokeWidth={2.5} size={20} />,
-            title: "Collections",
-            href: "/",
-            func: () => navigate("/"),
-            menu: [
-                {
-                icon: <ChevronRight size={14} />,
-                label: "Output",
-                disabled: false,
-                onClick: () => {}, //fazer algo
-                checked: false //fazer algo
-                },
-                {
-                icon: <Braces size={14} />,
-                label: "Code Snippets",
-                disabled: false,
-                onClick: () => {}, //fazer algo
-                checked: false //fazer algo
-                },
-                {
-                icon: sideBarIsOpen ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />,
-                label: "Side Bar",
-                disabled: !collection,
-                onClick: () => {}, //fazer algo
-                checked: sideBarIsOpen ? <Check size={14} strokeWidth={3}/> : null
-                }
-            ]
-        }
     ];
 
     return {

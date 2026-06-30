@@ -205,7 +205,7 @@ export default function LoginPage() {
                 },
                 {
                   text: "Entrar sem conta",
-                  action: () => navigate("/uploadPage"),
+                  action: () => navigate("/home"),
                 },
               ].map((item, index) => (
                 <ButtonAuth.Root

@@ -4,7 +4,7 @@ import useUserStore from "@/core/store/useUserStore";
 import type { User } from "../../../types/entities/user";
 
 const GUEST_ROUTES = ["/login", "/register", "/forgot-password"];
-const POST_LOGIN_ROUTE = "/";
+const POST_LOGIN_ROUTE = "/home";
 const POST_LOGOUT_ROUTE = "/login";
 
 /**
