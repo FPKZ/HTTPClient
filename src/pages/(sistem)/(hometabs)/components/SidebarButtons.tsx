@@ -40,7 +40,7 @@ export default function SideBarButtons() {
             strokeWidth={2.5}
             size={20}
             className={`${isActive("user") ? "text-yellow-500" : "group-hover:text-white"}`}
-            onClick={() => setActiveSidebar("user")}
+            // onClick={() => setActiveSidebar("user")}
           />
         </button>
       </div>

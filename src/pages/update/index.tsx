@@ -53,7 +53,7 @@ export default function UpdatePage() {
             style={{ animationDuration: "2s" }}
           />
         )}
-        <div className="animate-pulse">{roundIcon()}</div>
+        <div className="animate-pulse">{roundIcon({ size: "lg"})}</div>
       </div>
 
       {status === "downloading" && (

@@ -22,11 +22,11 @@ interface InterfaceState {
 }
 
 const useInterfaceStore = create<InterfaceState>((set, get) => ({
-  sideBarIsOpen: true,
+  sideBarIsOpen: false,
   setSideBarIsOpen: () => set((state) => ({ sideBarIsOpen: !state.sideBarIsOpen })),
   setSidebarIsOpenExplicit: (isClose: boolean) => set(() => ({ sideBarIsOpen: isClose })),
 
-  activeSidebar: "user" as SidebarKey,
+  activeSidebar: "" as SidebarKey,
   setActiveSidebar: (side: SidebarKey) => set((state) => {
     // Clicando no botão que já está ativo → fecha o painel
     if (side === state.activeSidebar && state.sideBarIsOpen) {
