@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, FolderOpen } from "lucide-react";
 
 export interface HistoryEntry {
   id: string;
@@ -24,15 +24,25 @@ export default function HistoryItem({ item, onLoad, onDelete }: HistoryItemProps
   return (
     <div
       onClick={() => onLoad(item)}
-      className="flex items-center justify-between rounded-sm p-2 bg-zinc-900/50 hover:bg-zinc-800 cursor-pointer transition-colors"
+      className="
+        p-2
+        flex items-center justify-between 
+        rounded-sm border border-zinc-800 hover:border-amber-400/70 
+        bg-zinc-900/50 hover:bg-zinc-800 
+        cursor-pointer transition-colors group"
     >
-      <div className="flex flex-col">
-        <span className="text-zinc-200 font-medium" style={{ fontSize: '0.8rem' }}>
-          {item.name}
-        </span>
-        <small className="text-zinc-500" style={{ fontSize: '0.65rem' }}>
-          {new Date(item.updatedAt).toLocaleString('pt-BR')} • {item.description || item.descricao || item.sourceType}
-        </small>
+      <div className="flex gap-2">
+        <div className="text-yellow-500 group-hover:fill-yellow-400 transition-colors flex justify-center items-center">
+          <FolderOpen size={20} />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-zinc-200 font-semibold group-hover:font-bold" style={{ fontSize: '0.8rem' }}>
+            {item.name}
+          </span>
+          <small className="text-zinc-500" style={{ fontSize: '0.65rem' }}>
+            {new Date(item.updatedAt).toLocaleString('pt-BR')} • {item.description || item.descricao || item.sourceType}
+          </small>
+        </div>
       </div>
       <div className="flex items-center gap-3">
         <div className="text-zinc-600 hover:text-yellow-500 transition-colors">

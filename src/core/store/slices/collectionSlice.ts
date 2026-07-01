@@ -1,9 +1,13 @@
 import { StateCreator } from "zustand";
 import * as utils from "@/utils/collectionUtils";
 import { CollectionSlice, Variable } from "../../../../types/store";
+import useInterfaceStore from "../useInterfaceStore";
 
 // Importação lazy para evitar dependência circular com useTabStore
 const getTabStore = () => import("../useTabStore").then((m) => m.default);
+
+const setActiveSidebar = useInterfaceStore.getState().setSidebarIsOpenExplicit
+
 
 /**
  * collectionSlice.ts
@@ -136,7 +140,7 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           activeEnvironmentId,
         },
       });
-
+      setActiveSidebar(true)
       if (newCollectionId) {
         tabStore.getState().restoreTabsState(newCollectionId);
       } else {
