@@ -17,8 +17,9 @@ import Workspace from "@/pages/(sistem)/(hometabs)/workspaces";
 //hooks
 import useSideBar from "@/core/hooks/useSideBar";
 import NovoItemModal from "@/components/modals/NovoItemModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { DropdownMenuItem } from "@/components/DropdownMenu";
+import useInterfaceStore from "@/core/store/useInterfaceStore";
 
 const SIDEBAR_MAP = {
   user: <UserSiderBar />,
@@ -76,6 +77,17 @@ export default function LayoutHomeTabs() {
   const { sideBarIsOpen, activeSidebar, SidebarMenu } = sidebar;
   const { minSize } = resize;
   const { modalConfig, setModalConfig, handleModalAdd, getModalProps } = modal;
+
+  useEffect(() => {
+    // Se o aplicativo iniciar e tiver uma coleção carregada,
+    // garante que a sidebar esteja aberta e exibindo as coleções
+    if (collection) {
+      useInterfaceStore.setState({
+        sideBarIsOpen: true,
+        activeSidebar: "collections",
+      });
+    }
+  }, []);
 
   return (
     <div className="h-full flex flex-col">
