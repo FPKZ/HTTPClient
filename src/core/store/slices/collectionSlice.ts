@@ -20,6 +20,22 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
   const varUpdateTimeouts: Record<string, NodeJS.Timeout> = {};
   const varInitialStates: Record<string, Partial<Variable>> = {};
 
+  const saveCollectionState = () => {
+    const { collection } = get();
+    if (collection.id && window.electronAPI?.saveHistory) {
+      window.electronAPI.saveHistory({
+        id: collection.id,
+        name: collection.name,
+        description: collection.description,
+        items: collection.items,
+        environments: collection.environments,
+        activeEnvironmentId: collection.activeEnvironmentId
+      }).catch((err) =>
+        console.error("[CollectionSlice] Erro no auto-salvamento no SQLite:", err)
+      );
+    }
+  };
+
   /* Helper para log debounce de variáveis (Global e Ambiente) */
   const scheduleVariableLog = (varId: string, logLabel: string, getCurrentVarFn: () => Variable | undefined) => {
     // Inicializa estado original se não existir
@@ -79,14 +95,24 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
 
     setDraggingDisabled: (disabled: boolean) => set({ isDraggingDisabled: disabled }),
 
-    loadCollection: async (data: any) => {
+    loadCollection: async (data: any, skipSaveHistory = false) => {
+      const newCollectionId = data?.id || `coll_${Date.now()}`;
+
+      // 1. Evita abrir a mesma coleção em janelas separadas
+      if (window.electronAPI?.checkCollectionOpen) {
+        const isOpen = await window.electronAPI.checkCollectionOpen(newCollectionId);
+        if (isOpen) {
+          alert("Esta coleção já está aberta em outra janela.");
+          return;
+        }
+      }
+
       const tabStore = await getTabStore();
       const currentCollectionId = get().collection.id;
       if (currentCollectionId) {
         tabStore.getState().saveTabsState(currentCollectionId);
       }
 
-      const newCollectionId = data?.id || `coll_${Date.now()}`;
       const name = data?.name || data?.collectionName || "Collection";
       const description = data?.descricao || data?.description || "";
 
@@ -118,18 +144,23 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
       }
 
       // Pré-salva no SQLite para garantir a persistência dos dados ricos importados
-      window.electronAPI.saveHistory({
-        id: newCollectionId,
-        name,
-        description,
-        items: rawItems,
-        environments,
-        activeEnvironmentId
-      }).catch((err) => console.error("Erro ao pré-salvar coleção carregada:", err));
+      if (!skipSaveHistory && window.electronAPI?.saveHistory) {
+        window.electronAPI.saveHistory({
+          id: newCollectionId,
+          name,
+          description,
+          items: rawItems,
+          environments,
+          activeEnvironmentId
+        }).catch((err) => console.error("Erro ao pré-salvar coleção carregada:", err));
+      }
 
       const cleanItems = utils.normalizeItems(rawItems);
 
-      window.electronAPI.logAction("Coleção carregada: " + name);
+      if (window.electronAPI?.logAction) {
+        window.electronAPI.logAction("Coleção carregada: " + name);
+      }
+
       set({
         collection: {
           id: newCollectionId,
@@ -140,6 +171,12 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           activeEnvironmentId,
         },
       });
+
+      // 2. Notifica o Electron Main de que esta coleção está ativa nesta janela
+      if (window.electronAPI?.setActiveCollection) {
+        window.electronAPI.setActiveCollection(newCollectionId);
+      }
+
       setActiveSidebar(true)
       if (newCollectionId) {
         tabStore.getState().restoreTabsState(newCollectionId);
@@ -149,6 +186,78 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           activeTabId: null,
         });
       }
+    },
+
+    applyCreateItem: (entity, data) => {
+      const { collection } = get();
+      const parentId = entity === "folder" ? data.parentId : data.folderId;
+      const updatedItems = utils.addItemToTree(collection.items, parentId, data);
+      set({ collection: { ...collection, items: updatedItems } });
+    },
+
+    applyUpdateItem: (entity, id, data) => {
+      const { collection } = get();
+      const updatedItems = utils.updateItemInTree(collection.items, id, data);
+      set({ collection: { ...collection, items: updatedItems } });
+
+      if (entity === "route" && data.name) {
+        getTabStore().then((tabStore) => {
+          const tabs = tabStore.getState().tabs;
+          tabStore.setState({
+            tabs: tabs.map((tab) =>
+              tab.screenKey === id ? { ...tab, title: data.name } : tab
+            ),
+          });
+        });
+      }
+    },
+
+    applyDeleteItem: (entity, id) => {
+      const { collection } = get();
+      const itemToDelete = utils.findItemById(collection.items, id);
+      if (!itemToDelete) return;
+
+      const idsToClose = utils.collectRouteIds(itemToDelete);
+      const updatedItems = utils.removeItemFromTree(collection.items, id);
+
+      set({ collection: { ...collection, items: updatedItems } });
+      getTabStore().then((tabStore) => {
+        const tabs = tabStore.getState().tabs;
+        tabStore.setState({
+          tabs: tabs.filter((tab) => !idsToClose.includes(tab.screenKey!)),
+        });
+      });
+    },
+
+    applyMoveItem: (entity, id, targetFolderId, orderIndex) => {
+      const { collection } = get();
+      const activePath = utils.findItemPath(collection.items, id);
+      if (!activePath) return;
+
+      const currentParentId = activePath.length > 1 
+        ? utils.getItemByPath(collection.items, activePath.slice(0, -1))?.id || null 
+        : null;
+      const currentIndex = activePath[activePath.length - 1];
+
+      if (currentParentId === targetFolderId && currentIndex === orderIndex) {
+        return;
+      }
+
+      const itemToMove = utils.getItemByPath(collection.items, activePath);
+      let updatedItems = utils.removeItemByPath(collection.items, activePath);
+      
+      if (targetFolderId) {
+        const targetFolder = utils.findItemById(updatedItems, targetFolderId);
+        if (targetFolder && targetFolder.type === "folder") {
+          const children = targetFolder.items || [];
+          children.splice(orderIndex, 0, itemToMove);
+          updatedItems = utils.updateItemInTree(updatedItems, targetFolderId, { items: children });
+        }
+      } else {
+        updatedItems.splice(orderIndex, 0, itemToMove);
+      }
+
+      set({ collection: { ...collection, items: updatedItems } });
     },
 
     saveTabToCollection: (id: string) => {
@@ -223,110 +332,28 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
 
     addRoute: (parentId: string | null = null, name: string = "Nova Rota") => {
       const { collection } = get();
-      const newRouteId = `route_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-      const newRoute: any = {
-        id: newRouteId,
-        type: "route",
+      if (!collection.id) return;
+
+      window.electronAPI.createRequest({
+        collectionId: collection.id,
+        folderId: parentId || null,
         name: name || "Nova Rota",
-        method: "GET",
-      };
-
-      const initialRequest = {
-        method: "GET",
-        url: "",
-        headers: [
-          { key: "Content-Type", value: "application/json", enabled: true },
-        ],
-        params: [],
-        body: { mode: "json", content: "" },
-        auth: {
-          name: "none",
-          config: { key: "", type: "Bearer", value: "header" },
-        },
-      };
-
-      const updatedItems = utils.addItemToTree(
-        collection.items,
-        parentId,
-        newRoute
-      );
-      set({ collection: { ...collection, items: updatedItems } });
-
-      window.electronAPI.saveRequestDetails(newRouteId, {
-        name: newRoute.name,
-        ...initialRequest,
-        isDirty: false,
-      }).then(() => {
-        getTabStore().then((tabStore) => tabStore.getState().addTab(newRoute.id, newRoute));
-      }).catch((err) => {
-        console.error("Erro ao salvar detalhes da rota inicial:", err);
-        getTabStore().then((tabStore) => tabStore.getState().addTab(newRoute.id, { ...newRoute, request: initialRequest }));
-      });
+      }).catch((err) => console.error("Erro ao criar rota no SQLite:", err));
     },
 
     duplicateRoute: async (id: string) => {
       const { collection } = get();
-      const tabStore = await getTabStore();
-      const tabs = tabStore.getState().tabs;
       const route = utils.findItemById(collection.items, id);
       if (!route) return;
 
-      let requestDetails = null;
-      const tabForRoute = tabs.find((t) => t.screenKey === id);
-      if (tabForRoute && tabForRoute.data?.request) {
-        requestDetails = JSON.parse(JSON.stringify(tabForRoute.data.request));
-      } else {
-        try {
-          requestDetails = await window.electronAPI.getRequestDetails(id);
-        } catch (err) {
-          console.error("Erro ao obter detalhes para duplicação:", err);
-        }
-      }
-
-      if (!requestDetails) {
-        requestDetails = {
-          method: (route as any).method || "GET",
-          url: "",
-          headers: [],
-          params: [],
-          body: { mode: "none", content: "" },
-        };
-      }
-
       const newRouteId = `route_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-      const newRoute: any = {
-        id: newRouteId,
-        type: "route",
-        name: route.name + " (Cópia)",
-        method: (route as any).method || requestDetails.method || "GET",
-      };
+      const name = route.name + " (Cópia)";
 
-      const path = utils.findItemPath(collection.items, id);
-      if (path) {
-        const insertPath = [...path];
-        insertPath[insertPath.length - 1] += 1;
-
-        const updatedItems = utils.insertItemByPath(
-          collection.items,
-          insertPath,
-          newRoute
-        );
-
-        window.electronAPI.logAction("Duplicada a rota: " + route.name);
-        set({ collection: { ...collection, items: updatedItems } });
-
-        try {
-          await window.electronAPI.saveRequestDetails(newRouteId, {
-            name: newRoute.name,
-            ...requestDetails,
-            isDirty: false,
-          });
-        } catch (err) {
-          console.error("Erro ao persistir detalhes duplicados:", err);
-        }
-
-        getTabStore().then((tabStore) => tabStore.getState().addTab(newRoute.id, newRoute));
-      }
+      window.electronAPI.duplicateRequest({
+        id,
+        newId: newRouteId,
+        name,
+      }).catch((err) => console.error("Erro ao duplicar rota no SQLite:", err));
     },
 
     copyRoute: (id: string) => {
@@ -342,54 +369,37 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
 
     pasteRoute: (targetId: string | null) => {
       const { clipboard, collection } = get();
-      if (!clipboard) return;
+      if (!clipboard || !collection.id) return;
 
       const newItem = utils.regenerateIds(clipboard);
-      let updatedItems;
-
-      if (!targetId) {
-        updatedItems = utils.addItemToTree(collection.items, null, newItem);
-      } else {
-        const targetItem = utils.findItemById(collection.items, targetId);
-
-        if (targetItem && targetItem.type === "folder") {
-          updatedItems = utils.addItemToTree(collection.items, targetId, newItem);
-        } else {
-          const targetPath = utils.findItemPath(collection.items, targetId);
-          if (targetPath) {
-            const insertPath = [...targetPath];
-            insertPath[insertPath.length - 1] += 1;
-            updatedItems = utils.insertItemByPath(collection.items, insertPath, newItem);
-          } else {
-            updatedItems = utils.addItemToTree(collection.items, null, newItem);
-          }
-        }
-      }
-
-      window.electronAPI.logAction(`Colado: ${newItem.name}`);
-      set({ collection: { ...collection, items: updatedItems } });
+      window.electronAPI.logAction(`Colando item: ${newItem.name}`);
 
       if (newItem.type === "route") {
-        getTabStore().then((tabStore) => tabStore.getState().addTab(newItem.id, newItem));
+        window.electronAPI.createRequest({
+          collectionId: collection.id,
+          folderId: targetId || null,
+          name: newItem.name,
+        }).catch((err) => console.error("Erro ao colar rota no SQLite:", err));
+      } else {
+        window.electronAPI.createFolder({
+          collectionId: collection.id,
+          parentId: targetId || null,
+          name: newItem.name,
+        }).catch((err) => console.error("Erro ao colar pasta no SQLite:", err));
       }
+
       set({ clipboard: null });
     },
 
     addFolder: (parentId: string | null = null, name: string = "Nova Pasta") => {
       const { collection } = get();
-      const newFolder: any = {
-        id: `folder_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-        type: "folder",
-        name: name || "Nova Pasta",
-        items: [],
-      };
+      if (!collection.id) return;
 
-      const updatedItems = utils.addItemToTree(
-        collection.items,
-        parentId,
-        newFolder
-      );
-      set({ collection: { ...collection, items: updatedItems } });
+      window.electronAPI.createFolder({
+        collectionId: collection.id,
+        parentId: parentId || null,
+        name: name || "Nova Pasta",
+      }).catch((err) => console.error("Erro ao criar pasta no SQLite:", err));
     },
 
     deleteItem: (id: string) => {
@@ -397,70 +407,59 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
       const itemToDelete = utils.findItemById(collection.items, id);
       if (!itemToDelete) return;
 
-      const idsToClose = utils.collectRouteIds(itemToDelete);
-      const updatedItems = utils.removeItemFromTree(collection.items, id);
+      window.electronAPI.logAction(`Deletando item: ${itemToDelete.name}`);
 
-      set({ collection: { ...collection, items: updatedItems } });
-      getTabStore().then((tabStore) => {
-        const tabs = tabStore.getState().tabs;
-        tabStore.setState({
-          tabs: tabs.filter((tab) => !idsToClose.includes(tab.screenKey!)),
-        });
-      });
+      if (itemToDelete.type === "folder") {
+        window.electronAPI.deleteFolder({ id })
+          .catch((err) => console.error("Erro ao deletar pasta no SQLite:", err));
+      } else {
+        window.electronAPI.deleteRequest({ id })
+          .catch((err) => console.error("Erro ao deletar rota no SQLite:", err));
+      }
     },
 
     renameItem: (id: string, newName: string) => {
       const { collection } = get();
-      const updatedItems = utils.updateItemInTree(collection.items, id, {
-        name: newName,
-      });
+      const item = utils.findItemById(collection.items, id);
+      if (!item) return;
 
-      set({ collection: { ...collection, items: updatedItems } });
-      getTabStore().then((tabStore) => {
-        const tabs = tabStore.getState().tabs;
-        tabStore.setState({
-          tabs: tabs.map((tab) =>
-            tab.screenKey === id ? { ...tab, title: newName } : tab
-          ),
-        });
-      });
+      window.electronAPI.renameItem({
+        id,
+        type: item.type as "folder" | "route",
+        name: newName,
+      }).catch((err) => console.error("Erro ao renomear item no SQLite:", err));
     },
 
     moveItemToFolder: (activeId: string, folderId: string | null) => {
       const { collection } = get();
-      if (activeId === folderId) return;
+      const item = utils.findItemById(collection.items, activeId);
+      if (!item) return;
 
-      const activePath = utils.findItemPath(collection.items, activeId);
-      if (!activePath) return;
+      // 1. Aplica a alteração localmente no Zustand de forma instantânea (otimista)
+      get().applyMoveItem(item.type === "folder" ? "folder" : "route", activeId, folderId, 0);
 
-      let sourceName = "Raiz";
-      if (activePath.length > 1) {
-        const parentPath = activePath.slice(0, -1);
-        const parentItem = utils.getItemByPath(collection.items, parentPath);
-        sourceName = parentItem ? parentItem.name : "Raiz";
-      }
-
-      let targetName = "Raiz";
-      if (folderId) {
-        const targetFolder = utils.findItemById(collection.items, folderId);
-        targetName = targetFolder ? targetFolder.name : "Raiz";
-      }
-
-      const itemToMove = utils.getItemByPath(collection.items, activePath);
-
-      window.electronAPI.logAction(
-        `Movendo ${activeId}: ${itemToMove.name}, de: ${sourceName}, para: ${targetName}`
-      );
-
-      let updatedItems = utils.removeItemByPath(collection.items, activePath);
-      updatedItems = utils.addItemToTree(updatedItems, folderId, itemToMove, false);
-
-      set({ collection: { ...collection, items: updatedItems } });
+      // 2. Grava no SQLite em segundo plano
+      window.electronAPI.moveOrReorderItem({
+        id: activeId,
+        type: item.type as "folder" | "route",
+        targetFolderId: folderId || null,
+        orderIndex: 0,
+      }).catch((err) => {
+        console.error("Erro ao mover item no SQLite:", err);
+        // Em caso de erro incomum, restaura o estado real do banco
+        if (collection.id) {
+          window.electronAPI.getCollectionById({ id: collection.id, source: "local" })
+            .then((updatedCol) => { if (updatedCol) set({ collection: updatedCol }); });
+        }
+      });
     },
 
-    reorderItems: (activeId: string, overId: string | null) => {
+    reorderItems: (activeId: string, overId: string | null, isBelow = false) => {
       if (activeId === overId) return;
       const { collection } = get();
+
+      const item = utils.findItemById(collection.items, activeId);
+      if (!item) return;
 
       const activePath = utils.findItemPath(collection.items, activeId);
       const overPath = overId
@@ -468,36 +467,33 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
         : [collection.items.length];
       if (!activePath || !overPath) return;
 
-      let sourceName = "Raiz";
-      if (activePath.length > 1) {
-        const parentPath = activePath.slice(0, -1);
-        const parentItem = utils.getItemByPath(collection.items, parentPath);
-        sourceName = parentItem ? parentItem.name : "Raiz";
+      // Corrigido: targetFolderId deve vir do caminho do item destino (overPath) e não de origem (activePath)
+      const targetFolderId = overId 
+        ? (overPath.length > 1 ? utils.getItemByPath(collection.items, overPath.slice(0, -1))?.id || null : null)
+        : null;
+      
+      let orderIndex = overPath[overPath.length - 1];
+      if (isBelow) {
+        orderIndex = orderIndex + 1;
       }
 
-      let targetName = "Raiz";
-      if (overPath.length > 1) {
-        const parentPath = overPath.slice(0, -1);
-        const parentItem = utils.getItemByPath(collection.items, parentPath);
-        targetName = parentItem ? parentItem.name : "Raiz";
-      }
+      // 1. Aplica a alteração localmente no Zustand de forma instantânea (otimista)
+      get().applyMoveItem(item.type === "folder" ? "folder" : "route", activeId, targetFolderId, orderIndex);
 
-      const itemToMove = utils.getItemByPath(collection.items, activePath);
-
-      if (sourceName !== targetName) {
-        window.electronAPI.logAction(
-          `Movendo ${activeId}: ${itemToMove.name}, de: ${sourceName}, para: ${targetName}`
-        );
-      } else {
-        window.electronAPI.logAction(
-          `Reordenando ${activeId}: ${itemToMove.name}, em: ${sourceName}`
-        );
-      }
-
-      let updatedItems = utils.removeItemByPath(collection.items, activePath);
-      updatedItems = utils.insertItemByPath(updatedItems, overPath, itemToMove);
-
-      set({ collection: { ...collection, items: updatedItems } });
+      // 2. Grava no SQLite em segundo plano
+      window.electronAPI.moveOrReorderItem({
+        id: activeId,
+        type: item.type as "folder" | "route",
+        targetFolderId: targetFolderId || null,
+        orderIndex,
+      }).catch((err) => {
+        console.error("Erro ao reordenar item no SQLite:", err);
+        // Em caso de erro incomum, restaura o estado real do banco
+        if (collection.id) {
+          window.electronAPI.getCollectionById({ id: collection.id, source: "local" })
+            .then((updatedCol) => { if (updatedCol) set({ collection: updatedCol }); });
+        }
+      });
     },
 
     updateCollectionMeta: (name?: string, description?: string) => {
@@ -512,12 +508,14 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           description: description !== undefined ? description : state.collection.description,
         },
       }));
+      saveCollectionState();
     },
 
     updateEnvironments: (environments) => {
       set((state) => ({
         collection: { ...state.collection, environments },
       }));
+      saveCollectionState();
     },
 
     setActiveEnvironment: (id) => {
@@ -526,6 +524,7 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
       set((state) => ({
         collection: { ...state.collection, activeEnvironmentId: id },
       }));
+      saveCollectionState();
     },
 
     addEnvironment: (name: string = "Novo Ambiente") => {
@@ -541,6 +540,7 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           environments: [...state.collection.environments, newEnv],
         },
       }));
+      saveCollectionState();
       return newEnv.id;
     },
 
@@ -564,6 +564,7 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           },
         };
       });
+      saveCollectionState();
     },
 
     updateEnvironmentName: (id: string, name: string) => {
@@ -591,6 +592,7 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           environments: state.collection.environments.map((e) => (e.id === id ? { ...e, name } : e)),
         },
       }));
+      saveCollectionState();
     },
 
     addVariable: (envId: string) => {
@@ -618,6 +620,7 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           }),
         },
       }));
+      saveCollectionState();
     },
 
     updateVariable: (envId: string, varId: string, updates: Partial<Variable>) => {
@@ -640,6 +643,7 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           }),
         },
       }));
+      saveCollectionState();
     },
 
     deleteVariable: (envId: string, varId: string) => {
@@ -662,6 +666,7 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           }),
         },
       }));
+      saveCollectionState();
     },
 
     addGlobalVariable: () => {
@@ -720,6 +725,7 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           environments: [...state.collection.environments, newEnv],
         },
       }));
+      saveCollectionState();
       return newEnv.id;
     },
 

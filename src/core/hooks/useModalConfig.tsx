@@ -1,13 +1,13 @@
 import React from "react";
 import { useSidebarModalStore } from "@/core/store/useSidebarModalStore";
-import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 
 export default function useModalConfig() {
   const { modalConfig, setModalConfig } = useSidebarModalStore();
   
-  const addFolder = useTabStore((state) => state.addFolder);
-  const addRoute = useTabStore((state) => state.addRoute);
-  const renameItem = useTabStore((state) => state.renameItem);
+  const addFolder = useCollectionStore((state) => state.addFolder);
+  const addRoute = useCollectionStore((state) => state.addRoute);
+  const renameItem = useCollectionStore((state) => state.renameItem);
 
   const handleModalAdd = (name: string) => {
     const { type, targetId } = modalConfig;
@@ -16,7 +16,7 @@ export default function useModalConfig() {
     } else if (type === "file") {
       addRoute?.(targetId, name);
     } else if (type === "rename") {
-      renameItem?.(targetId, name);
+      if (targetId) renameItem?.(targetId, name);
     }
     setModalConfig({ ...modalConfig, open: false, currentName: "" });
   };

@@ -24,10 +24,13 @@ import {
   DndContext,
   closestCorners,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
+  DragOverlay,
 } from "@dnd-kit/core";
+import * as utils from "@/utils/collectionUtils";
 import {
   SortableContext,
   sortableKeyboardCoordinates,
@@ -142,6 +145,7 @@ const SidebarHeader = () => {
  * Gerencia a lista de arquivos.
  */
 const SidebarTree = React.memo(() => {
+  const [activeId, setActiveId] = useState<string | null>(null);
   const { modalConfig, setModalConfig } = useModalConfig();
   const collectionItems = useCollectionStore((state) => state.collection.items);
   const collectionName = useCollectionStore((state) => state.collection.name);
@@ -162,9 +166,15 @@ const SidebarTree = React.memo(() => {
   useQuickExit();
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 4,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -263,7 +273,11 @@ const SidebarTree = React.memo(() => {
             <DndContext
               sensors={activeSensors}
               collisionDetection={closestCorners}
-              onDragEnd={handleDragEnd}
+              onDragStart={(event) => setActiveId(event.active.id as string)}
+              onDragEnd={(event) => {
+                handleDragEnd(event);
+                setActiveId(null);
+              }}
               modifiers={[restrictToVerticalAxis]}
             >
               <SortableContext
@@ -277,6 +291,14 @@ const SidebarTree = React.memo(() => {
                   />
                 ))}
               </SortableContext>
+              <DragOverlay dropAnimation={null} style={{ pointerEvents: "none" }}>
+                {activeId ? (
+                  <div className="opacity-85 bg-zinc-900 border border-zinc-700/50 rounded py-1 px-3 pointer-events-none select-none text-[0.8rem] text-zinc-200 shadow-xl flex items-center gap-1.5 ring-1 ring-zinc-700">
+                    <span className="text-[0.65rem] font-bold text-gray-500 uppercase">Arrastando</span>
+                    <span className="font-medium truncate max-w-40">{utils.findItemById(collectionItems, activeId)?.name || "Item"}</span>
+                  </div>
+                ) : null}
+              </DragOverlay>
             </DndContext>
           )}
         </div>

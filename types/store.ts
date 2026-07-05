@@ -75,7 +75,11 @@ export interface CollectionSlice {
   isDraggingDisabled: boolean;
 
   setDraggingDisabled: (disabled: boolean) => void;
-  loadCollection: (data: any) => void;
+  loadCollection: (data: any, skipSaveHistory?: boolean) => void;
+  applyCreateItem: (entity: 'folder' | 'route', data: any) => void;
+  applyUpdateItem: (entity: 'folder' | 'route', id: string, data: any) => void;
+  applyDeleteItem: (entity: 'folder' | 'route', id: string) => void;
+  applyMoveItem: (entity: 'folder' | 'route', id: string, targetFolderId: string | null, orderIndex: number) => void;
   saveTabToCollection: (id: string) => void;
   addRoute: (parentId?: string | null, name?: string) => void;
   duplicateRoute: (id: string) => void;
@@ -85,7 +89,7 @@ export interface CollectionSlice {
   deleteItem: (id: string) => void;
   renameItem: (id: string, newName: string) => void;
   moveItemToFolder: (activeId: string, folderId: string | null) => void;
-  reorderItems: (activeId: string, overId: string | null) => void;
+  reorderItems: (activeId: string, overId: string | null, isBelow?: boolean) => void;
   updateCollectionMeta: (name?: string, description?: string) => void;
   updateEnvironments: (environments: Environment[]) => void;
   setActiveEnvironment: (id: string | null) => void;

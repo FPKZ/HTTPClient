@@ -1,11 +1,11 @@
 import React from "react";
-import useTabStore from "@/core/store/useTabStore";
+import useCollectionStore from "@/core/store/useCollectionStore";
 import useDialogStore from "@/core/store/useDialogStore";
 import useModalConfig from "./useModalConfig";
 
 interface UseMenuContextProps {
   deleteItem: (id: string) => void;
-  reorderItems: (activeId: string, overId: string) => void;
+  reorderItems: (activeId: string, overId: string | null, isBelow?: boolean) => void;
 }
 
 export default function useMenuContext({
@@ -64,23 +64,59 @@ export default function useMenuContext({
     const { active, over } = event;
     if (!over) return;
 
-    // Check if dropped ONTO a folder (either specifically the droppable or the sortable folder)
+    const isDroppable = over.id.toString().startsWith("droppable-");
     const isOverFolder =
       over.data.current?.type === "folder" ||
-      over.id.toString().startsWith("droppable-");
+      isDroppable;
     const targetFolderId =
       over.data.current?.id ||
-      (over.id.toString().startsWith("droppable-")
+      (isDroppable
         ? over.id.toString().replace("droppable-", "")
         : null);
 
     if (isOverFolder && targetFolderId && active.id !== targetFolderId) {
-      useTabStore.getState().moveItemToFolder(active.id, targetFolderId);
+      // Se colidiu no droppable dos sub-itens (ex: área vazia ou texto "Pasta vazia"),
+      // vai direto para dentro da pasta sem calcular ratioY.
+      if (isDroppable) {
+        useCollectionStore.getState().moveItemToFolder(active.id, targetFolderId);
+        return;
+      }
+
+      // Caso contrário, colidiu com o sortable da linha. Calcula ratioY da linha para decidir reordenação.
+      const element = document.getElementById(targetFolderId);
+      const pointerEvent = event.activatorEvent as MouseEvent;
+
+      if (element && pointerEvent && typeof pointerEvent.clientY === "number") {
+        const rect = element.getBoundingClientRect();
+        const relativeY = pointerEvent.clientY - rect.top;
+        const ratioY = relativeY / rect.height;
+
+        // Se soltou na borda superior (15%) ou inferior (15%) da pasta,
+        // trata como reordenação (colocar entre), e não jogar dentro.
+        if (ratioY < 0.15 || ratioY > 0.85) {
+          const isBelow = ratioY > 0.85;
+          reorderItems(active.id, targetFolderId, isBelow);
+          return;
+        }
+      }
+
+      useCollectionStore.getState().moveItemToFolder(active.id, targetFolderId);
       return;
     }
 
     if (active.id !== over.id) {
-      reorderItems(active.id, over.id);
+      const element = document.getElementById(over.id);
+      const pointerEvent = event.activatorEvent as MouseEvent;
+      let isBelow = false;
+
+      if (element && pointerEvent && typeof pointerEvent.clientY === "number") {
+        const rect = element.getBoundingClientRect();
+        const relativeY = pointerEvent.clientY - rect.top;
+        const ratioY = relativeY / rect.height;
+        isBelow = ratioY > 0.5;
+      }
+
+      reorderItems(active.id, over.id, isBelow);
     }
   };
 

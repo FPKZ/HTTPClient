@@ -25,6 +25,39 @@ import useDialogStore from "@/core/store/useDialogStore";
 import { CollectionItem } from "@/core/store/index";
 import useModalConfig from "@/core/hooks/useModalConfig";
 
+interface TreeActionButtonProps {
+  onClick: (e: React.MouseEvent) => void;
+  title: string;
+  icon: React.ReactNode;
+  variant?: "default" | "danger";
+}
+
+const TreeActionButton = ({
+  onClick,
+  title,
+  icon,
+  variant = "default",
+}: TreeActionButtonProps) => {
+  const baseClass = "p-1 rounded transition-colors duration-150 flex items-center justify-center shrink-0 cursor-pointer";
+  const variantClass =
+    variant === "danger"
+      ? "hover:bg-red-500/20 text-gray-500 hover:text-red-400"
+      : "hover:bg-zinc-700 text-gray-400 hover:text-white";
+
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick(e);
+      }}
+      className={`${baseClass} ${variantClass}`}
+      title={title}
+    >
+      {icon}
+    </button>
+  );
+};
+
 interface TreeFolderProps {
   item: CollectionItem;
   level?: number;
@@ -57,6 +90,7 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
     transform,
     transition,
     isDragging,
+    isOver: isSortableOver,
   } = useSortable({
     id: item.id,
     data: {
@@ -76,17 +110,29 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
       id: item.id,
     },
   });
-
-  // Combine refs
-  const setNodeRef = (node: HTMLElement | null) => {
+  // Combine refs condicionais baseadas no isOpen para a linha do item
+  const setItemRowRef = (node: HTMLElement | null) => {
     setSortableRef(node);
-    if (isFolder) setDroppableRef(node);
+    if (isFolder && !isOpen) {
+      setDroppableRef(node);
+    }
   };
 
+  const isDraggingOver = isOver || isSortableOver;
+
+  // Auto-expandir pasta no drag over (quando pairar por 600ms sobre a pasta fechada)
+  React.useEffect(() => {
+    if (!isFolder || isOpen || !isDraggingOver) return;
+
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [isDraggingOver, isFolder, isOpen]);
+
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.3 : 1,
   };
 
   const handleItemClick = (e: React.MouseEvent) => {
@@ -219,10 +265,11 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
       {/* Item Row */}
       <ContextMenu items={contextMenuItems}>
         <div
-          ref={setNodeRef}
+          id={item.id}
+          ref={setItemRowRef}
           {...attributes}
           {...listeners}
-          className={`flex items-center gap-1 py-1 rounded cursor-pointer transition-colors group
+          className={`flex items-center gap-1 py-1.5 my-0.5 min-h-[1.85rem] rounded cursor-pointer transition-colors group
             ${isDragging ? "opacity-30 bg-zinc-800" : "hover:bg-zinc-800"}
             ${isOver && isFolder ? "bg-yellow-500/10 ring-1 ring-yellow-500/30" : ""}`}
           style={{ ...style, paddingLeft: `${level * 12 + 8}px` } as React.CSSProperties}
@@ -282,12 +329,11 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
           </div>
 
           {/* Ações (Hover) */}
-          <div className="pe-1 p-0 m-0 opacity-0 hidden group-hover:block! group-hover:opacity-100! gap-1 items-center transition-opacity">
+          <div className="pe-1 p-0 m-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto flex items-center gap-1 transition-opacity duration-150 ml-auto shrink-0">
             {isFolder && (
               <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
+                <TreeActionButton
+                  onClick={() => {
                     setModalConfig({
                       open: true,
                       type: "folder",
@@ -295,14 +341,11 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
                     });
                     setIsOpen(true);
                   }}
-                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
                   title="Nova Pasta"
-                >
-                  <FolderPlus size={14} />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  icon={<FolderPlus size={14} />}
+                />
+                <TreeActionButton
+                  onClick={() => {
                     setModalConfig({
                       open: true,
                       type: "file",
@@ -310,18 +353,13 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
                     });
                     setIsOpen(true);
                   }}
-                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
                   title="Nova Rota"
-                >
-                  <FilePlus size={14} />
-                </button>
+                  icon={<FilePlus size={14} />}
+                />
               </>
             )}
-            <button
-              className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
-              title="Editar"
-              onClick={(e) => {
-                e.stopPropagation();
+            <TreeActionButton
+              onClick={() => {
                 setModalConfig({
                   open: true,
                   type: "rename",
@@ -329,23 +367,22 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
                   currentName: item.name,
                 });
               }}
-            >
-              <Edit size={14} />
-            </button>
-            <button
+              title="Editar"
+              icon={<Edit size={14} />}
+            />
+            <TreeActionButton
               onClick={handleDelete}
-              className="p-1 hover:bg-red-500/20 rounded text-gray-500 hover:text-red-400"
               title="Deletar"
-            >
-              <Trash2 size={14} />
-            </button>
+              icon={<Trash2 size={14} />}
+              variant="danger"
+            />
           </div>
         </div>
       </ContextMenu>
 
       {/* Sub-itens */}
       {isFolder && isOpen && item.items && (
-        <div className="mt-0.5">
+        <div ref={isFolder ? setDroppableRef : undefined} className="mt-0.5">
           {item.items.length === 0 ? (
             <ContextMenu items={contextMenuItems}>
               <div
