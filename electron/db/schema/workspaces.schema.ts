@@ -6,6 +6,8 @@ import { collections } from "./collections.schema";
 export const workspaces = sqliteTable('workspaces', {
     id: text('id').primaryKey(),
     name: text('name').notNull(),
+    description: text('description'),
+    icon: text('icon'),
     ownerId: text('owner_id').notNull().references(() => profiles.id),
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
