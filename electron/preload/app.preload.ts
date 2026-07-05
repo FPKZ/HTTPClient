@@ -31,7 +31,8 @@ export const appPreload: AppAPI = {
                 "request-save-session",
                 "auth:loading",
                 "auth:error",
-                "auth:success"
+                "auth:success",
+                "database-change"
             ];
             if (validChannels.includes(channel)) {
                 const subscription = (_event: any, ...args: any[]) => func(...args);
@@ -92,5 +93,16 @@ export const appPreload: AppAPI = {
         ipcRenderer.removeListener("menu-action", subscription);
         };
     },
-  
+
+    // --- Multi-Janela & Sincronização ---
+    createWindow: (params) => ipcRenderer.send("window:create", params),
+    setActiveCollection: (collectionId) => ipcRenderer.send("window:set-active-collection", collectionId),
+    checkCollectionOpen: (collectionId) => ipcRenderer.invoke("window:check-collection-open", collectionId),
+    onDatabaseChange: (callback) => {
+        const subscription = (_event: any, value: any) => callback(value);
+        ipcRenderer.on("database-change", subscription);
+        return () => {
+            ipcRenderer.removeListener("database-change", subscription);
+        };
+    },
 }

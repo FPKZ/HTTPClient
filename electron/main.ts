@@ -46,6 +46,7 @@ import ContextMenuBuilder from "./core/context-menu-builder";
 import HistoryService from "./services/history-service";
 import NetworkService from "./services/network-service";
 import UserService from "./services/user-service";
+import WorkspaceService from "./services/workspace-service";
 import SupabaseService from "./services/supabase-service";
 import { OAuthServer } from "./services/oauth-server";
 import SyncService from "./services/sync-service";
@@ -54,6 +55,7 @@ import AppMessenger from "./services/app-messenger";
 import AutoUpdateService from "./services/auto-update-service";
 import IpcRouter from "./services/ipc-router";
 import ExportService from "./services/export-service";
+import { CollectionService } from "./services/collection-service";
 import DialogReact from "./utils/dialog-react";
 import ActionLogger from "./utils/action-logger";
 import { InstanceDB } from "./db/index";
@@ -87,7 +89,9 @@ const supabaseService = new SupabaseService();
 const networkService = new NetworkService();
 const oauthServer = new OAuthServer();
 const userService = new UserService(supabaseService, db, appMessenger, networkService, oauthServer);
+const workspaceService = new WorkspaceService(db);
 const historyService = new HistoryService(db, userService);
+const collectionService = new CollectionService(db);
 const syncService = new SyncService(db, supabaseService);
 
 userService.initSession().catch(err => console.error("Erro ao inicializar sessão:", err));
@@ -102,7 +106,9 @@ global.contextMenuBuilder = contextMenuBuilder;
 const ipcRouter = new IpcRouter({
   windowManager,
   userService,
+  workspaceService,
   historyService,
+  collectionService,
   networkService,
   exportService,
   messenger: appMessenger,

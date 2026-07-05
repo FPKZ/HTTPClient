@@ -21,6 +21,9 @@ export class WindowManager implements IWindowManager {
   private actionLoggerWindow: BrowserWindow | null = null;
   private _forceCloseFlag: boolean = false;
 
+  // Mapa de janelas principais: windowId -> { win, activeCollectionId }
+  private mainWindows = new Map<number, { win: BrowserWindow; activeCollectionId: string | null }>();
+
   constructor(isDev: boolean, preloadPath: string, actionLogger: IActionLogger) {
     this.isDev = isDev;
     this.preloadPath = preloadPath;
@@ -44,7 +47,15 @@ export class WindowManager implements IWindowManager {
       preloadPath: this.preloadPath,
     });
 
-    this.mainWindow = new BrowserWindow({
+    const win = this.createWindow("/login");
+    this.mainWindow = win;
+    return win;
+  }
+
+  createWindow(route: string, collectionId?: string): BrowserWindow {
+    log.info(`[WindowManager] Creating Window for route: ${route}, Collection: ${collectionId}`);
+
+    const win = new BrowserWindow({
       title: "HTTPClient",
       icon: icon,
       width: 1100,
@@ -66,74 +77,116 @@ export class WindowManager implements IWindowManager {
       },
     });
 
-    this.mainWindow.webContents.on("did-start-loading", () =>
-      log.info("Main Window: did-start-loading"),
+    win.webContents.on("did-start-loading", () =>
+      log.info(`Window ${win.id}: did-start-loading`)
     );
-    this.mainWindow.webContents.on("did-finish-load", () =>
-      log.info("Main Window: did-finish-load"),
+    win.webContents.on("did-finish-load", () =>
+      log.info(`Window ${win.id}: did-finish-load`)
     );
-    this.mainWindow.webContents.on("did-fail-load", (_e, code, desc, url) =>
-      log.error("Main Window: did-fail-load", { code, desc, url }),
-    );
-    this.mainWindow.webContents.on("dom-ready", () =>
-      log.info("Main Window: dom-ready"),
+    win.webContents.on("did-fail-load", (_e, code, desc, url) =>
+      log.error(`Window ${win.id}: did-fail-load`, { code, desc, url })
     );
 
-    this.mainWindow.webContents.on(
+    win.webContents.on(
       "console-message",
       (_event, level, message, line, sourceId) => {
         const levels = ["DEBUG", "INFO", "WARN", "ERROR"];
         log.info(
-          `[Renderer Console][${levels[level] || "LOG"}] ${message} (${path.basename(sourceId)}:${line})`,
+          `[Renderer Console - Win ${win.id}][${levels[level] || "LOG"}] ${message} (${path.basename(sourceId)}:${line})`
         );
-      },
+      }
     );
 
-    const url = this.getRouteURL("/login");
-    log.info(`Loading URL in Main Window: ${url}`);
-    this.mainWindow.loadURL(url).catch((e) => {
-      log.error(`Falha ao carregar URL: ${e.message}`, {
-        url: this.getRouteURL("/login"),
-      });
+    const url = this.getRouteURL(route);
+    log.info(`Loading URL in Window ${win.id}: ${url}`);
+    win.loadURL(url).catch((e) => {
+      log.error(`Falha ao carregar URL na janela ${win.id}: ${e.message}`, { url });
       dialog.showErrorBox(
         "Erro ao carregar janela",
-        `Falha ao carregar URL: ${e.message}\nPath: ${this.getRouteURL(
-          "/login",
-        )}`,
+        `Falha ao carregar URL: ${e.message}\nPath: ${url}`
       );
     });
-    
-    this.mainWindow.setMenuBarVisibility(false);
 
-    this.mainWindow.once("ready-to-show", () => {
-      log.info("Main Window event: ready-to-show");
+    win.setMenuBarVisibility(false);
+
+    const windowId = win.id;
+    this.mainWindows.set(windowId, { win, activeCollectionId: collectionId || null });
+
+    win.once("ready-to-show", () => {
+      log.info(`Window ${windowId} event: ready-to-show`);
       if (this.updateWindow && !this.updateWindow.isDestroyed()) {
         this.updateWindow.close();
         this.updateWindow = null;
       }
-      if (this.mainWindow) {
-        this.mainWindow.show();
-        if (this.isDev) this.mainWindow.webContents.openDevTools();
-      }
+      win.show();
+      if (this.isDev) win.webContents.openDevTools();
     });
 
-    this.mainWindow.on("close", (e) => {
+    win.on("close", (e) => {
       if (this._forceCloseFlag) return;
 
-      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      // Se for a última janela principal, envia evento para salvar a sessão antes de sair
+      if (this.mainWindows.size === 1 && !win.isDestroyed()) {
         e.preventDefault();
-        this.mainWindow.webContents.send("request-save-session");
+        win.webContents.send("request-save-session");
       }
     });
 
-    return this.mainWindow;
+    win.on("closed", () => {
+      this.mainWindows.delete(windowId);
+      log.info(`Window ${windowId} closed. Remaining main windows: ${this.mainWindows.size}`);
+      
+      if (this.mainWindow?.id === windowId) {
+        this.mainWindow = null;
+        if (this.mainWindows.size > 0) {
+          const next = this.mainWindows.values().next().value;
+          if (next) this.mainWindow = next.win;
+        }
+      }
+    });
+
+    return win;
+  }
+
+  setActiveCollectionForWindow(windowId: number, collectionId: string | null): void {
+    const entry = this.mainWindows.get(windowId);
+    if (entry) {
+      entry.activeCollectionId = collectionId;
+      log.info(`[WindowManager] Janela ${windowId} agora tem a Coleção ${collectionId} ativa.`);
+    }
+  }
+
+  isCollectionOpenInAnotherWindow(windowId: number, collectionId: string): boolean {
+    for (const [id, entry] of this.mainWindows.entries()) {
+      if (id !== windowId && entry.activeCollectionId === collectionId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  focusWindowWithCollection(collectionId: string): boolean {
+    for (const [_, entry] of this.mainWindows.entries()) {
+      if (entry.activeCollectionId === collectionId) {
+        if (entry.win.isMinimized()) entry.win.restore();
+        entry.win.focus();
+        log.info(`[WindowManager] Focado na janela existente contendo a Coleção ${collectionId}.`);
+        return true;
+      }
+    }
+    return false;
   }
 
   forceCloseApp(): void {
     this._forceCloseFlag = true;
-    if (this.mainWindow) {
-      this.actionLogger.log("Fechando App");
-      this.mainWindow.close();
+    this.actionLogger.log("Forçando fechamento do app...");
+    for (const [_, entry] of this.mainWindows.entries()) {
+      if (!entry.win.isDestroyed()) entry.win.close();
+    }
+    this.mainWindows.clear();
+    this.mainWindow = null;
+    if (this.actionLoggerWindow && !this.actionLoggerWindow.isDestroyed()) {
+      this.actionLoggerWindow.close();
     }
   }
 
@@ -250,11 +303,10 @@ export class WindowManager implements IWindowManager {
     const win = BrowserWindow.getFocusedWindow();
     if (win) {
       try {
-        console.log("fechando janela", win.getTitle());
-        this.actionLogger.log("Janela fechada");
+        log.info("Fechando janela: ", win.id);
+        this.actionLogger.log("Janela fechada: " + win.id);
       } catch (error: any) {
-        console.log("Erro ao fechar janela", error);
-        this.actionLogger.log("Erro ao fechar janela: " + error.message);
+        log.error("Erro ao registrar fechamento da janela:", error);
       } finally {
         win.close();
       }
@@ -262,8 +314,15 @@ export class WindowManager implements IWindowManager {
   }
 
   closeAll(): void {
-    const wins = BrowserWindow.getAllWindows();
-    wins.forEach((win) => win.close());
+    this._forceCloseFlag = true;
+    for (const [_, entry] of this.mainWindows.entries()) {
+      if (!entry.win.isDestroyed()) entry.win.close();
+    }
+    this.mainWindows.clear();
+    this.mainWindow = null;
+
+    if (this.updateWindow && !this.updateWindow.isDestroyed()) this.updateWindow.close();
+    if (this.actionLoggerWindow && !this.actionLoggerWindow.isDestroyed()) this.actionLoggerWindow.close();
   }
 
   setMenu(template: any): Menu {

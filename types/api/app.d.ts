@@ -38,4 +38,10 @@ export interface AppAPI {
     // --- Menu (Native) ---
     openMenu: () => void;
     onMenuAction: (callback: (value: any) => void) => () => void;
+
+    // --- Multi-Janela & Sincronização ---
+    createWindow: (params: { route: string; collectionId?: string }) => void;
+    setActiveCollection: (collectionId: string | null) => void;
+    checkCollectionOpen: (collectionId: string) => Promise<boolean>;
+    onDatabaseChange: (callback: (data: { entity: string; id: string }) => void) => () => void;
 }

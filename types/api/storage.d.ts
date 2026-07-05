@@ -20,4 +20,24 @@ export interface StorageAPI {
     getCollectionForExport: (id: string) => Promise<any>;
     onRequestSaveSession: (callback: () => void) => () => void;
     saveAndQuit: (data: any) => void;
+
+    // --- Coleções Granulares (CollectionService) ---
+    createFolder: (params: { collectionId: string, parentId: string | null, name: string }) => Promise<any>;
+    renameItem: (params: { id: string, type: 'folder' | 'route', name: string }) => Promise<boolean>;
+    deleteFolder: (params: { id: string }) => Promise<boolean>;
+    createRequest: (params: { collectionId: string, folderId: string | null, name: string }) => Promise<any>;
+    duplicateRequest: (params: { id: string, newId: string, name: string }) => Promise<any>;
+    deleteRequest: (params: { id: string }) => Promise<boolean>;
+    moveOrReorderItem: (params: { id: string, type: 'folder' | 'route', targetFolderId: string | null, orderIndex: number }) => Promise<boolean>;
+
+    // --- Workspaces ---
+    getWorkspaces: (userId: string) => Promise<any[]>;
+    getWorkspaceDetails: (id: string) => Promise<any>;
+    createWorkspace: (params: { name: string; ownerId: string; icon?: string; description?: string }) => Promise<any>;
+    updateWorkspace: (workspace: any) => Promise<boolean>;
+    deleteWorkspace: (id: string) => Promise<boolean>;
+    linkCollection: (params: { workspaceId: string; collectionId: string }) => Promise<boolean>;
+    unlinkCollection: (collectionId: string) => Promise<boolean>;
+    inviteMember: (params: { workspaceId: string; email: string; role?: 'viewer' | 'editor' | 'admin' }) => Promise<boolean>;
+    removeMember: (params: { workspaceId: string; userId: string }) => Promise<boolean>;
 }

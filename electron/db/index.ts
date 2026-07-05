@@ -12,6 +12,14 @@ class InstanceDB {
         if (!InstanceDB.db) {
             const sqlite = new Database(dbPath);
             sqlite.pragma('foreign_keys = ON');
+            
+            // Garante que a coluna email exista na tabela profiles
+            try {
+                sqlite.exec("ALTER TABLE profiles ADD COLUMN email TEXT;");
+            } catch (e) {
+                // Coluna provavelmente já existe ou tabela ainda será criada pelas migrações
+            }
+
             InstanceDB.db = drizzle(sqlite, { schema });
             
             console.log(`[InstanceDB] Inicializando migrações em: ${migrationsPath}`);

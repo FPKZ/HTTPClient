@@ -1,4 +1,4 @@
-import { WebContents } from "electron";
+import { WebContents, BrowserWindow } from "electron";
 import { IWindowManager } from "../interfaces/window-manager.interface";
 import { IAppMessenger } from "../interfaces/app-messenger.interface";
 
@@ -44,11 +44,24 @@ export class AppMessenger implements IAppMessenger {
   }
 
   /**
+   * Envia uma mensagem para todas as janelas abertas
+   */
+  broadcast(channel: string, ...args: any[]): void {
+    const wins = BrowserWindow.getAllWindows();
+    wins.forEach((win) => {
+      if (!win.isDestroyed()) {
+        win.webContents.send(channel, ...args);
+      }
+    });
+  }
+
+  /**
    * Foca a janela principal
    */
   focusMain(): void {
     this.windowManager.focusMainWindow();
   }
 }
+
 
 export default AppMessenger;
