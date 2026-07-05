@@ -19,6 +19,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      "@/types": path.resolve(__dirname, "./types"),
+      "@/mocks": path.resolve(__dirname, "./mocks"),
       "@": path.resolve(__dirname, "./src"),
       stream: "stream-browserify",
       buffer: "buffer",

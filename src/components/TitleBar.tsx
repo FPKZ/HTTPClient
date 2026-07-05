@@ -293,7 +293,7 @@ export default function TitleBar() {
     >
       <div
         className="titlebar-left flex items-center gap-2 ml-2 no-drag cursor-pointer"
-        onClick={() => navigate("/")}
+        onClick={() => navigate("/home")}
       >
         {/* <img src={icon} alt="Icon" style={{ width: "20px", height: "20px" }} /> */}
         {/* <span className="fw-bold">HTTPClient</span> */}

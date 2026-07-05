@@ -1,9 +1,9 @@
 :root {
   /* Tema Escuro (Padrão) - Cinza Escuro e Amarelo Volt */
-  --bg-app: #1e1e1e;
+  --bg-app: #0c0c0d;
   --bg-panel: #171717;
   --bg-editor: #141414;
-  --bg-card: #252526;
+  --bg-card: #181818;
   --bg-input: #121212;
   --bg-hover: #2a2a2b;
   --bg-active: #37373d;
@@ -14,7 +14,7 @@
   --text-inverse: #1e1e1e;
 
   --brand-color: #ffbf00; /* Amarelo Volt Vibrante */
-  --brand-color-hover: #e0a800;
+  --brand-color-hover: #e39d10;
   --brand-text-color: #121212; /* Texto escuro sobre amarelo */
 
   --border-base: #313131;

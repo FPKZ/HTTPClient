@@ -31,7 +31,7 @@ export function useHistory(fetchOnMount = true) {
       window.electronAPI.logAction(
         "Carregando coleção salva no historico: " + item.name
       );
-      useCollectionStore.getState().loadCollection(content);
+      useCollectionStore.getState().loadCollection(content, true);
       navigate("/home");
     }
   };

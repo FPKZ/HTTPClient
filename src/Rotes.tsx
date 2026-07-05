@@ -54,6 +54,7 @@ export default function Rotes() {
         <Route element={<UserRedrect />}>
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/workspaces" element={<Workspaces.Page />} />
+          <Route path="/workspace/:id" element={<Workspaces.Edit />} />
         </Route>
       </Route>
 

@@ -1,5 +1,6 @@
 import React from "react";
-import { Trash2, FolderOpen } from "lucide-react";
+import { Folder, Trash2 } from "lucide-react";
+import { getRelativeTime } from "@/utils/dateUtils";
 
 export interface HistoryEntry {
   id: string;
@@ -16,48 +17,49 @@ interface HistoryItemProps {
   onDelete: (name: string, id: string) => void;
 }
 
-/**
- * HistoryItem
- * Renderiza um único item do histórico.
- */
+
 export default function HistoryItem({ item, onLoad, onDelete }: HistoryItemProps) {
   return (
     <div
       onClick={() => onLoad(item)}
       className="
-        p-2
+        p-3
         flex items-center justify-between 
-        rounded-sm border border-zinc-800 hover:border-amber-400/70 
-        bg-zinc-900/50 hover:bg-zinc-800 
-        cursor-pointer transition-colors group"
+        rounded border border-zinc-800/80 hover:border-brand-hover 
+        bg-[#141414] hover:bg-[#161616] 
+        cursor-pointer transition-all duration-200 group"
     >
-      <div className="flex gap-2">
-        <div className="text-yellow-500 group-hover:fill-yellow-400 transition-colors flex justify-center items-center">
-          <FolderOpen size={20} />
+      <div className="flex items-center gap-3 min-w-0 flex-1 mr-4">
+        {/* Ícone de pasta em cor de destaque volt/laranja */}
+        <div className="text-amber-500 shrink-0 flex justify-center items-center">
+          <Folder size={18} className="fill-current/10" />
         </div>
-        <div className="flex flex-col">
-          <span className="text-zinc-200 font-semibold group-hover:font-bold" style={{ fontSize: '0.8rem' }}>
+        <div className="flex flex-col min-w-0">
+          <span className="text-zinc-100 font-bold text-[0.85rem] truncate leading-tight">
             {item.name}
           </span>
-          <small className="text-zinc-500" style={{ fontSize: '0.65rem' }}>
-            {new Date(item.updatedAt).toLocaleString('pt-BR')} • {item.description || item.descricao || item.sourceType}
-          </small>
+          <span className="text-zinc-500 text-[0.7rem] truncate mt-0.5 leading-normal">
+            {item.description || item.descricao || item.sourceType || "Sem descrição"}
+          </span>
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        <div className="text-zinc-600 hover:text-yellow-500 transition-colors">
-          <small style={{ fontSize: '0.6rem' }}>ABRIR</small>
+      
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-zinc-500 text-[0.6rem] font-bold uppercase tracking-wider">
+            {getRelativeTime(item.updatedAt, { uppercase: true })}
+          </span>
         </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(item.name, item.id);
-          }}
-          className="p-1.5 rounded-full hover:bg-red-500/20 text-zinc-600 hover:text-red-500 transition-colors border-none bg-transparent"
-          title="Excluir do histórico"
-        >
-          <Trash2 size={14} />
-        </button>
+      </div>
+      <div 
+        className="text-red-500 hover:bg-red-500/20 p-1 rounded hidden group-hover:flex cursor-pointer ml-2"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(item.name, item.id);
+        }}
+        title="Remover"
+      >
+        <Trash2 size={12} />
       </div>
     </div>
   );

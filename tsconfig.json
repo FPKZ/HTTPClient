@@ -17,6 +17,10 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
+      "@/types": ["./types/index.ts"],
+      "@/types/*": ["./types/*"],
+      "@/mocks": ["./mocks/index.ts"],
+      "@/mocks/*": ["./mocks/*"],
       "@/*": ["./src/*"]
     }
   },
