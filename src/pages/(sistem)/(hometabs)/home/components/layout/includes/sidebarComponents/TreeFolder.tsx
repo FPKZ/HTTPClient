@@ -329,7 +329,7 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
           </div>
 
           {/* Ações (Hover) */}
-          <div className="pe-1 p-0 m-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto flex items-center gap-1 transition-opacity duration-150 ml-auto shrink-0">
+          <div className="pe-1 p-0 m-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto hidden group-hover:flex items-center gap-0.5 transition-all duration-150 ml-auto shrink-0">
             {isFolder && (
               <>
                 <TreeActionButton
