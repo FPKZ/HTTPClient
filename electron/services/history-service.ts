@@ -103,7 +103,8 @@ export class HistoryService implements IHistoryService {
       return {
         ...collection,
         items,
-        environments: parsedEnvs
+        environments: parsedEnvs,
+        activeEnvironmentId: collection.activeEnv || null
       };
     } catch (error) {
       console.error("[HistoryService] Erro ao buscar coleção:", error);
@@ -115,7 +116,7 @@ export class HistoryService implements IHistoryService {
    * Salva uma coleção inteira desconstruindo-a em tabelas relacionais.
    */
   async saveHistory(collectionData: any): Promise<{ success: boolean }> {
-    const { id, name, items, environments, workspaceId } = collectionData;
+    const { id, name, items, environments, workspaceId, activeEnvironmentId } = collectionData;
     const collectionId = id;
 
     // 1. Achata a árvore
@@ -130,10 +131,15 @@ export class HistoryService implements IHistoryService {
             name: name,
             workspaceId: workspaceId || null,
             storageType: 'local',
+            activeEnv: activeEnvironmentId || null,
           })
           .onConflictDoUpdate({
             target: schema.collections.id,
-            set: { name, updatedAt: new Date().toISOString() }
+            set: { 
+              name, 
+              activeEnv: activeEnvironmentId || null, 
+              updatedAt: new Date().toISOString() 
+            }
           }).run();
 
         // 3. Gerenciar Pastas (Upsert + Delete órfãos)
