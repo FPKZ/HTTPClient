@@ -111,7 +111,11 @@ export class NetworkService implements INetworkService {
         timeout: timeout || this.DEFAULT_TIMEOUT,
         httpsAgent, // Injeção do certificado client se existir
         signal: signal, // Suporte a cancelamento
-        responseType: bodyMode === "stream" ? "stream" : "arraybuffer",
+        responseType: (bodyMode === "stream" || 
+                       (requestHeaders && (
+                         String(requestHeaders["accept"] || "").includes("text/event-stream") || 
+                         String(requestHeaders["accept"] || "").includes("ndjson")
+                       ))) ? "stream" : "arraybuffer",
         onDownloadProgress: (progressEvent) => {
           if (logCallback && progressEvent.total) {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -129,7 +133,7 @@ export class NetworkService implements INetworkService {
       const responseSize = response.data?.byteLength || 0;
 
       // Proteção contra OOM (Out of Memory)
-      if (bodyMode !== "stream") {
+      if (bodyMode !== "stream" && response.headers && !String(response.headers["content-type"] || "").includes("text/event-stream") && !String(response.headers["content-type"] || "").includes("ndjson")) {
         const contentLengthHeader = response.headers["content-length"];
         const contentLength = contentLengthHeader ? parseInt(contentLengthHeader as string, 10) : 0;
         if (contentLength > this.MAX_MEMORY_BUFFER) {
@@ -161,6 +165,46 @@ export class NetworkService implements INetworkService {
             })
           );
           writer.on("error", reject);
+        });
+      }
+
+      // Se a resposta for stream mas NÃO tiver path para salvar (ex: Server Streaming incremental para a UI)
+      if (response.data && typeof response.data.on === "function") {
+        const contentType = (response.headers["content-type"] as string || "").toLowerCase();
+        return new Promise((resolve, reject) => {
+          let accumulatedData = "";
+          response.data.on("data", (chunk: any) => {
+            const chunkString = Buffer.isBuffer(chunk) ? chunk.toString("utf8") : chunk;
+            accumulatedData += chunkString;
+            if (logCallback) {
+              logCallback({
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
+                data: chunkString,
+                contentType,
+                isIncremental: true,
+                responseTime: Date.now() - startTime,
+                responseSize: accumulatedData.length,
+              });
+            }
+          });
+
+          response.data.on("end", () => {
+            resolve({
+              status: response.status,
+              statusText: response.statusText,
+              headers: response.headers,
+              data: accumulatedData,
+              contentType,
+              responseTime: Date.now() - startTime,
+              responseSize: accumulatedData.length,
+            });
+          });
+
+          response.data.on("error", (err: any) => {
+            reject(err);
+          });
         });
       }
 

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import ContextMenu from "@/components/ContextMenu";
+import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import {
   FolderPlus,
   FilePlus,
@@ -65,6 +66,7 @@ interface TreeFolderProps {
 
 export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { setModalConfig } = useModalConfig();
 
   // Ações do store
@@ -163,7 +165,9 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
     [isFolder, item.name, item.id, showDialog, deleteItem],
   );
 
-  const getMethodColor = (method: string) => {
+  const getMethodColor = (method: string, protocol?: string) => {
+    if (protocol === "websocket") return "text-purple-400";
+    if (protocol === "sse") return "text-emerald-400";
     const colors: Record<string, string> = {
       GET: "text-green-400",
       POST: "text-yellow-400",
@@ -193,14 +197,44 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
         {
           label: "Nova Rota",
           icon: <FilePlus size={14} />,
-          onClick: () => {
-            setModalConfig({
-              open: true,
-              type: "file",
-              targetId: item.id,
-            });
-            setIsOpen(true);
-          },
+          subMenu: [
+            {
+              label: "HTTP Request",
+              icon: <FilePlus size={14} />,
+              onClick: () => {
+                setModalConfig({
+                  open: true,
+                  type: "route:http",
+                  targetId: item.id,
+                });
+                setIsOpen(true);
+              },
+            },
+            {
+              label: "SSE Connection",
+              icon: <FilePlus size={14} className="text-emerald-500" />,
+              onClick: () => {
+                setModalConfig({
+                  open: true,
+                  type: "route:sse",
+                  targetId: item.id,
+                });
+                setIsOpen(true);
+              },
+            },
+            {
+              label: "WebSocket Connection",
+              icon: <FilePlus size={14} className="text-violet-500" />,
+              onClick: () => {
+                setModalConfig({
+                  open: true,
+                  type: "route:websocket",
+                  targetId: item.id,
+                });
+                setIsOpen(true);
+              },
+            },
+          ],
         },
       );
     }
@@ -307,9 +341,9 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
           <div className="flex-1 flex items-center gap-2 min-w-0">
             {!isFolder && (
               <span
-                className={`text-[0.65rem]! font-bold ${getMethodColor(item.method)} min-w-8.75`}
+                className={`text-[0.65rem]! font-bold ${getMethodColor(item.method, item.protocol)} min-w-8.75`}
               >
-                {item.method}
+                {item.protocol === "websocket" ? "WS" : (item.protocol === "sse" ? "SSE" : item.method)}
               </span>
             )}
             <span
@@ -329,7 +363,10 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
           </div>
 
           {/* Ações (Hover) */}
-          <div className="pe-1 p-0 m-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto hidden group-hover:flex items-center gap-0.5 transition-all duration-150 ml-auto shrink-0">
+          <div className={`pe-1 p-0 m-0 ml-auto shrink-0 transition-all duration-150
+            ${isDropdownOpen 
+              ? "flex items-center gap-0.5 opacity-100 pointer-events-auto" 
+              : "hidden group-hover:flex items-center gap-0.5 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"}`}>
             {isFolder && (
               <>
                 <TreeActionButton
@@ -344,18 +381,55 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
                   title="Nova Pasta"
                   icon={<FolderPlus size={14} />}
                 />
-                <TreeActionButton
-                  onClick={() => {
-                    setModalConfig({
-                      open: true,
-                      type: "file",
-                      targetId: item.id,
-                    });
-                    setIsOpen(true);
-                  }}
-                  title="Nova Rota"
-                  icon={<FilePlus size={14} />}
-                />
+                <Dropdown.Root open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                  <Dropdown.Trigger asChild>
+                    <button
+                      className="p-1 rounded hover:bg-zinc-700 text-gray-400 hover:text-white transition-colors duration-150 flex items-center justify-center shrink-0 cursor-pointer"
+                      title="Nova Rota"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <FilePlus size={14} />
+                    </button>
+                  </Dropdown.Trigger>
+                  <Dropdown.Portal>
+                    <Dropdown.Content
+                      sideOffset={5}
+                      align="end"
+                      className="min-w-[170px] bg-zinc-900 border border-zinc-800 p-1 rounded shadow-2xl z-50! animate-in fade-in zoom-in-95 duration-100"
+                    >
+                      <Dropdown.Item
+                        onSelect={() => {
+                          setModalConfig({ open: true, type: "route:http", targetId: item.id });
+                          setIsOpen(true);
+                        }}
+                        className="flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold text-zinc-300 outline-none cursor-pointer hover:bg-zinc-800 hover:text-white rounded"
+                      >
+                        <FilePlus size={13} />
+                        HTTP Request
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        onSelect={() => {
+                          setModalConfig({ open: true, type: "route:sse", targetId: item.id });
+                          setIsOpen(true);
+                        }}
+                        className="flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold text-zinc-300 outline-none cursor-pointer hover:bg-zinc-800 hover:text-white rounded"
+                      >
+                        <FilePlus size={13} className="text-emerald-500" />
+                        SSE Connection
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        onSelect={() => {
+                          setModalConfig({ open: true, type: "route:websocket", targetId: item.id });
+                          setIsOpen(true);
+                        }}
+                        className="flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold text-zinc-300 outline-none cursor-pointer hover:bg-zinc-800 hover:text-white rounded"
+                      >
+                        <FilePlus size={13} className="text-violet-500" />
+                        WebSocket Connection
+                      </Dropdown.Item>
+                    </Dropdown.Content>
+                  </Dropdown.Portal>
+                </Dropdown.Root>
               </>
             )}
             <TreeActionButton

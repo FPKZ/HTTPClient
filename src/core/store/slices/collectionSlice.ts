@@ -330,14 +330,19 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
       });
     },
 
-    addRoute: (parentId: string | null = null, name: string = "Nova Rota") => {
+    addRoute: (parentId: string | null = null, name: string = "Nova Rota", protocol: string = "http") => {
       const { collection } = get();
       if (!collection.id) return;
+
+      const finalName = name === "Nova Rota" 
+        ? (protocol === "websocket" ? "Novo WebSocket" : (protocol === "sse" ? "Nova Conexão SSE" : "Nova Rota"))
+        : name;
 
       window.electronAPI.createRequest({
         collectionId: collection.id,
         folderId: parentId || null,
-        name: name || "Nova Rota",
+        name: finalName,
+        protocol,
       }).catch((err) => console.error("Erro ao criar rota no SQLite:", err));
     },
 

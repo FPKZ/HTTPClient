@@ -52,8 +52,8 @@ export class CollectionHandler extends BaseHandler {
       return success;
     });
 
-    ipcMain.handle("collections:create-request", async (_event, { collectionId, folderId, name }) => {
-      const res = await this.collection.createRequest(collectionId, folderId, name);
+    ipcMain.handle("collections:create-request", async (_event, { collectionId, folderId, name, protocol }) => {
+      const res = await this.collection.createRequest(collectionId, folderId, name, protocol);
       if (res) {
         this.messenger.broadcast("database-change", {
           entity: "request",

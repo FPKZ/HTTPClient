@@ -21,8 +21,10 @@ export function useMenuGeral() {
   const navigate = useNavigate();
 
   const responseIsOpen = useInterfaceStore((state) => state.responseIsOpen);
-  const codeSnippetsIsOpen = useInterfaceStore((state) => state.codeSnippetsIsOpen);
   const sideBarIsOpen = useInterfaceStore((state) => state.sideBarIsOpen)
+  const activeTab = useTabStore((state) => state.getActiveTab());
+  const isWsorSse = activeTab?.protocol === "websocket" || activeTab?.protocol === "sse";
+  const codeSnippetsIsOpen = useInterfaceStore((state) => state.codeSnippetsIsOpen) && !isWsorSse;
 
   const setResponseIsOpen = useInterfaceStore(
     (state) => state.setResponseIsOpen,
@@ -155,7 +157,7 @@ export function useMenuGeral() {
     {
       icon: <Braces size={14} />,
       label: "Code Snippets",
-      disabled: !isActiveTab(),
+      disabled: !isActiveTab() || isWsorSse,
       onClick: (e: React.MouseEvent<HTMLButtonElement>) => funcViewMenu(e, setCodeSnippetsIsOpen),
       checked: codeSnippetsIsOpen ? <Check size={14} strokeWidth={3}/> : null
     },

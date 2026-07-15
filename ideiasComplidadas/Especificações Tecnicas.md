@@ -13,7 +13,7 @@ Sistema desktop para testes de API construído com **Electron, React, Vite e Zus
 - **Front-end**: React, Zustand (Estado), Yjs (CRDT para edição simultânea).
 - **Back-end (Electron)**: Node.js, `better-sqlite3` (Persistência local).
 - **Cloud/BaaS**: Supabase (Auth, PostgreSQL, Realtime, Storage).
-- **Protocolos**: IPC (Electron), WebSockets (Supabase Realtime), Deep Linking (`seuapp://`).
+- **Protocolos**: IPC (Electron), WebSockets (Supabase Realtime & Conexões do Usuário), Server-Sent Events (SSE), HTTP Streaming (NDJSON), Deep Linking (`seuapp://`).
 
 ## 4. Modelagem de Dados Relacional (Schema)
 O SQLite e o PostgreSQL devem compartilhar este esquema:
@@ -21,7 +21,7 @@ O SQLite e o PostgreSQL devem compartilhar este esquema:
 - **workspaces**: `id`, `name`, `owner_id`.
 - **workspace_members**: `workspace_id`, `user_id`, `role` (admin/editor/viewer).
 - **collections**: `id`, `workspace_id`, `name`, `order_index`, `storage_type` ('local' | 'cloud'), `owner_id` (Opcional no banco local para permitir uso anônimo/offline sem login).
-- **requests**: `id`, `collection_id`, `folder_id`, `method`, `url`, `body` (lazy), `headers` (lazy), `params` (lazy), `auth` (lazy), `is_dirty` (boolean para sync), `order_index`.
+- **requests**: `id`, `collection_id`, `folder_id`, `protocol` ('http' | 'sse' | 'websocket'), `method`, `url`, `body` (lazy), `headers` (lazy), `params` (lazy), `auth` (lazy), `is_dirty` (boolean para sync), `order_index`.
 
 ## 5. Fluxos de Trabalho (Regras de Implementação)
 
@@ -41,6 +41,12 @@ O SQLite e o PostgreSQL devem compartilhar este esquema:
 ### 5.3 Colaboração Real-time
 - **Presença**: Usar Supabase Presence para indicar usuários ativos e rotas em edição.
 - **Conflitos**: Usar Yjs para mesclar alterações no corpo (body) e headers das requisições em tempo real.
+
+### 5.4 Conexões de Longa Duração & Streaming
+- **Gerenciamento no Main Process**: O ciclo de vida de conexões persistentes (WS/SSE) e streams parciais de dados de rede é mantido inteiramente no Electron Main para evitar vazamento de memória e problemas de CORS.
+- **Ponte IPC Bidirecional**: As mensagens e atualizações de status são repassadas progressivamente para o Zustand no Renderer via IPC em tempo real.
+- **HTTP Streaming Incremental**: O motor de rede deve ser capaz de escutar fluxos contínuos de dados HTTP (como respostas da API de IA) e emitir callbacks parciais para a UI à medida que os chunks chegam.
+
 
 ### 5.4 Limites & SaaS (Futuro)
 - Implementar checagem de limites de Workspaces e Membros baseada no plano do usuário salvo no SQLite/Supabase.

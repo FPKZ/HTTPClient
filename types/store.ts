@@ -36,9 +36,12 @@ export interface TabUiState {
   panelVerticalSizePrimary?: string;
   panelVerticalSize?: string;
   panelHorizontalSize?: string;
+  logLimit?: number;
 }
 
 export interface Log {
+  id?: string;
+  timestamp?: number;
   status: number | string | null;
   statusText: string;
   data?: any;
@@ -58,6 +61,8 @@ export interface Tab {
   id: string;
   screenKey: string | null;
   title: string;
+  protocol?: "http" | "sse" | "websocket";
+  connectionStatus?: "disconnected" | "connecting" | "connected";
   method: string;
   url: string;
   data: any; 
@@ -120,6 +125,9 @@ export interface TabSlice {
   updateTabRequest: (id: string, sectionKey: string, fieldKey: string | null, value: any) => void;
   updateTabUiState: (id: string, partialUiState: Partial<TabUiState>) => void;
   updateTabLogs: (id: string, logs: Log[]) => void;
+  appendTabLog: (id: string, log: Log) => void;
+  clearTabLogs: (id: string) => void;
+  updateTabConnectionStatus: (id: string, status: "disconnected" | "connecting" | "connected") => void;
   setTabExecuting: (id: string, isExecuting: boolean | string) => void;
   getActiveTab: () => Tab | null;
   deleteActiveTab: () => void;

@@ -15,6 +15,7 @@ export interface ContextMenuItem {
   shortcut?: string;
   disabled?: boolean;
   separator?: boolean;
+  subMenu?: ContextMenuItem[];
 }
 
 interface ContextMenuProps {
@@ -41,6 +42,51 @@ export default function ContextMenu({ children, items }: ContextMenuProps) {
               );
             }
 
+            if (item.subMenu && item.subMenu.length > 0) {
+              return (
+                <ContextMenuPrimitive.Sub key={index}>
+                  <ContextMenuPrimitive.SubTrigger className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-zinc-300 outline-none cursor-pointer hover:bg-zinc-800 rounded transition-colors data-[state=open]:bg-zinc-800 select-none">
+                    {item.icon && <span className="shrink-0">{item.icon}</span>}
+                    <span className="flex-1">{item.label}</span>
+                    <span className="ml-auto text-zinc-500 text-[10px]">▶</span>
+                  </ContextMenuPrimitive.SubTrigger>
+                  <ContextMenuPrimitive.Portal>
+                    <ContextMenuPrimitive.SubContent className="min-w-[180px] bg-zinc-900 border border-zinc-700! p-1 rounded-sm shadow-2xl z-50! animate-in fade-in slide-in-from-left-1 duration-100">
+                      {item.subMenu.map((sub, sIdx) => {
+                        if (sub.separator) {
+                          return (
+                            <ContextMenuPrimitive.Separator
+                              key={`sep-${sIdx}`}
+                              className="h-px bg-zinc-700! m-1"
+                            />
+                          );
+                        }
+                        return (
+                          <ContextMenuPrimitive.Item
+                            key={sIdx}
+                            disabled={sub.disabled}
+                            onSelect={(e) => {
+                              if (!sub.disabled && sub.onClick) {
+                                sub.onClick(sub.disabled ? undefined : (e as any));
+                              }
+                            }}
+                            className={cn(
+                              "flex items-center gap-2 px-3 py-2 text-xs font-semibold text-zinc-300 outline-none cursor-pointer hover:bg-zinc-800 rounded transition-colors",
+                              sub.disabled && "opacity-50",
+                              sub.className
+                            )}
+                          >
+                            {sub.icon && <span className="shrink-0">{sub.icon}</span>}
+                            <span className="flex-1">{sub.label}</span>
+                          </ContextMenuPrimitive.Item>
+                        );
+                      })}
+                    </ContextMenuPrimitive.SubContent>
+                  </ContextMenuPrimitive.Portal>
+                </ContextMenuPrimitive.Sub>
+              );
+            }
+
             return (
               <ContextMenuPrimitive.Item
                 key={index}
@@ -51,7 +97,7 @@ export default function ContextMenu({ children, items }: ContextMenuProps) {
                   }
                 }}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 text-xs! font-semibold text-zinc-300 outline-none cursor-pointer hover:bg-zinc-800 rounded transition-colors",
+                  "flex items-center gap-2 px-3 py-2 text-xs font-semibold text-zinc-300 outline-none cursor-pointer hover:bg-zinc-800 rounded transition-colors",
                   item?.disabled && "opacity-50",
                   item.className
                 )}

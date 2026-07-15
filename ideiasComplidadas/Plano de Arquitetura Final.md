@@ -12,7 +12,7 @@ Para garantir a integridade, o SQLite local e o PostgreSQL (Supabase) compartilh
 | **workspaces** | Grupos de trabalho: id, name, owner_id. |
 | **workspace_members** | Controle de acesso: workspace_id, user_id, role (viewer/editor/admin). |
 | **collections** | Grupos de rotas: id, workspace_id, name, order_index, storage_type, owner_id (opcional no local para uso anônimo). |
-| **requests** | A rota em si: `id`, `collection_id`, `method`, `url`, `body` (lazy), `headers` (lazy), `params` (lazy), `auth` (lazy), `is_dirty`, `order_index`. |
+| **requests** | A rota em si: `id`, `collection_id`, `protocol` ('http' | 'sse' | 'websocket'), `method`, `url`, `body` (lazy), `headers` (lazy), `params` (lazy), `auth` (lazy), `is_dirty`, `order_index`. |
 
 ## 3. Fluxo Profissional de Autenticação e Sessão
 ### Inicialização (O "Boot" do App)
@@ -78,6 +78,13 @@ Este é o resumo consolidado de tudo o que desenhamos. Siga esta ordem para gara
 ### Fase 4: Governança e Negócio
  * [ ] **Tabelas de Planos:** Estruturar limites de workspaces e membros.
  * [ ] **Paywalls:** Adicionar bloqueios na interface baseados no plano do usuário.
+
+### Fase 5: Conexões de Longa Duração & Streaming
+ * [ ] **Connection Manager:** Criar gerenciador de conexões em memória no Electron Main Process para instanciar WebSockets e SSE.
+ * [ ] **UI Reutilizada:** Adaptar os componentes da aba de requisição para ocultar/adaptar os campos e mudar o comportamento dos botões Send/Cancel com base no protocolo.
+ * [ ] **Histórico Temporal de Logs:** Exibir uma linha do tempo incremental no painel de Resposta para exibir eventos e mensagens recebidas.
+ * [ ] **HTTP Streaming Incremental:** Ajustar o serviço de rede para repassar chunks parciais de dados HTTP contínuos em tempo real ao Renderer.
+
 ## 10. Consideração Final: Princípios de Manutenção
 Para que este sistema não se torne um "monstro" difícil de cuidar:
  1. **Logs:** Implemente um sistema de logs simples no Electron para debugar falhas de sincronização.

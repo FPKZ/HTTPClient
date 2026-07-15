@@ -20,6 +20,13 @@ class InstanceDB {
                 // Coluna provavelmente já existe ou tabela ainda será criada pelas migrações
             }
 
+            // Garante que a coluna protocol exista na tabela requests
+            try {
+                sqlite.exec("ALTER TABLE requests ADD COLUMN protocol TEXT DEFAULT 'http';");
+            } catch (e) {
+                // Coluna provavelmente já existe
+            }
+
             InstanceDB.db = drizzle(sqlite, { schema });
             
             console.log(`[InstanceDB] Inicializando migrações em: ${migrationsPath}`);

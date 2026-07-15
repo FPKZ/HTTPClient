@@ -13,8 +13,12 @@ export default function useModalConfig() {
     const { type, targetId } = modalConfig;
     if (type === "folder") {
       addFolder?.(targetId, name);
-    } else if (type === "file") {
-      addRoute?.(targetId, name);
+    } else if (type === "file" || type === "route:http") {
+      addRoute?.(targetId, name, "http");
+    } else if (type === "route:sse") {
+      addRoute?.(targetId, name, "sse");
+    } else if (type === "route:websocket") {
+      addRoute?.(targetId, name, "websocket");
     } else if (type === "rename") {
       if (targetId) renameItem?.(targetId, name);
     }
@@ -34,14 +38,23 @@ export default function useModalConfig() {
           ),
         };
       case "file":
+      case "route:http":
         return {
-          title: "Nova Rota",
-          description: "Insira o nome da nova rota",
-          trigger: (
-            <button className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white">
-              Nova Rota
-            </button>
-          ),
+          title: "Nova Rota HTTP",
+          description: "Insira o nome da nova rota HTTP",
+          trigger: null,
+        };
+      case "route:sse":
+        return {
+          title: "Nova Conexão SSE",
+          description: "Insira o nome da nova conexão SSE",
+          trigger: null,
+        };
+      case "route:websocket":
+        return {
+          title: "Nova Conexão WebSocket",
+          description: "Insira o nome da nova conexão WebSocket",
+          trigger: null,
         };
       case "rename":
         return {

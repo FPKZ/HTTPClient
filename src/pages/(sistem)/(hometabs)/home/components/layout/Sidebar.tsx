@@ -193,15 +193,33 @@ const SidebarTree = React.memo(() => {
     () => [
       {
         label: "Nova Pasta",
-        icon: <FolderPlus size={14} />, // Placeholder icon mapping if FolderPlus is missing
+        icon: <FolderPlus size={14} />,
         onClick: () =>
           setModalConfig({ open: true, type: "folder", targetId: null }),
       },
       {
         label: "Nova Rota",
-        icon: <FilePlus size={14} />, // Placeholder icon mapping if FilePlus is missing
-        onClick: () =>
-          setModalConfig({ open: true, type: "file", targetId: null }),
+        icon: <FilePlus size={14} />,
+        subMenu: [
+          {
+            label: "HTTP Request",
+            icon: <FilePlus size={14} />,
+            onClick: () =>
+              setModalConfig({ open: true, type: "route:http", targetId: null }),
+          },
+          {
+            label: "SSE Connection",
+            icon: <FilePlus size={14} className="text-emerald-500" />,
+            onClick: () =>
+              setModalConfig({ open: true, type: "route:sse", targetId: null }),
+          },
+          {
+            label: "WebSocket Connection",
+            icon: <FilePlus size={14} className="text-violet-500" />,
+            onClick: () =>
+              setModalConfig({ open: true, type: "route:websocket", targetId: null }),
+          },
+        ],
       },
     ],
     [setModalConfig],

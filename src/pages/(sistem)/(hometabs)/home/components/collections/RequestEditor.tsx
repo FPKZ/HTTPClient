@@ -5,6 +5,7 @@ import Editor, { OnMount } from "@monaco-editor/react";
 import { monacoRegistry } from "@/lib/monacoRegistry";
 import { defaultEditorOptions } from "@/lib/monacoConfig";
 import { useRequestEditor } from "@/core/hooks/useRequestEditor";
+import useTabStore from "@/core/store/useTabStore";
 
 interface RequestEditorProps {
   subKey: string;
@@ -31,6 +32,10 @@ export default function RequestEditor({
   lineNumbers = "off",
   lineNumbersMinChars = 3,
 }: RequestEditorProps) {
+  const tab = useTabStore((state) => state.tabs.find((t) => t.id === requestId));
+  const isWs = tab?.protocol === "websocket";
+  const isConnected = tab?.connectionStatus === "connected";
+
   const {
     items,
     handleItemChange,
@@ -430,9 +435,28 @@ export default function RequestEditor({
             lineNumbersMinChars={lineNumbersMinChars}
           />
         </div>
-        <p className="text-[0.6rem] text-zinc-600 mb-0 shrink-0">
-          DICA: Use o modo JSON para requisições complexas.
-        </p>
+        {isWs && isConnected ? (
+          <div className="flex justify-between items-center shrink-0 mt-1 bg-zinc-900/30 p-2 rounded border border-zinc-800">
+            <span className="text-[0.6rem] text-zinc-500 font-bold uppercase tracking-wider">
+              WebSocket Conectado • Digite o payload acima
+            </span>
+            <button
+              onClick={() => {
+                if (window.electronAPI?.wsSend) {
+                  const message = typeof subValue.content === "string" ? subValue.content : JSON.stringify(subValue.content, null, 2);
+                  window.electronAPI.wsSend({ requestId, message });
+                }
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-1.5 rounded text-[0.65rem]! uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              Enviar Mensagem
+            </button>
+          </div>
+        ) : (
+          <p className="text-[0.6rem] text-zinc-600 mb-0 shrink-0">
+            DICA: Use o modo JSON para requisições complexas.
+          </p>
+        )}
       </div>
     );
   }
@@ -523,8 +547,20 @@ export default function RequestEditor({
     return (
       <div className="flex flex-col gap-2">
         {renderModeSelector()}
-        <div className="py-10 text-center text-zinc-600 text-[0.75rem]">
-          Esta requisição não possui corpo.
+        <div className="py-10 text-center text-zinc-600 text-[0.75rem] flex flex-col items-center gap-4">
+          <span>Esta requisição não possui corpo.</span>
+          {isWs && isConnected && (
+            <button
+              onClick={() => {
+                if (window.electronAPI?.wsSend) {
+                  window.electronAPI.wsSend({ requestId, message: "" });
+                }
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-1.5 rounded text-[0.65rem]! uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              Enviar Mensagem Vazia (Ping)
+            </button>
+          )}
         </div>
       </div>
     );

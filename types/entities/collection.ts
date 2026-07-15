@@ -1,5 +1,8 @@
 
+export type ApiProtocol = "http" | "sse" | "websocket";
+
 export interface RequestData {
+  protocol?: ApiProtocol;
   method: string;
   url: string;
   headers: { key: string, value: string, enabled: boolean }[];
@@ -28,6 +31,7 @@ export interface RouteData {
   id: string;
   type: "route";
   name: string;
+  protocol?: ApiProtocol;
   description?: string;
   request: RequestData;
   response?: ResponseData;
@@ -37,6 +41,7 @@ export interface TreeRouteNode {
   id: string;
   type: "route";
   name: string;
+  protocol?: ApiProtocol;
   description?: string;
   method: string;
 }

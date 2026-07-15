@@ -29,12 +29,15 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
             params: [],
             body: { mode: "none", content: "" },
           };
-
+          const protocol = finalDetails.protocol || routeData.protocol || "http";
+          const method = finalDetails.method || routeData.method || (protocol === "websocket" ? "WS" : "GET");
           const newTab: Tab = {
             id: `tab-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             screenKey,
             title: routeData.name || finalDetails.name || screenKey,
-            method: finalDetails.method || routeData.method || "GET",
+            protocol,
+            connectionStatus: "disconnected",
+            method,
             url: finalDetails.url || "",
             data: {
               id: routeData.id || screenKey,
@@ -42,11 +45,12 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
               name: routeData.name || finalDetails.name || "",
               description: routeData.description,
               request: {
-                method: finalDetails.method || routeData.method || "GET",
+                protocol,
+                method,
                 url: finalDetails.url || "",
                 headers: finalDetails.headers || [],
                 params: finalDetails.params || [],
-                body: finalDetails.body || { mode: "none", content: "" },
+                body: finalDetails.body || { mode: protocol === "websocket" ? "none" : "json", content: "" },
                 auth: finalDetails.auth,
               },
             },
@@ -56,11 +60,12 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
               activeResponseView: "json",
               panelVerticalSize: "50",
               panelHorizontalSize: "30",
+              logLimit: 250,
             },
             logs: [],
             isExecuting: false,
           };
-
+ 
           set((state) => ({
             tabs: [...state.tabs, newTab],
             activeTabId: newTab.id,
@@ -68,11 +73,15 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
         })
         .catch((err) => {
           console.error("[tabSlice] Erro ao carregar detalhes para abrir aba:", err);
+          const protocol = routeData.protocol || "http";
+          const method = routeData.method || (protocol === "websocket" ? "WS" : "GET");
           const fallbackTab: Tab = {
             id: `tab-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             screenKey,
             title: routeData.name || screenKey,
-            method: routeData.method || "GET",
+            protocol,
+            connectionStatus: "disconnected",
+            method,
             url: "",
             data: {
               id: routeData.id || screenKey,
@@ -80,11 +89,12 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
               name: routeData.name || "",
               description: routeData.description,
               request: {
-                method: routeData.method || "GET",
+                protocol,
+                method,
                 url: "",
                 headers: [],
                 params: [],
-                body: { mode: "none", content: "" },
+                body: { mode: protocol === "websocket" ? "none" : "json", content: "" },
               },
             },
             isDirty: false,
@@ -93,33 +103,39 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
               activeResponseView: "json",
               panelVerticalSize: "50",
               panelHorizontalSize: "30",
+              logLimit: 250,
             },
             logs: [],
             isExecuting: false,
           };
-
+ 
           set((state) => ({
             tabs: [...state.tabs, fallbackTab],
             activeTabId: fallbackTab.id,
           }));
         });
     } else {
+      const protocol = routeData.protocol || "http";
+      const method = routeData.method || (protocol === "websocket" ? "WS" : "GET");
       const newTab: Tab = {
         id: `tab-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         screenKey: null,
         title: routeData.name || "Nova Requisição",
-        method: routeData.method || "GET",
+        protocol,
+        connectionStatus: "disconnected",
+        method,
         url: routeData.url || "",
         data: {
           id: `temp_${Date.now()}`,
           type: "route",
           name: routeData.name || "",
           request: {
-            method: routeData.method || "GET",
+            protocol,
+            method,
             url: routeData.url || "",
             headers: routeData.request?.headers || [],
             params: routeData.request?.params || [],
-            body: routeData.request?.body || { mode: "none", content: "" },
+            body: routeData.request?.body || { mode: protocol === "websocket" ? "none" : "json", content: "" },
             auth: routeData.request?.auth,
           },
         },
@@ -129,11 +145,12 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
           activeResponseView: "json",
           panelVerticalSize: "50",
           panelHorizontalSize: "30",
+          logLimit: 250,
         },
         logs: [],
         isExecuting: false,
       };
-
+ 
       set({
         tabs: [...tabs, newTab],
         activeTabId: newTab.id,
@@ -189,6 +206,12 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
 
   closeTab: (id: string) => {
     const { tabs, activeTabId } = get();
+    const targetTab = tabs.find((t) => t.id === id);
+    if (targetTab && (targetTab.protocol === "websocket" || targetTab.protocol === "sse")) {
+      if (window.electronAPI?.connectionDisconnectAll) {
+        window.electronAPI.connectionDisconnectAll(id);
+      }
+    }
     const newTabs = tabs.filter((tab) => tab.id !== id);
     let newActiveId = activeTabId;
 
@@ -230,8 +253,9 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
         return {
           ...tab,
           data: { ...tab.data, request: updatedRequest },
-          url: updatedRequest.url || tab.url,
-          method: updatedRequest.method || tab.method,
+          url: updatedRequest.url !== undefined ? updatedRequest.url : tab.url,
+          method: updatedRequest.method !== undefined ? updatedRequest.method : tab.method,
+          protocol: updatedRequest.protocol !== undefined ? updatedRequest.protocol : tab.protocol,
           isDirty: true,
         };
       }),
@@ -251,6 +275,40 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
   updateTabLogs: (id: string, logs: any[]) => {
     set((state) => ({
       tabs: state.tabs.map((tab) => (tab.id === id ? { ...tab, logs } : tab)),
+    }));
+  },
+
+  appendTabLog: (id: string, log: any) => {
+    set((state) => ({
+      tabs: state.tabs.map((tab) => {
+        if (tab.id !== id) return tab;
+        const currentLogs = tab.logs || [];
+        
+        // Injeta id único e timestamp no log se não possuir
+        const logWithId = {
+          ...log,
+          id: log.id || `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: log.timestamp || Date.now(),
+        };
+
+        const limit = tab.uiState?.logLimit ?? 250;
+        const newLogs = limit > 0 
+          ? [...currentLogs, logWithId].slice(-limit)
+          : [...currentLogs, logWithId];
+        return { ...tab, logs: newLogs };
+      }),
+    }));
+  },
+
+  clearTabLogs: (id: string) => {
+    set((state) => ({
+      tabs: state.tabs.map((tab) => (tab.id === id ? { ...tab, logs: [] } : tab)),
+    }));
+  },
+
+  updateTabConnectionStatus: (id: string, connectionStatus: "disconnected" | "connecting" | "connected") => {
+    set((state) => ({
+      tabs: state.tabs.map((tab) => (tab.id === id ? { ...tab, connectionStatus } : tab)),
     }));
   },
 

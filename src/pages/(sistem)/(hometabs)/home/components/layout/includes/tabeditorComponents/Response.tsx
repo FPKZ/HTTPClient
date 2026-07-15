@@ -2,6 +2,8 @@ import React from "react";
 import { formatSize } from "@/lib/utils";
 import ResultRequestLog from "./ResultRequestLog";
 import { Tab, Log } from "@/core/store";
+import { Trash2 } from "lucide-react";
+import useTabStore from "@/core/store/useTabStore";
 
 interface ResponseProps {
   logs: Log[];
@@ -17,6 +19,7 @@ const Response = React.memo(function Response({
   activeTab,
 }: ResponseProps) {
   const lastLog = logs.length > 0 ? logs[logs.length - 1] : null;
+  const clearTabLogs = useTabStore((state) => state.clearTabLogs);
 
   return (
     <div className="flex-1 h-full border-t border-zinc-700! bg-zinc-950 flex flex-col overflow-hidden">
@@ -58,25 +61,66 @@ const Response = React.memo(function Response({
           )}
         </div>
 
-        {/* Seletor de Abas Global */}
-        <div className="flex bg-zinc-900/80 rounded-lg! p-0.5 border border-zinc-800! ml-4 shrink-0">
-          {["json", "preview", "headers"].map((tab) => (
+        <div className="flex items-center gap-2 ml-4 shrink-0">
+          {/* Seletor de Abas Global ou Seletor de Limite de Logs */}
+          {activeTab.protocol === "websocket" || activeTab.protocol === "sse" ? (
+            <div className="flex items-center gap-1 bg-zinc-900/80 rounded-lg! p-0.5 border border-zinc-800!">
+              <span className="text-[0.55rem] text-zinc-500 font-bold ml-1.5 mr-0.5 uppercase tracking-wide">Lim:</span>
+              {[100, 250, 500, 1000].map((limit) => (
+                <button
+                  key={limit}
+                  onClick={() => {
+                    updateTabUiState(activeTab.id, {
+                      logLimit: limit,
+                    });
+                    // Cortar os logs ativos na UI imediatamente
+                    useTabStore.getState().updateTabLogs(
+                      activeTab.id,
+                      activeTab.logs.slice(-limit)
+                    );
+                  }}
+                  className={`px-2 py-0.5 rounded-md! text-[0.6rem]! font-black transition-all! ${
+                    (activeTab.uiState?.logLimit ?? 250) === limit
+                      ? "bg-zinc-800 text-yellow-500 shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  }`}
+                >
+                  {limit}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex bg-zinc-900/80 rounded-lg! p-0.5 border border-zinc-800!">
+              {["json", "preview", "headers"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() =>
+                    updateTabUiState(activeTab.id, {
+                      activeResponseView: tab,
+                    })
+                  }
+                  className={`px-2.5 py-1 rounded-md! text-[0.6rem]! font-bold uppercase transition-all! ${
+                    activeResponseView === tab
+                      ? "bg-zinc-800 text-yellow-500 shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Botão Limpar Terminal (Logs) */}
+          {(activeTab.protocol === "websocket" || activeTab.protocol === "sse") && (
             <button
-              key={tab}
-              onClick={() =>
-                updateTabUiState(activeTab.id, {
-                  activeResponseView: tab,
-                })
-              }
-              className={`px-2.5 py-1 rounded-md! text-[0.6rem]! font-bold uppercase transition-all! ${
-                activeResponseView === tab
-                  ? "bg-zinc-800 text-yellow-500 shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-300"
-              }`}
+              onClick={() => clearTabLogs(activeTab.id)}
+              className="p-1 hover:bg-zinc-800 hover:text-red-400 text-zinc-500 rounded transition-colors cursor-pointer"
+              title="Limpar logs"
             >
-              {tab}
+              <Trash2 size={13} />
             </button>
-          ))}
+          )}
         </div>
       </div>
 

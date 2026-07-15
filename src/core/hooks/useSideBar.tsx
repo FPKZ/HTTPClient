@@ -143,7 +143,23 @@ function useTemplateMenu(){
                     label: "Nova Rota",
                     icon: <FilePlus size={14} />,
                     disabled: !collection,
-                    onClick: () => setModalConfig({ open: true, type: "file", targetId: null }),
+                    subMenu: [
+                        {
+                            label: "HTTP Request",
+                            icon: <FilePlus size={14} />,
+                            onClick: () => setModalConfig({ open: true, type: "route:http", targetId: null }),
+                        },
+                        {
+                            label: "SSE Connection",
+                            icon: <FilePlus size={14} className="text-emerald-500" />,
+                            onClick: () => setModalConfig({ open: true, type: "route:sse", targetId: null }),
+                        },
+                        {
+                            label: "WebSocket Connection",
+                            icon: <FilePlus size={14} className="text-violet-500" />,
+                            onClick: () => setModalConfig({ open: true, type: "route:websocket", targetId: null }),
+                        },
+                    ]
                 },
                 {
                     separator: true,

@@ -8,6 +8,7 @@ export const requests = sqliteTable("requests", {
   name: text("name").notNull(),
   collectionId: text("collection_id").notNull().references(() => collections.id, { onDelete: 'cascade' }),
   folderId: text("folder_id").references(() => folders.id, { onDelete: 'cascade' }),
+  protocol: text("protocol").default("http"),
   method: text("method").notNull(), // GET, POST, etc
   url: text("url").notNull(),
   params: text("params").$type<RequestsParams[]>(), // Salvo como string JSON

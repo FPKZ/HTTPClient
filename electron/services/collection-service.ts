@@ -76,17 +76,19 @@ export class CollectionService implements ICollectionService {
     }
   }
 
-  async createRequest(collectionId: string, folderId: string | null, name: string): Promise<any> {
+  async createRequest(collectionId: string, folderId: string | null, name: string, protocol?: string): Promise<any> {
     const id = `route_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    const finalProtocol = protocol || "http";
+    const method = finalProtocol === "websocket" ? "WS" : "GET";
     
     const initialRequest = {
-      method: "GET",
+      method,
       url: "",
-      headers: [
-        { key: "Content-Type", value: "application/json", enabled: true },
-      ],
+      headers: finalProtocol === "websocket" 
+        ? [] 
+        : [{ key: "Content-Type", value: "application/json", enabled: true }],
       params: [],
-      body: { mode: "json", content: "" },
+      body: { mode: finalProtocol === "websocket" ? "none" : "json", content: "" },
       auth: {
         name: "none",
         config: { key: "", type: "Bearer", value: "header" },
@@ -99,7 +101,8 @@ export class CollectionService implements ICollectionService {
         collectionId,
         folderId: folderId || null,
         name: name || "Nova Rota",
-        method: "GET",
+        protocol: finalProtocol,
+        method,
         url: "",
         params: JSON.stringify(initialRequest.params),
         headers: JSON.stringify(initialRequest.headers),
@@ -113,7 +116,8 @@ export class CollectionService implements ICollectionService {
         id,
         type: "route",
         name: name || "Nova Rota",
-        method: "GET",
+        protocol: finalProtocol,
+        method,
         folderId: folderId || null,
         collectionId,
       };

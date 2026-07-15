@@ -9,6 +9,7 @@ import useInterfaceStore from "@/core/store/useInterfaceStore";
 import Response from "./includes/tabeditorComponents/Response";
 import CodeSnippets from "./includes/tabeditorComponents/CodeSnippets";
 import { usePanelPersistence } from "@/core/hooks/usePanelPersistence";
+import { buildFinalRequest } from "@/utils/collectionUtils";
 import {
   Group as PanelGroup,
   Panel,
@@ -31,9 +32,18 @@ export default function TabEditor() {
   );
   const updateTabUiState = useTabStore((state) => state.updateTabUiState);
   const responseIsOpen = useInterfaceStore((state) => state.responseIsOpen);
+
+  // Variáveis ativas da coleção para resolver templates de URL
+  const environments = useCollectionStore((state) => state.collection.environments) || [];
+  const activeEnvironmentId = useCollectionStore((state) => state.collection.activeEnvironmentId);
+  const globals = useCollectionStore((state) => state.globals) || [];
+  const envVariables = environments.find((env) => env.id === activeEnvironmentId)?.variables || [];
+  const activeVariables = [...globals, ...envVariables];
+
+  const isWsorSse = activeTab?.protocol === "websocket" || activeTab?.protocol === "sse";
   const codeSnippetsIsOpen = useInterfaceStore(
     (state) => state.codeSnippetsIsOpen,
-  );
+  ) && !isWsorSse;
 
   const { handleExecuteRequest, cancelRequest } = useRequestExecutor();
 
@@ -129,66 +139,125 @@ export default function TabEditor() {
           {/* Parte Superior: URL + Navegação das Abas */}
           <div className="sticky top-0 z-20 flex-none border-b border-zinc-700 bg-[#18181b] shadow-md">
             <div className="p-2 py-2 flex items-center gap-3">
-              {/* Método HTTP */}
-              <select
-                value={telaData.request.method || "GET"}
-                onChange={(e) =>
-                  handleInputChange("method", null, e.target.value)
-                }
-                className={`bg-zinc-800 text-[0.9rem] px-2 py-2.5 rounded border border-zinc-600 focus:outline-none focus:border-yellow-500 font-semibold ${getMethodColor(
-                  telaData.request.method,
-                )}`}
-              >
-                <option className={getMethodColor("GET")} value="GET">
-                  GET
-                </option>
-                <option className={getMethodColor("POST")} value="POST">
-                  POST
-                </option>
-                <option className={getMethodColor("PUT")} value="PUT">
-                  PUT
-                </option>
-                <option className={getMethodColor("DELETE")} value="DELETE">
-                  DELETE
-                </option>
-                <option className={getMethodColor("PATCH")} value="PATCH">
-                  PATCH
-                </option>
-              </select>
+              {/* Seletor de Protocolo / Método */}
+              {activeTab.protocol === "websocket" ? (
+                <div className="bg-zinc-800 text-purple-400 text-[0.8rem]! font-black tracking-widest px-3 py-2.5 rounded border border-zinc-700 shrink-0 uppercase">
+                  WS
+                </div>
+              ) : activeTab.protocol === "sse" ? (
+                <div className="bg-zinc-800 text-emerald-400 text-[0.8rem]! font-black tracking-widest px-3 py-2.5 rounded border border-zinc-700 shrink-0 uppercase">
+                  SSE
+                </div>
+              ) : (
+                <select
+                  value={telaData.request.method || "GET"}
+                  onChange={(e) =>
+                    handleInputChange("method", null, e.target.value)
+                  }
+                  className={`bg-zinc-800 text-[0.9rem] px-2 py-2.5 rounded border border-zinc-600 focus:outline-none focus:border-yellow-500 font-semibold ${getMethodColor(
+                    telaData.request.method,
+                  )}`}
+                >
+                  <option className={getMethodColor("GET")} value="GET">
+                    GET
+                  </option>
+                  <option className={getMethodColor("POST")} value="POST">
+                    POST
+                  </option>
+                  <option className={getMethodColor("PUT")} value="PUT">
+                    PUT
+                  </option>
+                  <option className={getMethodColor("DELETE")} value="DELETE">
+                    DELETE
+                  </option>
+                  <option className={getMethodColor("PATCH")} value="PATCH">
+                    PATCH
+                  </option>
+                </select>
+              )}
 
               {/* URL */}
               <input
                 type="text"
                 value={telaData.request.url || ""}
                 onChange={(e) => handleInputChange("url", null, e.target.value)}
-                placeholder="https://api.exemplo.com/endpoint"
+                placeholder={activeTab.protocol === "websocket" ? "ws://api.exemplo.com/chat" : "https://api.exemplo.com/endpoint"}
                 className="flex-1 bg-zinc-800 text-white px-3 py-2 rounded border border-zinc-600 focus:outline-none focus:border-yellow-500"
               />
 
-              {/* Botão Executar / Cancelar */}
+              {/* Botão Executar / Cancelar / Conectar */}
               <div className="flex items-center gap-1">
-                {isExecuting ? (
-                  <button
-                    title="Cancelar requisição"
-                    onClick={() => cancelRequest(isExecuting as string)}
-                    className="p-2.5 bg-red-600 hover:bg-red-700 text-white rounded font-bold transition-colors animate-pulse"
-                  >
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  </button>
+                {activeTab.protocol === "websocket" || activeTab.protocol === "sse" ? (
+                  activeTab.connectionStatus === "connected" || activeTab.connectionStatus === "connecting" ? (
+                    <button
+                      title="Desconectar"
+                      onClick={() => {
+                        if (activeTab.protocol === "websocket") {
+                          window.electronAPI.wsDisconnect(activeTab.id);
+                        } else {
+                          window.electronAPI.sseDisconnect(activeTab.id);
+                        }
+                      }}
+                      className="p-2.5 bg-red-600 hover:bg-red-700 text-white rounded font-bold transition-colors flex items-center justify-center shrink-0 w-[42px] h-[37px]"
+                    >
+                      {activeTab.connectionStatus === "connecting" ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <span className="text-[0.65rem] font-black tracking-wider uppercase">Stop</span>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      title="Conectar"
+                      onClick={() => {
+                        const finalRequest = buildFinalRequest(activeTab.data.request, activeVariables);
+                        const headersObj = finalRequest.headers || {};
+                        const finalUrl = finalRequest.url || "";
+
+                        if (activeTab.protocol === "websocket") {
+                          window.electronAPI.wsConnect({
+                            requestId: activeTab.id,
+                            url: finalUrl,
+                            headers: headersObj
+                          });
+                        } else {
+                          window.electronAPI.sseConnect({
+                            requestId: activeTab.id,
+                            url: finalUrl,
+                            headers: headersObj
+                          });
+                        }
+                      }}
+                      className="p-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded font-bold transition-colors flex items-center gap-1.5"
+                    >
+                      <Play size={16} />
+                      <span className="text-[0.65rem] font-black tracking-wider uppercase">Connect</span>
+                    </button>
+                  )
                 ) : (
-                  <button
-                    title="Executar requisição"
-                    onClick={handleExecute}
-                    className="p-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold transition-colors"
-                  >
-                    <Play size={16} />
-                  </button>
+                  isExecuting ? (
+                    <button
+                      title="Cancelar requisição"
+                      onClick={() => cancelRequest(isExecuting as string)}
+                      className="p-2.5 bg-red-600 hover:bg-red-700 text-white rounded font-bold transition-colors animate-pulse flex items-center justify-center shrink-0 w-[42px] h-[37px]"
+                    >
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    </button>
+                  ) : (
+                    <button
+                      title="Executar requisição"
+                      onClick={handleExecute}
+                      className="p-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold transition-colors"
+                    >
+                      <Play size={16} />
+                    </button>
+                  )
                 )}
 
                 {/* Botão Salvar */}
                 <button
                   onClick={handleSave}
-                  disabled={!activeTab.isDirty || !!isExecuting}
+                  disabled={!activeTab.isDirty || !!isExecuting || activeTab.connectionStatus === "connecting" || activeTab.connectionStatus === "connected"}
                   className={`
                     p-2.5 rounded font-bold transition-colors flex items-center gap-2
                     ${
@@ -211,7 +280,10 @@ export default function TabEditor() {
             {/* Sub-Navegação nativa (Headers, Body, etc) */}
             <div className="flex flex-row border-none px-0">
               {Object.entries(telaData.request).map(([subKey, subValue]) => {
-                if (subKey === "url" || subKey === "method" || !subValue)
+                if (subKey === "url" || subKey === "method" || subKey === "protocol" || !subValue)
+                  return null;
+                // SSE não possui corpo de envio
+                if (activeTab.protocol === "sse" && subKey === "body")
                   return null;
                 const isActive = activeSection === subKey;
 
