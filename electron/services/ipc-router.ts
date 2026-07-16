@@ -3,6 +3,7 @@ import { IUserService } from "../interfaces/user-service.interface";
 import { IWorkspaceService } from "../interfaces/workspace-service.interface";
 import { IHistoryService } from "../interfaces/history-service.interface";
 import { ICollectionService } from "../interfaces/collection-service.interface";
+import { IEnvironmentService } from "../interfaces/environment-service.interface";
 import { INetworkService } from "../interfaces/network-service.interface";
 import { IExportService } from "../interfaces/export-service.interface";
 import { IAppMessenger } from "../interfaces/app-messenger.interface";
@@ -13,6 +14,7 @@ import { AuthHandler } from "../ipc/handlers/auth.handler";
 import { WorkspaceHandler } from "../ipc/handlers/workspace.handler";
 import { HistoryHandler } from "../ipc/handlers/history.handler";
 import { CollectionHandler } from "../ipc/handlers/collection.handler";
+import { EnvironmentHandler } from "../ipc/handlers/environment.handler";
 import { NetworkHandler } from "../ipc/handlers/network.handler";
 import { WindowHandler } from "../ipc/handlers/window.handler";
 import { FileHandler } from "../ipc/handlers/file.handler";
@@ -37,6 +39,7 @@ export class IpcRouter {
     workspaceService: IWorkspaceService;
     historyService: IHistoryService;
     collectionService: ICollectionService;
+    environmentService: IEnvironmentService;
     networkService: INetworkService;
     exportService: IExportService;
     messenger: IAppMessenger;
@@ -50,6 +53,7 @@ export class IpcRouter {
       new WorkspaceHandler(dependencies.workspaceService, dependencies.messenger),
       new HistoryHandler(dependencies.historyService, dependencies.windowManager, dependencies.messenger),
       new CollectionHandler(dependencies.collectionService, dependencies.messenger),
+      new EnvironmentHandler(dependencies.environmentService, dependencies.messenger),
       new NetworkHandler(dependencies.networkService, dependencies.messenger),
       new WindowHandler(dependencies.windowManager),
       new FileHandler(dependencies.exportService, { http: dependencies.formatters.http }),

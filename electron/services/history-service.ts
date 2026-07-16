@@ -1,51 +1,26 @@
-import { eq, and, notInArray, desc } from "drizzle-orm";
-import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import * as schema from "../db/schema";
 import { TreeParser } from "../utils/tree-parser";
 import { IUserService } from "../interfaces/user-service.interface";
 import { IHistoryService, HistoryItem } from "../interfaces/history-service.interface";
-
-/**
- * HistoryService
- * Orquestra a persistência do histórico e coleções usando Drizzle ORM.
- * Segue princípios SOLID, desacoplando a lógica de mapeamento (TreeParser)
- * e utilizando Injeção de Dependência para o banco de dados.
- */
+import { IHistoryRepository } from "../interfaces/history-repository.interface";
 
 export class HistoryService implements IHistoryService {
-  private db: BetterSQLite3Database<typeof schema>;
+  private repo: IHistoryRepository;
   private userService: IUserService;
 
-  constructor(db: BetterSQLite3Database<typeof schema>, userService: IUserService) {
-    this.db = db;
+  constructor(repo: IHistoryRepository, userService: IUserService) {
+    this.repo = repo;
     this.userService = userService;
   }
 
-  /**
-   * Retorna a lista resumida de coleções para o histórico da barra lateral.
-   */
   async getHistory(): Promise<HistoryItem[]> {
     try {
-      const currentUser = this.userService?.getCurrentUser();
-      const ownerId = currentUser ? currentUser.id : null;
-
-      // Busca as coleções (atualmente o ownerId está em workspaces ou profiles, 
-      // mas na tabela collections atual não temos owner_id direto, usamos o workspace)
-      // Nota: Se a coleção for "solta", ela não tem ownerId direto no schema atual,
-      // a menos que adicionemos. No schema atual collections.workspaceId é opcional.
-      
-      const results = await this.db.query.collections.findMany({
-        orderBy: [desc(schema.collections.updatedAt)],
-        limit: 15,
-        // Adicione filtros aqui se necessário
-      });
-
+      const results = await this.repo.getCollectionsResumed();
       return results.map(col => ({
         id: col.id,
         name: col.name,
         updatedAt: col.updatedAt!,
         sourceType: "native",
-        file: `${col.id}.json`, // Compatibilidade com UI antiga
+        file: `${col.id}.json`,
       }));
     } catch (error) {
       console.error("[HistoryService] Erro ao obter histórico:", error);
@@ -53,48 +28,15 @@ export class HistoryService implements IHistoryService {
     }
   }
 
-  /**
-   * Busca uma coleção completa e reconstrói sua árvore.
-   */
   async getCollectionById(id: string): Promise<any> {
     try {
-      const collection = await this.db.query.collections.findFirst({
-        where: eq(schema.collections.id, id),
-        with: {
-          requests: true,
-          // folders: true // Precisamos garantir que relations estão no schema
-        }
-      });
-
+      const collection = await this.repo.getCollectionBase(id);
       if (!collection) return null;
 
-      // Como o Drizzle relational query pode ser limitado para recursividade infinita,
-      // buscamos todos os folders e requests daquela coleção de forma plana.
-      const [allFolders, allRequests] = await Promise.all([
-        this.db.select().from(schema.folders).where(eq(schema.folders.collectionId, id)),
-        this.db.select({
-          id: schema.requests.id,
-          name: schema.requests.name,
-          collectionId: schema.requests.collectionId,
-          folderId: schema.requests.folderId,
-          method: schema.requests.method,
-          url: schema.requests.url,
-          orderIndex: schema.requests.orderIndex,
-          isDirty: schema.requests.isDirty,
-          createdAt: schema.requests.createdAt,
-          updatedAt: schema.requests.updatedAt,
-        })
-        .from(schema.requests)
-        .where(eq(schema.requests.collectionId, id))
-      ]);
+      const { folders, requests } = await this.repo.getCollectionHierarchy(id);
+      const items = TreeParser.unflatten(folders, requests);
 
-      const items = TreeParser.unflatten(allFolders, allRequests);
-
-      // Busca ambientes
-      const envs = await this.db.query.environments.findMany({
-        where: eq(schema.environments.collectionsId, id)
-      });
-
+      const envs = await this.repo.getCollectionEnvironments(id);
       const parsedEnvs = envs.map(e => ({
         ...e,
         variables: typeof e.variables === 'string' ? JSON.parse(e.variables) : (e.variables || [])
@@ -112,93 +54,21 @@ export class HistoryService implements IHistoryService {
     }
   }
 
-  /**
-   * Salva uma coleção inteira desconstruindo-a em tabelas relacionais.
-   */
   async saveHistory(collectionData: any): Promise<{ success: boolean }> {
     const { id, name, items, environments, workspaceId, activeEnvironmentId } = collectionData;
     const collectionId = id;
 
-    // 1. Achata a árvore
     const { folders: flatFolders, requests: flatRequests } = TreeParser.flatten(collectionId, items);
 
     try {
-      this.db.transaction((tx) => {
-        // 2. Upsert Coleção
-        tx.insert(schema.collections)
-          .values({
-            id: collectionId,
-            name: name,
-            workspaceId: workspaceId || null,
-            storageType: 'local',
-            activeEnv: activeEnvironmentId || null,
-          })
-          .onConflictDoUpdate({
-            target: schema.collections.id,
-            set: { 
-              name, 
-              activeEnv: activeEnvironmentId || null, 
-              updatedAt: new Date().toISOString() 
-            }
-          }).run();
-
-        // 3. Gerenciar Pastas (Upsert + Delete órfãos)
-        const folderIds = flatFolders.map(f => f.id);
-        if (folderIds.length > 0) {
-          tx.delete(schema.folders)
-            .where(and(
-              eq(schema.folders.collectionId, collectionId),
-              notInArray(schema.folders.id, folderIds)
-            )).run();
-        } else {
-          tx.delete(schema.folders).where(eq(schema.folders.collectionId, collectionId)).run();
-        }
-
-        for (const folder of flatFolders) {
-          tx.insert(schema.folders)
-            .values(folder)
-            .onConflictDoUpdate({ target: schema.folders.id, set: folder }).run();
-        }
-
-        // 4. Gerenciar Requests (Upsert + Delete órfãos)
-        const requestIds = flatRequests.map(r => r.id);
-        if (requestIds.length > 0) {
-          tx.delete(schema.requests)
-            .where(and(
-              eq(schema.requests.collectionId, collectionId),
-              notInArray(schema.requests.id, requestIds)
-            )).run();
-        } else {
-          tx.delete(schema.requests).where(eq(schema.requests.collectionId, collectionId)).run();
-        }
-
-        for (const req of flatRequests) {
-          tx.insert(schema.requests)
-            .values(req)
-            .onConflictDoUpdate({
-              target: schema.requests.id,
-              set: {
-                name: req.name,
-                method: req.method,
-                folderId: req.folderId,
-                orderIndex: req.orderIndex,
-                updatedAt: new Date().toISOString()
-              }
-            }).run();
-        }
-
-        // 5. Ambientes
-        if (environments && Array.isArray(environments)) {
-          tx.delete(schema.environments).where(eq(schema.environments.collectionsId, collectionId)).run();
-          for (const env of environments) {
-            tx.insert(schema.environments).values({
-              id: env.id,
-              name: env.name,
-              collectionsId: collectionId,
-              variables: JSON.stringify(env.variables || [])
-            } as any).run();
-          }
-        }
+      await this.repo.saveCollectionTransaction({
+        collectionId,
+        name,
+        workspaceId,
+        activeEnvironmentId,
+        flatFolders,
+        flatRequests,
+        environments: environments || [],
       });
 
       return { success: true };
@@ -210,12 +80,7 @@ export class HistoryService implements IHistoryService {
 
   async deleteHistoryItem(id: string): Promise<boolean> {
     try {
-      this.db.transaction((tx) => {
-        // O SQLite com FK Cascade deveria cuidar disso, 
-        // mas garantimos deletando a coleção
-        tx.delete(schema.collections).where(eq(schema.collections.id, id)).run();
-      });
-      return true;
+      return this.repo.deleteCollection(id);
     } catch (error) {
       console.error("[HistoryService] Erro ao deletar item:", error);
       return false;
@@ -224,11 +89,7 @@ export class HistoryService implements IHistoryService {
 
   async deleteAllHistory(): Promise<boolean> {
     try {
-      const currentUser = this.userService?.getCurrentUser();
-      // Nota: No schema atual as coleções não têm owner_id direto. 
-      // Se quiser deletar tudo do usuário, precisaria filtrar por workspace ou adicionar owner_id na coleção.
-      await this.db.delete(schema.collections);
-      return true;
+      return this.repo.deleteAllCollections();
     } catch (error) {
       console.error("[HistoryService] Erro ao deletar tudo:", error);
       return false;
@@ -237,10 +98,9 @@ export class HistoryService implements IHistoryService {
 
   async getRequestDetails(id: string): Promise<any> {
     try {
-      const req = await this.db.query.requests.findFirst({
-        where: eq(schema.requests.id, id),
-      });
+      const req = await this.repo.findRequestById(id);
       if (!req) return null;
+
       return {
         id: req.id,
         name: req.name,
@@ -270,21 +130,19 @@ export class HistoryService implements IHistoryService {
       const bodyValue = typeof data.body === 'object' ? JSON.stringify(data.body) : data.body;
       const authValue = typeof data.auth === 'object' ? JSON.stringify(data.auth) : data.auth;
 
-      await this.db.update(schema.requests)
-        .set({
-          method: data.method,
-          url: data.url,
-          name: data.name,
-          params: paramsValue,
-          headers: headersValue,
-          body: bodyValue,
-          auth: authValue,
-          isDirty: data.isDirty !== undefined ? data.isDirty : true,
-          updatedAt: new Date().toISOString()
-        })
-        .where(eq(schema.requests.id, id))
-        .run();
-      return true;
+      const updateData = {
+        method: data.method,
+        url: data.url,
+        name: data.name,
+        params: paramsValue,
+        headers: headersValue,
+        body: bodyValue,
+        auth: authValue,
+        isDirty: data.isDirty !== undefined ? data.isDirty : true,
+        updatedAt: new Date().toISOString()
+      };
+
+      return this.repo.updateRequestDetails(id, updateData);
     } catch (error) {
       console.error("[HistoryService] Erro ao salvar detalhes da requisição:", error);
       return false;
@@ -293,24 +151,13 @@ export class HistoryService implements IHistoryService {
 
   async getCollectionForExport(id: string): Promise<any> {
     try {
-      const collection = await this.db.query.collections.findFirst({
-        where: eq(schema.collections.id, id),
-      });
-
+      const collection = await this.repo.getCollectionBase(id);
       if (!collection) return null;
 
-      const [allFolders, allRequests] = await Promise.all([
-        this.db.select().from(schema.folders).where(eq(schema.folders.collectionId, id)),
-        this.db.select().from(schema.requests).where(eq(schema.requests.collectionId, id))
-      ]);
+      const { folders, requests } = await this.repo.getCollectionHierarchy(id);
+      const items = TreeParser.unflatten(folders, requests, { lean: false });
 
-      const items = TreeParser.unflatten(allFolders, allRequests, { lean: false });
-
-      // Busca ambientes
-      const envs = await this.db.query.environments.findMany({
-        where: eq(schema.environments.collectionsId, id)
-      });
-
+      const envs = await this.repo.getCollectionEnvironments(id);
       const parsedEnvs = envs.map(e => ({
         ...e,
         variables: typeof e.variables === 'string' ? JSON.parse(e.variables) : (e.variables || [])

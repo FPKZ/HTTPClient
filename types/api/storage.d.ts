@@ -25,10 +25,14 @@ export interface StorageAPI {
     createFolder: (params: { collectionId: string, parentId: string | null, name: string }) => Promise<any>;
     renameItem: (params: { id: string, type: 'folder' | 'route', name: string }) => Promise<boolean>;
     deleteFolder: (params: { id: string }) => Promise<boolean>;
-    createRequest: (params: { collectionId: string, folderId: string | null, name: string }) => Promise<any>;
+    createRequest: (params: { collectionId: string, folderId: string | null, name: string, protocol?: string }) => Promise<any>;
     duplicateRequest: (params: { id: string, newId: string, name: string }) => Promise<any>;
     deleteRequest: (params: { id: string }) => Promise<boolean>;
     moveOrReorderItem: (params: { id: string, type: 'folder' | 'route', targetFolderId: string | null, orderIndex: number }) => Promise<boolean>;
+    // --- Ambientes (EnvironmentService) ---
+    createEnvironment: (params: { collectionId: string, name: string }) => Promise<any>;
+    updateEnvironment: (params: { id: string, name?: string, variables?: any[] }) => Promise<boolean>;
+    deleteEnvironment: (id: string) => Promise<boolean>;
 
     // --- Workspaces ---
     getWorkspaces: (userId: string) => Promise<any[]>;

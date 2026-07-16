@@ -39,6 +39,11 @@ export const storagePreload: StorageAPI = {
     deleteRequest: (params) => ipcRenderer.invoke("collections:delete-request", params),
     moveOrReorderItem: (params) => ipcRenderer.invoke("collections:move-or-reorder-item", params),
 
+    // --- Ambientes (EnvironmentService) ---
+    createEnvironment: (params) => ipcRenderer.invoke("environments:create", params),
+    updateEnvironment: (params) => ipcRenderer.invoke("environments:update", params),
+    deleteEnvironment: (id) => ipcRenderer.invoke("environments:delete", id),
+
     // --- Workspaces ---
     getWorkspaces: (userId) => ipcRenderer.invoke("workspaces:get-all", userId),
     getWorkspaceDetails: (id) => ipcRenderer.invoke("workspaces:get-details", id),

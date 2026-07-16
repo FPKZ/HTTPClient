@@ -1,7 +1,5 @@
-import { eq } from "drizzle-orm";
-import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import * as schema from "../db/schema";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { IUserRepository } from "../interfaces/user-repository.interface";
 import { shell } from "electron";
 import SupabaseService from "./supabase-service";
 import { IAppMessenger } from "../interfaces/app-messenger.interface";
@@ -16,7 +14,7 @@ import { IOAuthServer } from "../interfaces/oauth-server.interface";
 
 export class UserService implements IUserService {
   private supabase: SupabaseClient | null;
-  private db: BetterSQLite3Database<typeof schema>;
+  private repo: IUserRepository;
   private currentUser: User | null = null;
   private messenger: IAppMessenger;
   private network: INetworkService;
@@ -24,13 +22,13 @@ export class UserService implements IUserService {
 
   constructor(
     supabaseService: SupabaseService, 
-    db: BetterSQLite3Database<typeof schema>, 
+    repo: IUserRepository, 
     messenger: IAppMessenger,
     networkService: INetworkService,
     oauthServer: IOAuthServer
   ) {
     this.supabase = supabaseService.getClient();
-    this.db = db;
+    this.repo = repo;
     this.messenger = messenger;
     this.network = networkService;
     this.oauthServer = oauthServer;
@@ -194,7 +192,7 @@ export class UserService implements IUserService {
     if (this.supabase) {
       const { data: { user } } = await this.supabase.auth.getUser();
       if (user) {
-        await this.db.delete(schema.profiles).where(eq(schema.profiles.id, user.id));
+        await this.repo.deleteProfile(user.id);
       }
       await this.supabase.auth.signOut();
     }
@@ -228,10 +226,7 @@ export class UserService implements IUserService {
       if (cloudError) throw cloudError;
 
       // 2. Atualiza o Cache Local (Pode ser Base64 para Offline)
-      await this.db
-        .update(schema.profiles)
-        .set(updatedData)
-        .where(eq(schema.profiles.id, this.currentUser.id));
+      await this.repo.updateProfile(this.currentUser.id, updatedData);
 
       this.currentUser = updatedData;
       this.messenger.sendToMain("auth:success", updatedData);
@@ -303,13 +298,7 @@ export class UserService implements IUserService {
       }
 
       // 2. ESPELHAR NO CACHE LOCAL (Sempre Base64 se disponível)
-      await this.db
-        .insert(schema.profiles)
-        .values(userData)
-        .onConflictDoUpdate({
-          target: schema.profiles.id,
-          set: userData,
-        });
+      await this.repo.upsertProfile(userData);
 
       this.currentUser = userData;
       return userData;

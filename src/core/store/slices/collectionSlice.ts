@@ -532,44 +532,59 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
       saveCollectionState();
     },
 
-    addEnvironment: (name: string = "Novo Ambiente") => {
+    addEnvironment: async (name: string = "Novo Ambiente") => {
       window.electronAPI.logAction(`Adicionando novo ambiente: ${name}`);
-      const newEnv = {
-        id: `env_${Date.now()}`,
-        name: name,
-        variables: [],
-      };
-      set((state) => ({
-        collection: {
-          ...state.collection,
-          environments: [...state.collection.environments, newEnv],
-        },
-      }));
-      saveCollectionState();
-      return newEnv.id;
+      const collectionId = get().collection.id;
+      if (!collectionId) return "";
+
+      try {
+        const newEnv = await window.electronAPI.createEnvironment({
+          collectionId,
+          name,
+        });
+        if (newEnv) {
+          set((state) => ({
+            collection: {
+              ...state.collection,
+              environments: [...state.collection.environments, newEnv],
+            },
+          }));
+          return newEnv.id;
+        }
+      } catch (err) {
+        console.error("[CollectionSlice] Erro ao adicionar ambiente:", err);
+      }
+      return "";
     },
 
-    deleteEnvironment: (id: string) => {
-      set((state) => {
-        const newEnvs = state.collection.environments.filter((e) => {
-          if (e.id === id) {
-            window.electronAPI.logAction(`Removendo ambiente: ${e.name}`);
-          }
-          return e.id !== id;
-        });
-        let newActiveId = state.collection.activeEnvironmentId;
-        if (newActiveId === id) {
-          newActiveId = newEnvs.length > 0 ? newEnvs[0].id : null;
+    deleteEnvironment: async (id: string) => {
+      try {
+        const success = await window.electronAPI.deleteEnvironment(id);
+        if (success) {
+          set((state) => {
+            const newEnvs = state.collection.environments.filter((e) => {
+              if (e.id === id) {
+                window.electronAPI.logAction(`Removendo ambiente: ${e.name}`);
+              }
+              return e.id !== id;
+            });
+            let newActiveId = state.collection.activeEnvironmentId;
+            if (newActiveId === id) {
+              newActiveId = newEnvs.length > 0 ? newEnvs[0].id : null;
+            }
+            return {
+              collection: {
+                ...state.collection,
+                environments: newEnvs,
+                activeEnvironmentId: newActiveId,
+              },
+            };
+          });
+          saveCollectionState();
         }
-        return {
-          collection: {
-            ...state.collection,
-            environments: newEnvs,
-            activeEnvironmentId: newActiveId,
-          },
-        };
-      });
-      saveCollectionState();
+      } catch (err) {
+        console.error("[CollectionSlice] Erro ao deletar ambiente:", err);
+      }
     },
 
     updateEnvironmentName: (id: string, name: string) => {
@@ -580,7 +595,7 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
 
       if (envUpdateTimeouts[id]) clearTimeout(envUpdateTimeouts[id]);
 
-      envUpdateTimeouts[id] = setTimeout(() => {
+      envUpdateTimeouts[id] = setTimeout(async () => {
         const initialName = envInitialNames[id];
         if (initialName !== name) {
           window.electronAPI.logAction(
@@ -589,6 +604,8 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
         }
         delete envUpdateTimeouts[id];
         delete envInitialNames[id];
+
+        await window.electronAPI.updateEnvironment({ id, name });
       }, 1000);
 
       set((state) => ({
@@ -597,35 +614,42 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           environments: state.collection.environments.map((e) => (e.id === id ? { ...e, name } : e)),
         },
       }));
-      saveCollectionState();
     },
 
-    addVariable: (envId: string) => {
-      set((state) => ({
-        collection: {
-          ...state.collection,
-          environments: state.collection.environments.map((e) => {
-            if (e.id === envId) {
-              window.electronAPI.logAction(`Adicionando nova variável: ${e.name}`);
-              return {
-                ...e,
-                variables: [
-                  ...e.variables,
-                  {
-                    id: `var_${Date.now()}`,
-                    key: "",
-                    initialValue: "",
-                    currentValue: "",
-                    enabled: true,
-                  },
-                ],
-              };
-            }
-            return e;
-          }),
-        },
-      }));
-      saveCollectionState();
+    addVariable: async (envId: string) => {
+      let updatedVariables: Variable[] = [];
+
+      set((state) => {
+        const newEnvs = state.collection.environments.map((e) => {
+          if (e.id === envId) {
+            window.electronAPI.logAction(`Adicionando nova variável: ${e.name}`);
+            const newVars = [
+              ...e.variables,
+              {
+                id: `var_${Date.now()}`,
+                key: "",
+                initialValue: "",
+                currentValue: "",
+                enabled: true,
+              },
+            ];
+            updatedVariables = newVars;
+            return { ...e, variables: newVars };
+          }
+          return e;
+        });
+
+        return {
+          collection: {
+            ...state.collection,
+            environments: newEnvs,
+          },
+        };
+      });
+
+      if (updatedVariables.length > 0) {
+        await window.electronAPI.updateEnvironment({ id: envId, variables: updatedVariables });
+      }
     },
 
     updateVariable: (envId: string, varId: string, updates: Partial<Variable>) => {
@@ -648,30 +672,46 @@ export const createCollectionSlice: StateCreator<CollectionSlice, [], [], Collec
           }),
         },
       }));
-      saveCollectionState();
+
+      // Debounce de escrita no SQLite de 500ms para evitar travamentos de escrita no disco enquanto digita
+      const debounceKey = envId + "_vars";
+      if (envUpdateTimeouts[debounceKey]) clearTimeout(envUpdateTimeouts[debounceKey]);
+      envUpdateTimeouts[debounceKey] = setTimeout(async () => {
+        delete envUpdateTimeouts[debounceKey];
+        const env = get().collection.environments.find((e) => e.id === envId);
+        if (env) {
+          await window.electronAPI.updateEnvironment({ id: envId, variables: env.variables });
+        }
+      }, 500);
     },
 
-    deleteVariable: (envId: string, varId: string) => {
-      set((state) => ({
-        collection: {
-          ...state.collection,
-          environments: state.collection.environments.map((e) => {
-            if (e.id === envId) {
-              return {
-                ...e,
-                variables: e.variables.filter((v) => {
-                  if (v.id === varId) {
-                    window.electronAPI.logAction(`Deletando variável: ${v.key} do ambiente: ${e.name}`);
-                  }
-                  return v.id !== varId;
-                }),
-              };
-            }
-            return e;
-          }),
-        },
-      }));
-      saveCollectionState();
+    deleteVariable: async (envId: string, varId: string) => {
+      let updatedVariables: Variable[] = [];
+
+      set((state) => {
+        const newEnvs = state.collection.environments.map((e) => {
+          if (e.id === envId) {
+            const newVars = e.variables.filter((v) => {
+              if (v.id === varId) {
+                window.electronAPI.logAction(`Deletando variável: ${v.key} do ambiente: ${e.name}`);
+              }
+              return v.id !== varId;
+            });
+            updatedVariables = newVars;
+            return { ...e, variables: newVars };
+          }
+          return e;
+        });
+
+        return {
+          collection: {
+            ...state.collection,
+            environments: newEnvs,
+          },
+        };
+      });
+
+      await window.electronAPI.updateEnvironment({ id: envId, variables: updatedVariables });
     },
 
     addGlobalVariable: () => {

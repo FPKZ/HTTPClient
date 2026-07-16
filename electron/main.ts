@@ -56,6 +56,13 @@ import AutoUpdateService from "./services/auto-update-service";
 import IpcRouter from "./services/ipc-router";
 import ExportService from "./services/export-service";
 import { CollectionService } from "./services/collection-service";
+import { EnvironmentService } from "./services/environment-service";
+import { DrizzleEnvironmentRepository } from "./repositories/drizzle-environment.repository";
+import { DrizzleWorkspaceRepository } from "./repositories/drizzle-workspace.repository";
+import { DrizzleUserRepository } from "./repositories/drizzle-user.repository";
+import { DrizzleSyncRepository } from "./repositories/drizzle-sync.repository";
+import { DrizzleCollectionRepository } from "./repositories/drizzle-collection.repository";
+import { DrizzleHistoryRepository } from "./repositories/drizzle-history.repository";
 import DialogReact from "./utils/dialog-react";
 import ActionLogger from "./utils/action-logger";
 import { InstanceDB } from "./db/index";
@@ -88,11 +95,18 @@ const appMessenger = new AppMessenger(windowManager);
 const supabaseService = new SupabaseService();
 const networkService = new NetworkService();
 const oauthServer = new OAuthServer();
-const userService = new UserService(supabaseService, db, appMessenger, networkService, oauthServer);
-const workspaceService = new WorkspaceService(db);
-const historyService = new HistoryService(db, userService);
-const collectionService = new CollectionService(db);
-const syncService = new SyncService(db, supabaseService);
+const userRepository = new DrizzleUserRepository(db);
+const userService = new UserService(supabaseService, userRepository, appMessenger, networkService, oauthServer);
+const workspaceRepository = new DrizzleWorkspaceRepository(db);
+const workspaceService = new WorkspaceService(workspaceRepository);
+const historyRepository = new DrizzleHistoryRepository(db);
+const historyService = new HistoryService(historyRepository, userService);
+const collectionRepository = new DrizzleCollectionRepository(db);
+const collectionService = new CollectionService(collectionRepository);
+const environmentRepository = new DrizzleEnvironmentRepository(db);
+const environmentService = new EnvironmentService(environmentRepository);
+const syncRepository = new DrizzleSyncRepository(db);
+const syncService = new SyncService(syncRepository, supabaseService);
 
 userService.initSession().catch(err => console.error("Erro ao inicializar sessão:", err));
 
@@ -109,6 +123,7 @@ const ipcRouter = new IpcRouter({
   workspaceService,
   historyService,
   collectionService,
+  environmentService,
   networkService,
   exportService,
   messenger: appMessenger,
@@ -136,7 +151,7 @@ app.whenReady().then(() => {
     log.error("Render process gone:", details.reason, details.exitCode);
     if (
       details.reason === "crashed" ||
-      details.reason === "gpu-process-crashed"
+      (details.reason as string) === "gpu-process-crashed"
     ) {
       dialog.showErrorBox(
         "Erro de Interface",
@@ -172,13 +187,13 @@ app.whenReady().then(() => {
     autoUpdateService.init(windowManager, appMessenger, () => {
       launchApp();
     });
-  } catch (error) {
+  } catch (error: any) {
     log.error("Erro ao iniciar o fluxo de atualização:", error);
     dialog.showErrorBox(
       "Erro ao iniciar o fluxo de atualização",
-      error.message,
+      error?.message || String(error),
     );
-    actionLogger.log("Erro ao iniciar o App: " + error.message);
+    actionLogger.log("Erro ao iniciar o App: " + (error?.message || String(error)));
     app.quit();
   }
 });

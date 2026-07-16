@@ -101,7 +101,7 @@ const LogEntry = React.memo(function LogEntry({ log, activeView }: LogEntryProps
             <span>{direction}</span>
             <span>{timestamp}</span>
           </div>
-          <div className="break-words mt-1 select-text whitespace-pre-wrap text-zinc-400">
+          <div className="wrap-break-word mt-1 select-text whitespace-pre-wrap text-zinc-400">
             {typeof data === "object" ? JSON.stringify(data, null, 2) : String(data)}
           </div>
         </div>

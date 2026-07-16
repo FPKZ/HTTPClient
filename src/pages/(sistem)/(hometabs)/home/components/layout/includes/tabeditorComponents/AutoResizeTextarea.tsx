@@ -5,6 +5,8 @@ interface AutoResizeTextareaProps {
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   className?: string;
   style?: React.CSSProperties;
+  placeholder?: string;
+  disabled?: boolean;
 }
 
 export default function AutoResizeTextarea({
@@ -12,6 +14,8 @@ export default function AutoResizeTextarea({
   onChange,
   className,
   style,
+  placeholder,
+  disabled,
 }: AutoResizeTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -42,6 +46,8 @@ export default function AutoResizeTextarea({
       style={{ ...style, overflow: "hidden", resize: "none" }}
       value={value}
       onChange={onChange}
+      placeholder={placeholder}
+      disabled={disabled}
       rows={1}
     />
   );

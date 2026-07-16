@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 export interface ModalConfig {
   open: boolean;
-  type: "folder" | "file" | "rename" | null;
+  type: "folder" | "file" | "rename" | "route:http" | "route:sse" | "route:websocket" | null;
   targetId: string | null;
   currentName?: string;
 }

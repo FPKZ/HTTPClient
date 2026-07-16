@@ -64,9 +64,9 @@ export default function EnvManagerModal({ open, onOpenChange }: EnvManagerModalP
 
   const selectedEnv = environments.find((e) => e.id === selectedEnvId);
 
-  const handleAddEnv = () => {
-    const newId = addEnvironment();
-    setSelectedEnvId(newId);
+  const handleAddEnv = async () => {
+    const newId = await addEnvironment();
+    if (newId) setSelectedEnvId(newId);
   };
 
   const confirmDeleteEnv = () => {

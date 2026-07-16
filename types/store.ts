@@ -98,7 +98,7 @@ export interface CollectionSlice {
   updateCollectionMeta: (name?: string, description?: string) => void;
   updateEnvironments: (environments: Environment[]) => void;
   setActiveEnvironment: (id: string | null) => void;
-  addEnvironment: (name?: string) => string;
+  addEnvironment: (name?: string) => Promise<string>;
   deleteEnvironment: (id: string) => void;
   updateEnvironmentName: (id: string, name: string) => void;
   addVariable: (envId: string) => void;
