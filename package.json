@@ -10,12 +10,12 @@
     "dev": "concurrently \"vite\" \"tsup --watch\" \"wait-on tcp:5173 dist_electron/main.cjs && node scripts/launch-electron.js\"",
     "electron": "electron .",
     "build": "vite build",
-    "build:full": "vite build && electron-builder --win --linux",
-    "build:electron": "vite build && electron-builder",
-    "build:win": "vite build && electron-builder --win",
-    "build:linux": "vite build && electron-builder --linux",
-    "build:mac": "vite build && electron-builder --mac",
-    "build:all": "vite build && electron-builder --win --linux --mac",
+    "build:full": "vite build && tsup && electron-builder --win --linux",
+    "build:electron": "vite build && tsup && electron-builder",
+    "build:win": "vite build && tsup && electron-builder --win",
+    "build:linux": "vite build && tsup && electron-builder --linux",
+    "build:mac": "vite build && tsup && electron-builder --mac",
+    "build:all": "vite build && tsup && electron-builder --win --linux --mac",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -26,8 +26,15 @@
     "directories": {
       "output": "dist_electron"
     },
+    "extraResources": [
+      {
+        "from": "drizzle",
+        "to": "drizzle"
+      }
+    ],
     "files": [
       "dist/**/*",
+      "dist_electron/**/*",
       "electron/**/*",
       "assets/**/*",
       "package.json"
@@ -35,7 +42,8 @@
     "win": {
       "icon": "assets/icon1.png",
       "target": [
-        "nsis"
+        "nsis",
+        "portable"
       ]
     },
     "linux": {
