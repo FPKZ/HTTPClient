@@ -388,22 +388,34 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
         if (tab.screenKey) {
           window.electronAPI.getRequestDetails(tab.screenKey).then((details) => {
             if (details) {
+              const safeParse = (data: any, fallback: any) => {
+                if (typeof data !== 'string') return data || fallback;
+                try { return JSON.parse(data); } catch (e) { return fallback; }
+              };
+              const protocol = details.protocol || tab.protocol || "http";
+              const method = details.method || tab.method || (protocol === "websocket" ? "WS" : "GET");
+              
               set((state) => ({
                 tabs: state.tabs.map((t) =>
                   t.id === tab.id
                     ? {
                         ...t,
+                        protocol,
+                        method,
                         url: details.url || t.url,
-                        method: details.method || t.method,
                         data: {
                           ...t.data,
+                          id: details.id || t.data.id,
+                          name: details.name || t.data.name,
+                          type: "route",
                           request: {
-                            method: details.method || "GET",
+                            protocol,
+                            method,
                             url: details.url || "",
-                            body: details.body || { mode: "none", content: "" },
-                            headers: details.headers || [],
-                            params: details.params || [],
-                            auth: details.auth,
+                            body: safeParse(details.body, { mode: "none", content: "" }),
+                            headers: safeParse(details.headers, []),
+                            params: safeParse(details.params, []),
+                            auth: safeParse(details.auth, { name: "none", config: {} }),
                           },
                         },
                         isDirty: false,
@@ -411,6 +423,18 @@ export const createTabSlice: StateCreator<TabSlice, [], [], TabSlice> = (set, ge
                     : t
                 ),
               }));
+            } else {
+              set((state) => {
+                const newTabs = state.tabs.filter((t) => t.id !== tab.id);
+                let newActiveId = state.activeTabId;
+                if (state.activeTabId === tab.id) {
+                  newActiveId = newTabs.length > 0 ? newTabs[newTabs.length - 1].id : null;
+                }
+                return {
+                  tabs: newTabs,
+                  activeTabId: newActiveId,
+                };
+              });
             }
           }).catch(console.error);
         }

@@ -295,7 +295,7 @@ export const TreeFolder = React.memo(({ item, level = 0 }: TreeFolderProps) => {
   ]);
 
   return (
-    <div className="select-none">
+    <div className="select-none overflow-y-auto">
       {/* Item Row */}
       <ContextMenu items={contextMenuItems}>
         <div

@@ -227,8 +227,8 @@ const SidebarTree = React.memo(() => {
 
   return (
     <ContextMenu items={rootContextMenuItems}>
-      <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="p-2 h-full bg-zinc-950/40">
+      <div className="flex-1 overflow-y-auto min-h-0 bg-zinc-950/40">
+        <div className="p-2 h-full">
           <div className="flex items-center justify-between px-0 py-1 mb-2">
             <span className="text-xs font-semibold text-gray-500 uppercase truncate">
               {collectionName}
@@ -332,7 +332,7 @@ SidebarTree.displayName = "SidebarTree";
  */
 export default function Sidebar() {
   return (
-    <div className="bg-zinc-900 flex flex-col h-full">
+    <div className="bg-zinc-900 flex flex-col h-full overflow-hidden">
       <SidebarTree />
       <SidebarHeader />
     </div>

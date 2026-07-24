@@ -32,6 +32,7 @@ export class DrizzleHistoryRepository implements IHistoryRepository {
         collectionId: schema.requests.collectionId,
         folderId: schema.requests.folderId,
         method: schema.requests.method,
+        protocol: schema.requests.protocol,
         url: schema.requests.url,
         params: schema.requests.params,
         headers: schema.requests.headers,
@@ -131,6 +132,7 @@ export class DrizzleHistoryRepository implements IHistoryRepository {
             set: {
               name: req.name,
               method: req.method,
+              protocol: req.protocol,
               folderId: req.folderId,
               orderIndex: req.orderIndex,
               updatedAt: new Date().toISOString()

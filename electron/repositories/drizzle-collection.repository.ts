@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import * as schema from "../db/schema";
 import { ICollectionRepository } from "../interfaces/collection-repository.interface";
@@ -13,12 +13,27 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
   async createFolder(collectionId: string, parentId: string | null, name: string): Promise<any> {
     const id = `folder_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
     
+    // Buscar maior orderIndex do nivel
+    const siblingFolders = parentId
+      ? await this.db.select({ orderIndex: schema.folders.orderIndex }).from(schema.folders).where(and(eq(schema.folders.collectionId, collectionId), eq(schema.folders.parentId, parentId)))
+      : await this.db.select({ orderIndex: schema.folders.orderIndex }).from(schema.folders).where(and(eq(schema.folders.collectionId, collectionId), isNull(schema.folders.parentId)));
+
+    const siblingRequests = parentId
+      ? await this.db.select({ orderIndex: schema.requests.orderIndex }).from(schema.requests).where(and(eq(schema.requests.collectionId, collectionId), eq(schema.requests.folderId, parentId)))
+      : await this.db.select({ orderIndex: schema.requests.orderIndex }).from(schema.requests).where(and(eq(schema.requests.collectionId, collectionId), isNull(schema.requests.folderId)));
+
+    const allIndexes = [
+      ...siblingFolders.map(f => f.orderIndex || 0),
+      ...siblingRequests.map(r => r.orderIndex || 0)
+    ];
+    const nextOrderIndex = allIndexes.length > 0 ? Math.max(...allIndexes) + 1 : 0;
+
     await this.db.insert(schema.folders).values({
       id,
       collectionId,
       parentId: parentId || null,
       name: name || "Nova Pasta",
-      orderIndex: 0,
+      orderIndex: nextOrderIndex,
       description: "",
     }).run();
 
@@ -81,6 +96,21 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
       },
     };
 
+    // Buscar maior orderIndex do nivel
+    const siblingFolders = folderId
+      ? await this.db.select({ orderIndex: schema.folders.orderIndex }).from(schema.folders).where(and(eq(schema.folders.collectionId, collectionId), eq(schema.folders.parentId, folderId)))
+      : await this.db.select({ orderIndex: schema.folders.orderIndex }).from(schema.folders).where(and(eq(schema.folders.collectionId, collectionId), isNull(schema.folders.parentId)));
+
+    const siblingRequests = folderId
+      ? await this.db.select({ orderIndex: schema.requests.orderIndex }).from(schema.requests).where(and(eq(schema.requests.collectionId, collectionId), eq(schema.requests.folderId, folderId)))
+      : await this.db.select({ orderIndex: schema.requests.orderIndex }).from(schema.requests).where(and(eq(schema.requests.collectionId, collectionId), isNull(schema.requests.folderId)));
+
+    const allIndexes = [
+      ...siblingFolders.map(f => f.orderIndex || 0),
+      ...siblingRequests.map(r => r.orderIndex || 0)
+    ];
+    const nextOrderIndex = allIndexes.length > 0 ? Math.max(...allIndexes) + 1 : 0;
+
     await this.db.insert(schema.requests).values({
       id,
       collectionId,
@@ -93,7 +123,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
       headers: JSON.stringify(initialRequest.headers),
       body: JSON.stringify(initialRequest.body),
       auth: JSON.stringify(initialRequest.auth),
-      orderIndex: 0,
+      orderIndex: nextOrderIndex,
       isDirty: false,
     } as any).run();
 

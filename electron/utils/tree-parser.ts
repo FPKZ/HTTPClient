@@ -46,6 +46,7 @@ export const TreeParser = {
           collectionId: collectionId,
           folderId: parentId,
           name: item.name || 'Request',
+          protocol: item.protocol || 'http',
           method: item.method || item.request?.method || 'GET',
           url: item.request?.url || '',
           // Convertemos objetos para string para o SQLite
@@ -93,6 +94,7 @@ export const TreeParser = {
         id: r.id,
         type: 'route',
         name: r.name,
+        protocol: r.protocol || 'http',
         orderIndex: r.orderIndex, // Mantemos para ordenar
         method: r.method,
       };
@@ -130,7 +132,16 @@ export const TreeParser = {
     });
 
     // 4. Ordenação final por orderIndex
-    const sorter = (a: any, b: any) => (a.orderIndex || 0) - (b.orderIndex || 0);
+    const sorter = (a: any, b: any) => {
+      const idxA = a.orderIndex ?? 0;
+      const idxB = b.orderIndex ?? 0;
+      if (idxA !== idxB) {
+        return idxA - idxB;
+      }
+      if (a.type === 'folder' && b.type === 'route') return -1;
+      if (a.type === 'route' && b.type === 'folder') return 1;
+      return 0;
+    };
 
     // Ordena itens da raiz
     rootItems.sort(sorter);

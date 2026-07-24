@@ -197,7 +197,7 @@ export default function LoginPage() {
                   action: () => handleSocialLogin("google"),
                 },
                 {
-                  img: "/github-brands-solid-full(1).svg",
+                  img: "github-brands-solid-full(1).svg",
                   alt: "GitHub",
                   size: "w-8 h-8",
                   text: "Entrar com o GitHub",

@@ -35,7 +35,7 @@ export class WindowManager implements IWindowManager {
       return `http://127.0.0.1:5173#${route}`;
     }
 
-    const indexPath = path.join(__dirname, "../../dist/index.html");
+    const indexPath = path.join(__dirname, "..", "dist", "index.html");
     return `file://${indexPath}#${route}`;
   }
 

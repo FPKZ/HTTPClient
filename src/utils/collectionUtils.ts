@@ -37,6 +37,7 @@ export const normalizeItems = (items: any[]): CollectionItem[] => {
           type: "route",
           name: item.name,
           description: item.description,
+          protocol: item.protocol || "http",
           method: item.method || item.request?.method || "GET",
         } as CollectionItem;
       }
@@ -54,6 +55,7 @@ export const normalizeItems = (items: any[]): CollectionItem[] => {
       name: item.name || "Sem Nome",
       type,
       ...(type === "route" && {
+        protocol: item.protocol || "http",
         method: item.method || item.request?.method || "GET",
       }),
       ...(type === "folder" && {
