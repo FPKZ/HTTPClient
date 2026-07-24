@@ -313,7 +313,8 @@ export class NetworkService implements INetworkService {
     if (dataSize > this.WORKER_THRESHOLD) {
       console.log(`[NetworkService] Resposta grande (${(dataSize / 1024).toFixed(1)}KB). Usando Worker Thread...`);
       return new Promise((resolve, reject) => {
-        const worker = new Worker(path.join(__dirname, "../workers/response-processor"), {
+        const workerPath = path.join(__dirname, "workers/response-processor.cjs");
+        const worker = new Worker(workerPath, {
           workerData: { arrayBuffer, headers },
         });
 
