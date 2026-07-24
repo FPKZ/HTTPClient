@@ -13,7 +13,7 @@ export const collections = sqliteTable('collections', {
     workspaceId: text('workspace_id').references(() => workspaces.id),
     ownerId: text('owner_id').references(() => profiles.id),
     orderIndex: integer('order_index').default(0),
-    activeEnv: text('active_env').references((): any => environments.id),
+    activeEnv: text('active_env').references((): any => environments.id, { onDelete: 'set null' }),
     storageType: text('storage_type').$type<'local' | 'remote'>().default('local'),
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
